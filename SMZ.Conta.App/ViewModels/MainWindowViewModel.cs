@@ -20,6 +20,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _isSearchSuggestionsOpen;
     private AbilitazioneFilterOptionViewModel? _filtroAbilitazione;
     private string _filtroVisiteEntro = string.Empty;
+    private int _sezioneAttivaIndex;
     private int _perId;
     private string _perIdInput = string.Empty;
     private string _cognome = string.Empty;
@@ -31,6 +32,9 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _telefono = string.Empty;
     private string _mail = string.Empty;
     private string _stato = "Pronto";
+    private int _scadenzeTotali;
+    private int _scadenzeUrgenti;
+    private int _scadenzeScadute;
     private TipoAbilitazione? _abilitazioneTipoSelezionato;
     private string _abilitazioneLivello = string.Empty;
     private string _abilitazioneProfondita = string.Empty;
@@ -46,7 +50,11 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         SearchCommand = new RelayCommand(CaricaElenco);
         ClearFiltersCommand = new RelayCommand(PulisciFiltri);
-        NewCommand = new RelayCommand(NuovoPersonale);
+        NewCommand = new RelayCommand(() =>
+        {
+            NuovoPersonale();
+            SezioneAttivaIndex = 1;
+        });
         SaveCommand = new RelayCommand(SalvaPersonale);
         _deleteCommand = new RelayCommand(EliminaPersonale, () => PerId > 0);
         _openSelectedPersonaleCommand = new RelayCommand(ApriSchedaSelezionata, () => SelectedPersonale is not null);
@@ -82,11 +90,18 @@ public sealed class MainWindowViewModel : ObservableObject
         CaricaElenco();
         AggiornaScadenziario();
         NuovoPersonale();
+        SezioneAttivaIndex = 0;
     }
 
     public string Titolo => "SMZ Conta";
 
     public string Sottotitolo => "Gestione personale, abilitazioni professionali e visite mediche";
+
+    public int SezioneAttivaIndex
+    {
+        get => _sezioneAttivaIndex;
+        set => SetProperty(ref _sezioneAttivaIndex, value);
+    }
 
     public ObservableCollection<PersonaleListItemViewModel> PersonaleItems { get; } = [];
 
@@ -577,20 +592,28 @@ public sealed class MainWindowViewModel : ObservableObject
         var oggi = DateOnly.FromDateTime(DateTime.Today);
         var finoA = oggi.AddDays(90);
         var items = _repository.GetScadenzeProssime(oggi, finoA);
+        var scadenzeViewModel = items.Select(ScadenzaItemViewModel.FromModel).ToList();
+
+        _scadenzeTotali = scadenzeViewModel.Count;
+        _scadenzeScadute = scadenzeViewModel.Count(item => item.IsExpired);
+        _scadenzeUrgenti = scadenzeViewModel.Count(item => item.IsUrgent);
 
         ScadenzeProssime.Clear();
-        foreach (var item in items.Take(12))
+        foreach (var item in scadenzeViewModel.Take(12))
         {
-            ScadenzeProssime.Add(ScadenzaItemViewModel.FromModel(item));
+            ScadenzeProssime.Add(item);
         }
 
         OnPropertyChanged(nameof(ScadenzeTotali));
+        OnPropertyChanged(nameof(ScadenzeScadute));
         OnPropertyChanged(nameof(ScadenzeUrgenti));
     }
 
-    public int ScadenzeTotali => ScadenzeProssime.Count;
+    public int ScadenzeTotali => _scadenzeTotali;
 
-    public int ScadenzeUrgenti => ScadenzeProssime.Count(item => item.IsUrgent);
+    public int ScadenzeScadute => _scadenzeScadute;
+
+    public int ScadenzeUrgenti => _scadenzeUrgenti;
 
     private void PulisciFiltri()
     {
@@ -669,6 +692,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         CaricaPersonale(SelectedPersonale.PerId);
+        SezioneAttivaIndex = 1;
     }
 
     private void SalvaPersonale()
