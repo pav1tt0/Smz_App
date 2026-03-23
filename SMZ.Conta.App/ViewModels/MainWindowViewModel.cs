@@ -11,10 +11,14 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly PersonaleRepository _repository = new();
     private readonly RelayCommand _deleteCommand;
     private readonly RelayCommand _openSelectedPersonaleCommand;
+    private readonly RelayCommand _restoreArchivioCommand;
+    private readonly RelayCommand _deleteArchivioDefinitivoCommand;
     private readonly List<string> _allSearchSuggestions;
     private PersonaleListItemViewModel? _selectedPersonale;
+    private PersonaleArchivioListItemViewModel? _selectedArchivio;
     private PersonaleAbilitazioneRowViewModel? _selectedAbilitazione;
     private VisitaMedicaRowViewModel? _selectedVisita;
+    private PersonaleArchivio? _archivioDettaglio;
     private string? _selectedSearchSuggestion;
     private string _filtroCognome = string.Empty;
     private bool _isSearchSuggestionsOpen;
@@ -25,7 +29,10 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _perIdInput = string.Empty;
     private string _cognome = string.Empty;
     private string _nome = string.Empty;
+    private string _qualifica = string.Empty;
     private string _codiceFiscale = string.Empty;
+    private string _matricolaPersonale = string.Empty;
+    private string _numeroBrevettoSmz = string.Empty;
     private string _dataNascita = string.Empty;
     private string _luogoNascita = string.Empty;
     private string _indirizzoResidenza = string.Empty;
@@ -58,6 +65,8 @@ public sealed class MainWindowViewModel : ObservableObject
         SaveCommand = new RelayCommand(SalvaPersonale);
         _deleteCommand = new RelayCommand(EliminaPersonale, () => PerId > 0);
         _openSelectedPersonaleCommand = new RelayCommand(ApriSchedaSelezionata, () => SelectedPersonale is not null);
+        _restoreArchivioCommand = new RelayCommand(RipristinaArchivio, () => SelectedArchivio is not null);
+        _deleteArchivioDefinitivoCommand = new RelayCommand(EliminaArchivioDefinitivamente, () => SelectedArchivio is not null);
         SaveAbilitazioneCommand = new RelayCommand(SalvaAbilitazioneInEditor);
         ClearAbilitazioneEditorCommand = new RelayCommand(PulisciEditorAbilitazione);
         RemoveAbilitazioneCommand = new RelayCommand(RimuoviAbilitazioneRiga);
@@ -68,6 +77,9 @@ public sealed class MainWindowViewModel : ObservableObject
 
         Abilitazioni = new ObservableCollection<PersonaleAbilitazioneRowViewModel>();
         VisiteMediche = new ObservableCollection<VisitaMedicaRowViewModel>();
+        ArchivioItems = new ObservableCollection<PersonaleArchivioListItemViewModel>();
+        ArchivioAbilitazioni = new ObservableCollection<PersonaleAbilitazioneRowViewModel>();
+        ArchivioVisiteMediche = new ObservableCollection<VisitaMedicaRowViewModel>();
         ScadenzeProssime = new ObservableCollection<ScadenzaItemViewModel>();
         SearchSuggestions = new ObservableCollection<string>();
         TipiAbilitazioneCatalogo = new ObservableCollection<TipoAbilitazione>(_repository.GetTipiAbilitazione());
@@ -88,12 +100,13 @@ public sealed class MainWindowViewModel : ObservableObject
         AggiornaSuggerimentiRicerca();
 
         CaricaElenco();
+        CaricaArchivio();
         AggiornaScadenziario();
         NuovoPersonale();
         SezioneAttivaIndex = 0;
     }
 
-    public string Titolo => "SMZ Conta";
+    public string Titolo => "Sommozzatori Polizia di Stato";
 
     public string Sottotitolo => "Gestione personale, abilitazioni professionali e visite mediche";
 
@@ -121,8 +134,38 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<ScadenzaItemViewModel> ScadenzeProssime { get; }
 
+    public ObservableCollection<PersonaleArchivioListItemViewModel> ArchivioItems { get; }
+
+    public ObservableCollection<PersonaleAbilitazioneRowViewModel> ArchivioAbilitazioni { get; }
+
+    public ObservableCollection<VisitaMedicaRowViewModel> ArchivioVisiteMediche { get; }
+
     public ObservableCollection<TipoVisitaMedica> TipiVisitaMedicaCatalogo { get; } =
         new(CatalogoVisiteMediche.Tutte);
+
+    public ObservableCollection<string> QualificheDisponibili { get; } =
+        new(
+        [
+            "Agente",
+            "Agente Scelto",
+            "Assistente",
+            "Assistente Capo",
+            "Assistente Capo Coordinatore",
+            "Vice Sovrintendente",
+            "Sovrintendente",
+            "Sovrintendente Capo",
+            "Sovrintendente Capo Coordinatore",
+            "Vice Ispettore",
+            "Ispettore",
+            "Ispettore Capo",
+            "Ispettore Superiore",
+            "Sostituto Commissario",
+            "Sostituto Commissario Coordinatore",
+            "Vice Commissario",
+            "Commissario",
+            "Commissario Capo",
+            "Vice Questore Aggiunto",
+        ]);
 
     public RelayCommand SearchCommand { get; }
 
@@ -135,6 +178,10 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand DeleteCommand => _deleteCommand;
 
     public RelayCommand OpenSelectedPersonaleCommand => _openSelectedPersonaleCommand;
+
+    public RelayCommand RestoreArchivioCommand => _restoreArchivioCommand;
+
+    public RelayCommand DeleteArchivioDefinitivoCommand => _deleteArchivioDefinitivoCommand;
 
     public RelayCommand SaveAbilitazioneCommand { get; }
 
@@ -189,6 +236,28 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 CaricaEditorVisitaDaSelezione();
                 OnPropertyChanged(nameof(AzioneVisitaLabel));
+            }
+        }
+    }
+
+    public PersonaleArchivioListItemViewModel? SelectedArchivio
+    {
+        get => _selectedArchivio;
+        set
+        {
+            if (SetProperty(ref _selectedArchivio, value))
+            {
+                _restoreArchivioCommand.RaiseCanExecuteChanged();
+                _deleteArchivioDefinitivoCommand.RaiseCanExecuteChanged();
+
+                if (value is null)
+                {
+                    PulisciDettaglioArchivio();
+                }
+                else
+                {
+                    CaricaDettaglioArchivio(value.PersonaleArchivioId);
+                }
             }
         }
     }
@@ -287,10 +356,28 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    public string Qualifica
+    {
+        get => _qualifica;
+        set => SetProperty(ref _qualifica, value);
+    }
+
     public string CodiceFiscale
     {
         get => _codiceFiscale;
         set => SetProperty(ref _codiceFiscale, value);
+    }
+
+    public string MatricolaPersonale
+    {
+        get => _matricolaPersonale;
+        set => SetProperty(ref _matricolaPersonale, value);
+    }
+
+    public string NumeroBrevettoSmz
+    {
+        get => _numeroBrevettoSmz;
+        set => SetProperty(ref _numeroBrevettoSmz, value);
     }
 
     public string DataNascita
@@ -615,6 +702,160 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public int ScadenzeUrgenti => _scadenzeUrgenti;
 
+    public string ArchivioTitolo => _archivioDettaglio?.NominativoCompleto ?? "Seleziona una scheda archiviata";
+
+    public string ArchivioPerId => _archivioDettaglio is null
+        ? "PerID originario non disponibile"
+        : $"PerID originario {_archivioDettaglio.PerIdOriginale}";
+
+    public string ArchivioCodiceFiscale => string.IsNullOrWhiteSpace(_archivioDettaglio?.CodiceFiscale)
+        ? "Codice fiscale non disponibile"
+        : _archivioDettaglio.CodiceFiscale;
+
+    public string ArchivioDataArchiviazione => _archivioDettaglio is null
+        ? "Data archiviazione non disponibile"
+        : $"Archiviata il {_archivioDettaglio.DataArchiviazione:dd/MM/yyyy HH:mm}";
+
+    public int ArchivioAbilitazioniTotali => ArchivioAbilitazioni.Count;
+
+    public int ArchivioVisiteTotali => ArchivioVisiteMediche.Count;
+
+    public string ArchivioContatti
+    {
+        get
+        {
+            if (_archivioDettaglio is null)
+            {
+                return "Contatti non disponibili";
+            }
+
+            var parti = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.Telefono))
+            {
+                parti.Add(_archivioDettaglio.Telefono);
+            }
+
+            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.Mail))
+            {
+                parti.Add(_archivioDettaglio.Mail);
+            }
+
+            return parti.Count == 0 ? "Contatti non disponibili" : string.Join(" | ", parti);
+        }
+    }
+
+    public string ArchivioAnagraficaSintesi
+    {
+        get
+        {
+            if (_archivioDettaglio is null)
+            {
+                return "Seleziona una scheda per vedere i dettagli archiviati.";
+            }
+
+            var parti = new List<string>();
+
+            if (_archivioDettaglio.DataNascita is not null)
+            {
+                parti.Add($"Nata/o il {_archivioDettaglio.DataNascita.Value:dd/MM/yyyy}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.LuogoNascita))
+            {
+                parti.Add(_archivioDettaglio.LuogoNascita);
+            }
+
+            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.Qualifica))
+            {
+                parti.Add(_archivioDettaglio.Qualifica);
+            }
+
+            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.MatricolaPersonale))
+            {
+                parti.Add($"Matricola {_archivioDettaglio.MatricolaPersonale}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.NumeroBrevettoSmz))
+            {
+                parti.Add($"Brevetto SMZ {_archivioDettaglio.NumeroBrevettoSmz}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.IndirizzoResidenza))
+            {
+                parti.Add(_archivioDettaglio.IndirizzoResidenza);
+            }
+
+            return parti.Count == 0 ? "Nessun dato anagrafico aggiuntivo." : string.Join(" | ", parti);
+        }
+    }
+
+    private void CaricaArchivio()
+    {
+        var items = _repository.GetArchivio();
+        var selectedArchiveId = SelectedArchivio?.PersonaleArchivioId;
+
+        ArchivioItems.Clear();
+        foreach (var item in items)
+        {
+            ArchivioItems.Add(PersonaleArchivioListItemViewModel.FromModel(item));
+        }
+
+        if (ArchivioItems.Count == 0)
+        {
+            SelectedArchivio = null;
+            return;
+        }
+
+        SelectedArchivio = ArchivioItems.FirstOrDefault(item => item.PersonaleArchivioId == selectedArchiveId) ?? ArchivioItems[0];
+    }
+
+    private void CaricaDettaglioArchivio(long archiveId)
+    {
+        var archivio = _repository.GetArchivioById(archiveId);
+        if (archivio is null)
+        {
+            PulisciDettaglioArchivio();
+            return;
+        }
+
+        _archivioDettaglio = archivio;
+
+        ArchivioAbilitazioni.Clear();
+        foreach (var abilitazione in archivio.Abilitazioni)
+        {
+            ArchivioAbilitazioni.Add(PersonaleAbilitazioneRowViewModel.FromModel(abilitazione));
+        }
+
+        ArchivioVisiteMediche.Clear();
+        foreach (var visita in archivio.VisiteMediche)
+        {
+            ArchivioVisiteMediche.Add(VisitaMedicaRowViewModel.FromModel(visita));
+        }
+
+        AggiornaDettaglioArchivio();
+    }
+
+    private void PulisciDettaglioArchivio()
+    {
+        _archivioDettaglio = null;
+        ArchivioAbilitazioni.Clear();
+        ArchivioVisiteMediche.Clear();
+        AggiornaDettaglioArchivio();
+    }
+
+    private void AggiornaDettaglioArchivio()
+    {
+        OnPropertyChanged(nameof(ArchivioTitolo));
+        OnPropertyChanged(nameof(ArchivioPerId));
+        OnPropertyChanged(nameof(ArchivioCodiceFiscale));
+        OnPropertyChanged(nameof(ArchivioDataArchiviazione));
+        OnPropertyChanged(nameof(ArchivioAbilitazioniTotali));
+        OnPropertyChanged(nameof(ArchivioVisiteTotali));
+        OnPropertyChanged(nameof(ArchivioContatti));
+        OnPropertyChanged(nameof(ArchivioAnagraficaSintesi));
+    }
+
     private void PulisciFiltri()
     {
         FiltroCognome = string.Empty;
@@ -632,7 +873,10 @@ public sealed class MainWindowViewModel : ObservableObject
         PerIdInput = string.Empty;
         Cognome = string.Empty;
         Nome = string.Empty;
+        Qualifica = string.Empty;
         CodiceFiscale = string.Empty;
+        MatricolaPersonale = string.Empty;
+        NumeroBrevettoSmz = string.Empty;
         DataNascita = string.Empty;
         LuogoNascita = string.Empty;
         IndirizzoResidenza = string.Empty;
@@ -659,7 +903,10 @@ public sealed class MainWindowViewModel : ObservableObject
         PerIdInput = personale.PerId.ToString();
         Cognome = personale.Cognome;
         Nome = personale.Nome;
+        Qualifica = personale.Qualifica;
         CodiceFiscale = personale.CodiceFiscale;
+        MatricolaPersonale = personale.MatricolaPersonale;
+        NumeroBrevettoSmz = personale.NumeroBrevettoSmz;
         DataNascita = FormatDate(personale.DataNascita);
         LuogoNascita = personale.LuogoNascita;
         IndirizzoResidenza = personale.IndirizzoResidenza;
@@ -732,8 +979,8 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         var result = MessageBox.Show(
-            $"Eliminare la scheda di {Cognome} {Nome}?",
-            "Conferma eliminazione",
+            $"Archiviare la scheda di {Cognome} {Nome}?\n\nLa scheda verra rimossa dall'elenco operativo ma restera conservata nell'archivio interno.",
+            "Conferma archiviazione",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
 
@@ -742,12 +989,93 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
-        _repository.DeletePersonale(PerId);
+        var archiveId = _repository.DeletePersonale(PerId);
         RicaricaSuggerimentiRicerca();
         CaricaElenco();
+        CaricaArchivio();
         AggiornaScadenziario();
         NuovoPersonale();
-        Stato = "Scheda eliminata";
+        SelectedArchivio = ArchivioItems.FirstOrDefault(item => item.PersonaleArchivioId == archiveId);
+        SezioneAttivaIndex = 2;
+        Stato = "Scheda archiviata. I dati restano conservati nell'archivio interno.";
+    }
+
+    private void RipristinaArchivio()
+    {
+        if (SelectedArchivio is null)
+        {
+            return;
+        }
+
+        var result = MessageBox.Show(
+            $"Ripristinare la scheda archiviata di {SelectedArchivio.Nominativo}?\n\nLa scheda tornera nell'elenco operativo.",
+            "Conferma ripristino",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (result != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            var perIdOriginale = SelectedArchivio.PerIdOriginale;
+            var perIdRipristinato = _repository.RestorePersonaleArchivio(SelectedArchivio.PersonaleArchivioId);
+
+            RicaricaSuggerimentiRicerca();
+            CaricaElenco();
+            CaricaArchivio();
+            AggiornaScadenziario();
+
+            SelectedPersonale = PersonaleItems.FirstOrDefault(item => item.PerId == perIdRipristinato);
+            if (SelectedPersonale is null)
+            {
+                CaricaPersonale(perIdRipristinato);
+            }
+
+            SezioneAttivaIndex = 1;
+            Stato = perIdRipristinato == perIdOriginale
+                ? $"Scheda ripristinata con PerID {perIdRipristinato}."
+                : $"Scheda ripristinata con PerID {perIdRipristinato}. Il PerID originario {perIdOriginale} era gia occupato.";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Ripristino archivio", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Ripristino non riuscito";
+        }
+    }
+
+    private void EliminaArchivioDefinitivamente()
+    {
+        if (SelectedArchivio is null)
+        {
+            return;
+        }
+
+        var result = MessageBox.Show(
+            $"Eliminare definitivamente la scheda archiviata di {SelectedArchivio.Nominativo}?\n\nQuesta operazione non e recuperabile.",
+            "Conferma eliminazione definitiva",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            var nominativo = SelectedArchivio.Nominativo;
+            _repository.DeletePersonaleArchivio(SelectedArchivio.PersonaleArchivioId);
+            CaricaArchivio();
+            Stato = $"Scheda archiviata eliminata definitivamente: {nominativo}.";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Eliminazione archivio", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Eliminazione definitiva non riuscita";
+        }
     }
 
     private void SalvaAbilitazioneInEditor()
@@ -980,7 +1308,10 @@ public sealed class MainWindowViewModel : ObservableObject
             PerId = ParseRequiredPerId(),
             Cognome = Cognome.Trim(),
             Nome = Nome.Trim(),
+            Qualifica = Qualifica.Trim(),
             CodiceFiscale = CodiceFiscale.Trim().ToUpperInvariant(),
+            MatricolaPersonale = MatricolaPersonale.Trim(),
+            NumeroBrevettoSmz = NumeroBrevettoSmz.Trim(),
             DataNascita = ParseDate(DataNascita, "Data di nascita"),
             LuogoNascita = LuogoNascita.Trim(),
             IndirizzoResidenza = IndirizzoResidenza.Trim(),

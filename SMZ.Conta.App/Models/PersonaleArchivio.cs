@@ -1,8 +1,12 @@
 namespace SMZ.Conta.App.Models;
 
-public sealed class Personale
+public sealed class PersonaleArchivio
 {
-    public int PerId { get; set; }
+    public long PersonaleArchivioId { get; set; }
+
+    public int PerIdOriginale { get; set; }
+
+    public DateTime DataArchiviazione { get; set; }
 
     public string Cognome { get; set; } = string.Empty;
 

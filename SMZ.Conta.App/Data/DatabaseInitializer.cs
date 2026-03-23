@@ -16,6 +16,7 @@ public static class DatabaseInitializer
         using var transaction = connection.BeginTransaction();
 
         CreateSchema(connection, transaction);
+        EnsureColumnMigrations(connection, transaction);
         SeedTipiAbilitazione(connection, transaction);
 
         transaction.Commit();
@@ -33,7 +34,10 @@ public static class DatabaseInitializer
                 PerId INTEGER PRIMARY KEY AUTOINCREMENT,
                 Cognome TEXT NOT NULL,
                 Nome TEXT NOT NULL,
+                Qualifica TEXT NULL,
                 CodiceFiscale TEXT NOT NULL,
+                MatricolaPersonale TEXT NULL,
+                NumeroBrevettoSmz TEXT NULL,
                 DataNascita TEXT NULL,
                 LuogoNascita TEXT NULL,
                 IndirizzoResidenza TEXT NULL,
@@ -95,9 +99,102 @@ public static class DatabaseInitializer
 
             CREATE INDEX IF NOT EXISTS IX_VisiteMediche_DataScadenza
                 ON VisiteMediche (DataScadenza);
+
+            CREATE TABLE IF NOT EXISTS PersonaleArchivio (
+                PersonaleArchivioId INTEGER PRIMARY KEY AUTOINCREMENT,
+                PerIdOriginale INTEGER NOT NULL,
+                Cognome TEXT NOT NULL,
+                Nome TEXT NOT NULL,
+                Qualifica TEXT NULL,
+                CodiceFiscale TEXT NOT NULL,
+                MatricolaPersonale TEXT NULL,
+                NumeroBrevettoSmz TEXT NULL,
+                DataNascita TEXT NULL,
+                LuogoNascita TEXT NULL,
+                IndirizzoResidenza TEXT NULL,
+                Telefono TEXT NULL,
+                Mail TEXT NULL,
+                DataArchiviazione TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_PersonaleArchivio_PerIdOriginale
+                ON PersonaleArchivio (PerIdOriginale);
+
+            CREATE INDEX IF NOT EXISTS IX_PersonaleArchivio_DataArchiviazione
+                ON PersonaleArchivio (DataArchiviazione);
+
+            CREATE TABLE IF NOT EXISTS PersonaleAbilitazioniArchivio (
+                PersonaleAbilitazioneArchivioId INTEGER PRIMARY KEY AUTOINCREMENT,
+                PersonaleArchivioId INTEGER NOT NULL,
+                PerIdOriginale INTEGER NOT NULL,
+                TipoAbilitazioneId INTEGER NOT NULL,
+                Livello TEXT NULL,
+                ProfonditaMetri INTEGER NULL,
+                DataConseguimento TEXT NULL,
+                DataScadenza TEXT NULL,
+                Note TEXT NULL,
+                FOREIGN KEY (PersonaleArchivioId) REFERENCES PersonaleArchivio (PersonaleArchivioId) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_PersonaleAbilitazioniArchivio_ArchivioId
+                ON PersonaleAbilitazioniArchivio (PersonaleArchivioId);
+
+            CREATE TABLE IF NOT EXISTS VisiteMedicheArchivio (
+                VisitaMedicaArchivioId INTEGER PRIMARY KEY AUTOINCREMENT,
+                PersonaleArchivioId INTEGER NOT NULL,
+                PerIdOriginale INTEGER NOT NULL,
+                TipoVisita TEXT NOT NULL,
+                DataUltimaVisita TEXT NULL,
+                DataScadenza TEXT NULL,
+                Esito TEXT NULL,
+                Note TEXT NULL,
+                FOREIGN KEY (PersonaleArchivioId) REFERENCES PersonaleArchivio (PersonaleArchivioId) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_VisiteMedicheArchivio_ArchivioId
+                ON VisiteMedicheArchivio (PersonaleArchivioId);
             """;
 
         command.ExecuteNonQuery();
+    }
+
+    private static void EnsureColumnMigrations(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        AddColumnIfMissing(connection, transaction, "Personale", "Qualifica", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "MatricolaPersonale", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "NumeroBrevettoSmz", "TEXT NULL");
+
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "Qualifica", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "MatricolaPersonale", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "NumeroBrevettoSmz", "TEXT NULL");
+    }
+
+    private static void AddColumnIfMissing(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string tableName,
+        string columnName,
+        string columnDefinition)
+    {
+        using var existsCommand = connection.CreateCommand();
+        existsCommand.Transaction = transaction;
+        existsCommand.CommandText = $"PRAGMA table_info({tableName});";
+
+        using var reader = existsCommand.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), columnName, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+        }
+
+        reader.Close();
+
+        using var alterCommand = connection.CreateCommand();
+        alterCommand.Transaction = transaction;
+        alterCommand.CommandText = $"ALTER TABLE {tableName} ADD COLUMN {columnName} {columnDefinition};";
+        alterCommand.ExecuteNonQuery();
     }
 
     private static void SeedTipiAbilitazione(SqliteConnection connection, SqliteTransaction transaction)

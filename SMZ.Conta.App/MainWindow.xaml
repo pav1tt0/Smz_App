@@ -10,13 +10,16 @@
         Height="960"
         MinWidth="1320"
         MinHeight="780"
-        Background="#EEF1EA"
+        WindowState="Maximized"
+        Background="#F4F4EF"
         FontFamily="Bahnschrift">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background" Value="#FFFCF7"/>
+            <Setter Property="BorderBrush" Value="#D8E1E8"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="22"/>
             <Setter Property="Padding" Value="20"/>
         </Style>
@@ -25,8 +28,13 @@
             <Setter Property="Margin" Value="0,6,0,0"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#C9D4CF"/>
+            <Setter Property="BorderBrush" Value="#C9D5E1"/>
             <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="DateTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
         </Style>
 
         <Style TargetType="ComboBox">
@@ -34,12 +42,108 @@
             <Setter Property="Padding" Value="8,6"/>
         </Style>
 
-        <Style TargetType="Button">
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style TargetType="TabItem">
+            <Setter Property="Background" Value="#E6EDF5"/>
+            <Setter Property="BorderBrush" Value="#CFDAE5"/>
+            <Setter Property="Foreground" Value="#4B6175"/>
+            <Setter Property="Padding" Value="18,8"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="12,12,0,0"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              ContentSource="Header"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="#F0F5FA"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="#143A63"/>
+                                <Setter TargetName="TabBorder" Property="Background" Value="#FFFCF7"/>
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#C9D8E7"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="TabBorder" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BaseButtonStyle" TargetType="Button">
             <Setter Property="Padding" Value="14,10"/>
             <Setter Property="Margin" Value="0,0,10,0"/>
-            <Setter Property="Background" Value="#17313E"/>
-            <Setter Property="Foreground" Value="#FFF8EE"/>
-            <Setter Property="BorderBrush" Value="#17313E"/>
+            <Setter Property="MinWidth" Value="132"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#174E78"/>
+            <Setter Property="Foreground" Value="#FFFDF7"/>
+            <Setter Property="BorderBrush" Value="#174E78"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.92"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.82"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.48"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}" />
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+            <Setter Property="Background" Value="#DFE8F1"/>
+            <Setter Property="BorderBrush" Value="#DFE8F1"/>
+            <Setter Property="Foreground" Value="#17313E"/>
+        </Style>
+
+        <Style x:Key="AccentButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+            <Setter Property="Background" Value="#CFA032"/>
+            <Setter Property="BorderBrush" Value="#CFA032"/>
+            <Setter Property="Foreground" Value="#17313E"/>
+        </Style>
+
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+            <Setter Property="Background" Value="#8F3434"/>
+            <Setter Property="BorderBrush" Value="#8F3434"/>
+            <Setter Property="Foreground" Value="#FFF7F3"/>
         </Style>
     </Window.Resources>
 
@@ -50,7 +154,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#17313E" CornerRadius="28" Padding="28" Margin="0,0,0,18">
+        <Border Grid.Row="0" Background="#0E68B2" CornerRadius="28" Padding="28" Margin="0,0,0,18">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -71,15 +175,12 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="Nuovo"
                             Command="{Binding NewCommand}"
-                            Background="#D1A344"
-                            BorderBrush="#D1A344"
-                            Foreground="#17313E" />
+                            Style="{StaticResource AccentButtonStyle}" />
                     <Button Content="Salva"
                             Command="{Binding SaveCommand}" />
-                    <Button Content="Elimina"
+                    <Button Content="Archivia"
                             Command="{Binding DeleteCommand}"
-                            Background="#7E2929"
-                            BorderBrush="#7E2929" />
+                            Style="{StaticResource DangerButtonStyle}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -137,21 +238,24 @@
 
                                     <TextBlock Margin="0,12,0,0" Text="Visite in scadenza entro" Foreground="#50626A" />
                                     <TextBox Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource DateTextBoxStyle}"
                                              MaxLength="10"
                                              ToolTip="Digita 18032026 oppure 18/03/2026"
                                              infra:DateInputBehavior.AutoFormat="True" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               Text="Inserisci una data, ad esempio 18/03/2026"
+                                               Foreground="#6A7B80"
+                                               FontSize="12" />
 
                                     <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
                                         <Button Content="Cerca" Command="{Binding SearchCommand}" />
                                         <Button Content="Pulisci"
                                                 Command="{Binding ClearFiltersCommand}"
-                                                Background="#CAD6D0"
-                                                BorderBrush="#CAD6D0"
-                                                Foreground="#17313E" />
+                                                Style="{StaticResource SecondaryButtonStyle}" />
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Row="2" Style="{StaticResource CardStyle}" Background="#E5EFEA">
+                            <Border Grid.Row="2" Style="{StaticResource CardStyle}" Background="#EEF4F8">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
@@ -173,7 +277,7 @@
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
 
-                                        <Border Background="#17313E" CornerRadius="16" Padding="12">
+                                        <Border Background="#183E5F" CornerRadius="16" Padding="12">
                                             <StackPanel>
                                                 <TextBlock Text="Totali"
                                                            Foreground="#C9D7DA"
@@ -197,7 +301,7 @@
                                             </StackPanel>
                                         </Border>
 
-                                        <Border Grid.Column="4" Background="#D1A344" CornerRadius="16" Padding="12">
+                                        <Border Grid.Column="4" Background="#CFA032" CornerRadius="16" Padding="12">
                                             <StackPanel>
                                                 <TextBlock Text="Urgenti 7 gg"
                                                            Foreground="#664B12"
@@ -294,15 +398,34 @@
                                          Margin="0,16,0,0"
                                          ItemsSource="{Binding PersonaleItems}"
                                          SelectedItem="{Binding SelectedPersonale}"
+                                         MaxHeight="640"
                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         ScrollViewer.CanContentScroll="False"
                                          BorderThickness="0"
                                          Background="Transparent"
                                          MinHeight="640">
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="Padding" Value="0" />
+                                            <Setter Property="Margin" Value="0,0,12,12" />
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Margin="0,0,0,10"
+                                            <Border Width="260"
+                                                    MinHeight="96"
                                                     Padding="14"
-                                                    Background="#F2F5F0"
+                                                    Background="#F7F9FB"
+                                                    BorderBrush="#DCE5EC"
+                                                    BorderThickness="1"
                                                     CornerRadius="16">
                                                 <StackPanel>
                                                     <TextBlock Text="{Binding Nominativo}"
@@ -347,6 +470,52 @@
                                                FontWeight="SemiBold"
                                                Foreground="#17313E" />
 
+                                    <TextBlock Margin="0,16,0,0"
+                                               Text="Dati di servizio"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <Grid Margin="0,16,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="18" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <StackPanel>
+                                            <TextBlock Text="PerID" Foreground="#50626A" />
+                                            <TextBox Text="{Binding PerIdInput, UpdateSourceTrigger=PropertyChanged}"
+                                                     IsReadOnly="{Binding IsExistingPerson}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Qualifica" Foreground="#50626A" />
+                                            <ComboBox ItemsSource="{Binding QualificheDisponibili}"
+                                                      Text="{Binding Qualifica, UpdateSourceTrigger=PropertyChanged}"
+                                                      IsEditable="True"
+                                                      IsTextSearchEnabled="True" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                                            <TextBlock Text="Matricola personale" Foreground="#50626A" />
+                                            <TextBox Text="{Binding MatricolaPersonale, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
+                                            <TextBlock Text="Numero brevetto SMZ" Foreground="#50626A" />
+                                            <TextBox Text="{Binding NumeroBrevettoSmz, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Margin="0,20,0,0"
+                                               Text="Dati anagrafici"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
                                     <Grid Margin="0,16,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
@@ -355,11 +524,7 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel>
-                                            <TextBlock Text="PerID" Foreground="#50626A" />
-                                            <TextBox Text="{Binding PerIdInput, UpdateSourceTrigger=PropertyChanged}"
-                                                     IsReadOnly="{Binding IsExistingPerson}" />
-
-                                            <TextBlock Margin="0,10,0,0" Text="Cognome" Foreground="#50626A" />
+                                            <TextBlock Text="Cognome" Foreground="#50626A" />
                                             <TextBox Text="{Binding Cognome, UpdateSourceTrigger=PropertyChanged}" />
 
                                             <TextBlock Margin="0,10,0,0" Text="Nome" Foreground="#50626A" />
@@ -372,37 +537,50 @@
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Data di nascita" Foreground="#50626A" />
                                             <TextBox Text="{Binding DataNascita, UpdateSourceTrigger=PropertyChanged}"
+                                                     Style="{StaticResource DateTextBoxStyle}"
                                                      MaxLength="10"
                                                      ToolTip="Digita 18032026 oppure 18/03/2026"
                                                      infra:DateInputBehavior.AutoFormat="True" />
 
                                             <TextBlock Margin="0,10,0,0" Text="Luogo di nascita" Foreground="#50626A" />
                                             <TextBox Text="{Binding LuogoNascita, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                    </Grid>
 
-                                            <TextBlock Margin="0,10,0,0" Text="Telefono" Foreground="#50626A" />
+                                    <TextBlock Margin="0,20,0,0"
+                                               Text="Contatti e residenza"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <Grid Margin="0,16,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="18" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
+                                            <TextBlock Text="Telefono" Foreground="#50626A" />
                                             <TextBox Text="{Binding Telefono, UpdateSourceTrigger=PropertyChanged}" />
 
                                             <TextBlock Margin="0,10,0,0" Text="Mail" Foreground="#50626A" />
                                             <TextBox Text="{Binding Mail, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
-                                    </Grid>
 
-                                    <TextBlock Margin="0,18,0,0"
-                                               Text="Indirizzo di residenza"
-                                               FontSize="18"
-                                               FontWeight="SemiBold"
-                                               Foreground="#17313E" />
-                                    <TextBox Margin="0,12,0,0"
-                                             Height="132"
-                                             VerticalContentAlignment="Top"
-                                             AcceptsReturn="True"
-                                             TextWrapping="Wrap"
-                                             Text="{Binding IndirizzoResidenza, UpdateSourceTrigger=PropertyChanged}" />
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Indirizzo di residenza" Foreground="#50626A" />
+                                            <TextBox Height="132"
+                                                     VerticalContentAlignment="Top"
+                                                     AcceptsReturn="True"
+                                                     TextWrapping="Wrap"
+                                                     Text="{Binding IndirizzoResidenza, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2">
                                     <Border
-                                            Background="#17313E"
+                                            Background="#173A57"
                                             CornerRadius="20"
                                             Padding="18">
                                         <Grid>
@@ -434,7 +612,7 @@
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
 
-                                                <Border Background="#264856" CornerRadius="16" Padding="12">
+                                                <Border Background="#24527B" CornerRadius="16" Padding="12">
                                                     <StackPanel>
                                                         <TextBlock Text="Abilitazioni"
                                                                    Foreground="#CBDBE0"
@@ -447,7 +625,7 @@
                                                     </StackPanel>
                                                 </Border>
 
-                                                <Border Grid.Column="2" Background="#D1A344" CornerRadius="16" Padding="12">
+                                                <Border Grid.Column="2" Background="#CFA032" CornerRadius="16" Padding="12">
                                                     <StackPanel>
                                                         <TextBlock Text="Visite"
                                                                    Foreground="#664B12"
@@ -484,7 +662,7 @@
                                     </Border>
 
                                     <Border Margin="0,18,0,0"
-                                            Background="#EEF4EE"
+                                            Background="#F2F5F8"
                                             CornerRadius="18"
                                             Padding="16">
                                         <TextBlock Text="Date: usa valori come 18/03/2026. Le abilitazioni e le visite si inseriscono dal pannello guidato qui sotto, non piu scrivendo direttamente in griglia."
@@ -504,7 +682,7 @@
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
 
-                                        <Border Background="#EEF4EE" CornerRadius="18" Padding="16">
+                                        <Border Background="#F3F6FA" CornerRadius="18" Padding="16">
                                             <Grid>
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto" />
@@ -550,12 +728,14 @@
                                                     <StackPanel Grid.Column="2">
                                                         <TextBlock Text="Data conseguimento" Foreground="#50626A" />
                                                         <TextBox Text="{Binding AbilitazioneDataConseguimento, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Style="{StaticResource DateTextBoxStyle}"
                                                                  MaxLength="10"
                                                                  ToolTip="Digita 18032026 oppure 18/03/2026"
                                                                  infra:DateInputBehavior.AutoFormat="True" />
 
                                                         <TextBlock Margin="0,10,0,0" Text="Data scadenza" Foreground="#50626A" />
                                                         <TextBox Text="{Binding AbilitazioneDataScadenza, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Style="{StaticResource DateTextBoxStyle}"
                                                                  MaxLength="10"
                                                                  ToolTip="Digita 18032026 oppure 18/03/2026"
                                                                  infra:DateInputBehavior.AutoFormat="True"
@@ -582,13 +762,10 @@
                                                                 Command="{Binding SaveAbilitazioneCommand}" />
                                                         <Button Content="Pulisci editor"
                                                                 Command="{Binding ClearAbilitazioneEditorCommand}"
-                                                                Background="#CAD6D0"
-                                                                BorderBrush="#CAD6D0"
-                                                                Foreground="#17313E" />
+                                                                Style="{StaticResource SecondaryButtonStyle}" />
                                                         <Button Content="Rimuovi selezionata"
                                                                 Command="{Binding RemoveAbilitazioneCommand}"
-                                                                Background="#7E2929"
-                                                                BorderBrush="#7E2929" />
+                                                                Style="{StaticResource DangerButtonStyle}" />
                                                     </StackPanel>
                                                 </Grid>
                                             </Grid>
@@ -640,7 +817,7 @@
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
 
-                                        <Border Background="#EEF4EE" CornerRadius="18" Padding="16">
+                                        <Border Background="#F3F6FA" CornerRadius="18" Padding="16">
                                             <Grid>
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto" />
@@ -668,6 +845,7 @@
 
                                                         <TextBlock Margin="0,10,0,0" Text="Data ultima visita" Foreground="#50626A" />
                                                         <TextBox Text="{Binding VisitaDataUltimaVisita, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Style="{StaticResource DateTextBoxStyle}"
                                                                  MaxLength="10"
                                                                  ToolTip="Digita 18032026 oppure 18/03/2026"
                                                                  infra:DateInputBehavior.AutoFormat="True" />
@@ -687,6 +865,7 @@
 
                                                         <TextBlock Margin="0,12,0,0" Text="Scadenza calcolata" Foreground="#50626A" />
                                                         <TextBox Text="{Binding VisitaScadenzaCalcolata, Mode=OneWay}"
+                                                                 Style="{StaticResource DateTextBoxStyle}"
                                                                  IsReadOnly="True"
                                                                  IsReadOnlyCaretVisible="False"
                                                                  Background="#F6F8F6" />
@@ -712,13 +891,10 @@
                                                                 Command="{Binding SaveVisitaCommand}" />
                                                         <Button Content="Pulisci editor"
                                                                 Command="{Binding ClearVisitaEditorCommand}"
-                                                                Background="#CAD6D0"
-                                                                BorderBrush="#CAD6D0"
-                                                                Foreground="#17313E" />
+                                                                Style="{StaticResource SecondaryButtonStyle}" />
                                                         <Button Content="Rimuovi selezionata"
                                                                 Command="{Binding RemoveVisitaCommand}"
-                                                                Background="#7E2929"
-                                                                BorderBrush="#7E2929" />
+                                                                Style="{StaticResource DangerButtonStyle}" />
                                                     </StackPanel>
                                                 </Grid>
                                             </Grid>
@@ -756,6 +932,296 @@
                                     </Grid>
                                 </TabItem>
                             </TabControl>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Archivio">
+                    <Grid Margin="6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="390" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Style="{StaticResource CardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Schede archiviate"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+
+                                <TextBlock Grid.Row="1"
+                                           Margin="0,12,0,0"
+                                           Text="Le schede archiviate non compaiono piu nella ricerca operativa, ma restano recuperabili fino all'eliminazione definitiva."
+                                           Foreground="#53646A"
+                                           TextWrapping="Wrap" />
+
+                                <ListBox Grid.Row="2"
+                                         Margin="0,16,0,0"
+                                         ItemsSource="{Binding ArchivioItems}"
+                                         SelectedItem="{Binding SelectedArchivio}"
+                                         MaxHeight="640"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         ScrollViewer.CanContentScroll="False"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         MinHeight="640">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,0,0,10"
+                                                    Padding="14"
+                                                    Background="#F2F5F0"
+                                                    CornerRadius="16">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Nominativo}"
+                                                               FontSize="17"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#17313E" />
+                                                    <TextBlock Margin="0,4,0,0"
+                                                               Text="{Binding PerIdOriginaleLabel}"
+                                                               Foreground="#53646A" />
+                                                    <TextBlock Margin="0,2,0,0"
+                                                               Text="{Binding CodiceFiscale}"
+                                                               Foreground="#53646A" />
+                                                    <TextBlock Margin="0,4,0,0"
+                                                               Text="{Binding DataArchiviazioneLabel}"
+                                                               Foreground="#6A7B80"
+                                                               FontSize="12" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <DockPanel LastChildFill="False">
+                                    <StackPanel DockPanel.Dock="Left">
+                                        <TextBlock Text="{Binding ArchivioTitolo}"
+                                                   FontSize="22"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E" />
+                                        <TextBlock Margin="0,4,0,0"
+                                                   Text="{Binding ArchivioPerId}"
+                                                   Foreground="#53646A" />
+                                    </StackPanel>
+
+                                    <StackPanel DockPanel.Dock="Right"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center">
+                                        <Button Content="Ripristina scheda"
+                                                Command="{Binding RestoreArchivioCommand}" />
+                                        <Button Content="Elimina definitivamente"
+                                                Command="{Binding DeleteArchivioDefinitivoCommand}"
+                                                Style="{StaticResource DangerButtonStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <TextBlock Grid.Row="1"
+                                           Margin="0,12,0,0"
+                                           Text="Ripristina per riportare la scheda tra i dipendenti attivi. Elimina definitivamente solo quando non serve piu alcun recupero."
+                                           Foreground="#53646A"
+                                           TextWrapping="Wrap" />
+
+                                <Grid Grid.Row="2" Margin="0,18,0,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="16" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="16" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <Border Background="#EEF4EE"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1.2*" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel>
+                                                <TextBlock Text="Dettaglio archivio"
+                                                           FontSize="18"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="#17313E" />
+                                                <TextBlock Margin="0,12,0,0"
+                                                           Text="{Binding ArchivioCodiceFiscale}"
+                                                           Foreground="#17313E"
+                                                           FontWeight="SemiBold" />
+                                                <TextBlock Margin="0,6,0,0"
+                                                           Text="{Binding ArchivioContatti}"
+                                                           Foreground="#53646A"
+                                                           TextWrapping="Wrap" />
+                                                <TextBlock Margin="0,6,0,0"
+                                                           Text="{Binding ArchivioDataArchiviazione}"
+                                                           Foreground="#6A7B80" />
+                                            </StackPanel>
+
+                                            <Grid Grid.Column="2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="12" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Background="#17313E"
+                                                        CornerRadius="16"
+                                                        Padding="12">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Abilitazioni"
+                                                                   Foreground="#C9D7DA"
+                                                                   FontSize="13" />
+                                                        <TextBlock Text="{Binding ArchivioAbilitazioniTotali}"
+                                                                   Foreground="#FFF8EE"
+                                                                   FontSize="24"
+                                                                   FontWeight="SemiBold" />
+                                                    </StackPanel>
+                                                </Border>
+
+                                                <Border Grid.Column="2"
+                                                        Background="#DFE8F1"
+                                                        CornerRadius="16"
+                                                        Padding="12">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Visite mediche"
+                                                                   Foreground="#53646A"
+                                                                   FontSize="13" />
+                                                        <TextBlock Text="{Binding ArchivioVisiteTotali}"
+                                                                   Foreground="#17313E"
+                                                                   FontSize="24"
+                                                                   FontWeight="SemiBold" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <Border Grid.Row="2"
+                                            Background="#FFFCF7"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Text="Anagrafica archiviata"
+                                                       FontSize="18"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#17313E" />
+                                            <TextBlock Grid.Row="1"
+                                                       Margin="0,10,0,0"
+                                                       Text="{Binding ArchivioAnagraficaSintesi}"
+                                                       Foreground="#53646A"
+                                                       TextWrapping="Wrap" />
+
+                                            <DataGrid Grid.Row="2"
+                                                      Margin="0,16,0,0"
+                                                      ItemsSource="{Binding ArchivioAbilitazioni}"
+                                                      AutoGenerateColumns="False"
+                                                      CanUserAddRows="False"
+                                                      IsReadOnly="True"
+                                                      MinHeight="220"
+                                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                                      HeadersVisibility="Column"
+                                                      RowHeaderWidth="0">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn Header="Tipo"
+                                                                        Width="220"
+                                                                        Binding="{Binding TipoDescrizione}" />
+                                                    <DataGridTextColumn Header="Categoria"
+                                                                        Width="120"
+                                                                        Binding="{Binding Categoria}" />
+                                                    <DataGridTextColumn Header="Livello"
+                                                                        Width="110"
+                                                                        Binding="{Binding Livello}" />
+                                                    <DataGridTextColumn Header="Profondita"
+                                                                        Width="95"
+                                                                        Binding="{Binding ProfonditaMetri}" />
+                                                    <DataGridTextColumn Header="Conseguimento"
+                                                                        Width="120"
+                                                                        Binding="{Binding DataConseguimento}" />
+                                                    <DataGridTextColumn Header="Scadenza"
+                                                                        Width="120"
+                                                                        Binding="{Binding DataScadenza}" />
+                                                    <DataGridTextColumn Header="Note"
+                                                                        Width="*"
+                                                                        Binding="{Binding Note}" />
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </Grid>
+                                    </Border>
+
+                                    <Border Grid.Row="4"
+                                            Background="#FFFCF7"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Text="Visite mediche archiviate"
+                                                       FontSize="18"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#17313E" />
+
+                                            <DataGrid Grid.Row="1"
+                                                      Margin="0,16,0,0"
+                                                      ItemsSource="{Binding ArchivioVisiteMediche}"
+                                                      AutoGenerateColumns="False"
+                                                      CanUserAddRows="False"
+                                                      IsReadOnly="True"
+                                                      MinHeight="220"
+                                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                                      HeadersVisibility="Column"
+                                                      RowHeaderWidth="0">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn Header="Tipo visita"
+                                                                        Width="280"
+                                                                        Binding="{Binding TipoVisita}" />
+                                                    <DataGridTextColumn Header="Ultima visita"
+                                                                        Width="130"
+                                                                        Binding="{Binding DataUltimaVisita}" />
+                                                    <DataGridTextColumn Header="Scadenza"
+                                                                        Width="150"
+                                                                        Binding="{Binding DataScadenza}" />
+                                                    <DataGridTextColumn Header="Esito"
+                                                                        Width="150"
+                                                                        Binding="{Binding Esito}" />
+                                                    <DataGridTextColumn Header="Note"
+                                                                        Width="*"
+                                                                        Binding="{Binding Note}" />
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Grid>
                         </Border>
                     </Grid>
                 </TabItem>
