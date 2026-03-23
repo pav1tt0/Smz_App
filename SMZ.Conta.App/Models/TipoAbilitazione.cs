@@ -16,5 +16,9 @@ public sealed class TipoAbilitazione
 
     public bool RichiedeProfondita { get; set; }
 
+    public IReadOnlyList<string> LivelliSuggeriti { get; set; } = [];
+
+    public IReadOnlyList<string> ProfonditaSuggerite { get; set; } = [];
+
     public string EtichettaCompleta => $"{Descrizione} [{Codice}]";
 }

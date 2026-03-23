@@ -63,6 +63,8 @@ public sealed class MainWindowViewModel : ObservableObject
         ScadenzeProssime = new ObservableCollection<ScadenzaItemViewModel>();
         SearchSuggestions = new ObservableCollection<string>();
         TipiAbilitazioneCatalogo = new ObservableCollection<TipoAbilitazione>(_repository.GetTipiAbilitazione());
+        AbilitazioneLivelliSuggeriti = new ObservableCollection<string>();
+        AbilitazioneProfonditaSuggerite = new ObservableCollection<string>();
         _allSearchSuggestions = _repository.GetSearchSuggestions();
         FiltroAbilitazioni = new ObservableCollection<AbilitazioneFilterOptionViewModel>(
         [
@@ -91,6 +93,10 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<string> SearchSuggestions { get; }
 
     public ObservableCollection<TipoAbilitazione> TipiAbilitazioneCatalogo { get; }
+
+    public ObservableCollection<string> AbilitazioneLivelliSuggeriti { get; }
+
+    public ObservableCollection<string> AbilitazioneProfonditaSuggerite { get; }
 
     public ObservableCollection<AbilitazioneFilterOptionViewModel> FiltroAbilitazioni { get; }
 
@@ -309,14 +315,25 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             if (SetProperty(ref _abilitazioneTipoSelezionato, value))
             {
+                AggiornaLivelliSuggeriti();
+                AggiornaProfonditaSuggerite();
+
                 if (!(value?.RichiedeLivello ?? false))
                 {
                     AbilitazioneLivello = string.Empty;
+                }
+                else if (string.IsNullOrWhiteSpace(AbilitazioneLivello) && AbilitazioneLivelliSuggeriti.Count > 0)
+                {
+                    AbilitazioneLivello = AbilitazioneLivelliSuggeriti[0];
                 }
 
                 if (!(value?.RichiedeProfondita ?? false))
                 {
                     AbilitazioneProfondita = string.Empty;
+                }
+                else if (string.IsNullOrWhiteSpace(AbilitazioneProfondita) && AbilitazioneProfonditaSuggerite.Count > 0)
+                {
+                    AbilitazioneProfondita = AbilitazioneProfonditaSuggerite[0];
                 }
 
                 if (!(value?.RichiedeScadenza ?? false))
@@ -325,6 +342,7 @@ public sealed class MainWindowViewModel : ObservableObject
                 }
 
                 OnPropertyChanged(nameof(AbilitazioneRichiedeLivello));
+                OnPropertyChanged(nameof(AbilitazioneLivelloEtichetta));
                 OnPropertyChanged(nameof(AbilitazioneRichiedeProfondita));
                 OnPropertyChanged(nameof(AbilitazioneRichiedeScadenza));
                 OnPropertyChanged(nameof(AbilitazioneIndicazioni));
@@ -401,6 +419,11 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public bool AbilitazioneRichiedeLivello => AbilitazioneTipoSelezionato?.RichiedeLivello ?? false;
 
+    public string AbilitazioneLivelloEtichetta =>
+        string.Equals(AbilitazioneTipoSelezionato?.Codice, "PATENTE_GUIDA", StringComparison.OrdinalIgnoreCase)
+            ? "Certificato patente"
+            : "Livello";
+
     public bool AbilitazioneRichiedeProfondita => AbilitazioneTipoSelezionato?.RichiedeProfondita ?? false;
 
     public bool AbilitazioneRichiedeScadenza => AbilitazioneTipoSelezionato?.RichiedeScadenza ?? false;
@@ -422,12 +445,18 @@ public sealed class MainWindowViewModel : ObservableObject
 
             if (AbilitazioneTipoSelezionato.RichiedeLivello)
             {
-                richieste.Add("Livello richiesto");
+                richieste.Add(
+                    AbilitazioneLivelliSuggeriti.Count == 0
+                        ? "Livello richiesto"
+                        : $"Certificato richiesto ({string.Join(", ", AbilitazioneLivelliSuggeriti)})");
             }
 
             if (AbilitazioneTipoSelezionato.RichiedeProfondita)
             {
-                richieste.Add("Profondita richiesta");
+                richieste.Add(
+                    AbilitazioneProfonditaSuggerite.Count == 0
+                        ? "Profondita richiesta"
+                        : $"Profondita richiesta (suggerite: {string.Join(", ", AbilitazioneProfonditaSuggerite)} m)");
             }
 
             if (AbilitazioneTipoSelezionato.RichiedeScadenza)
@@ -711,6 +740,14 @@ public sealed class MainWindowViewModel : ObservableObject
                 throw new InvalidOperationException("Per questa abilitazione il livello e obbligatorio.");
             }
 
+            if (AbilitazioneRichiedeLivello
+                && AbilitazioneLivelliSuggeriti.Count > 0
+                && !AbilitazioneLivelliSuggeriti.Contains(AbilitazioneLivello.Trim(), StringComparer.Ordinal))
+            {
+                throw new InvalidOperationException(
+                    $"Per questa abilitazione seleziona un certificato valido: {string.Join(", ", AbilitazioneLivelliSuggeriti)}.");
+            }
+
             if (AbilitazioneRichiedeProfondita && string.IsNullOrWhiteSpace(AbilitazioneProfondita))
             {
                 throw new InvalidOperationException("Per questa abilitazione la profondita e obbligatoria.");
@@ -791,6 +828,36 @@ public sealed class MainWindowViewModel : ObservableObject
         AbilitazioneDataConseguimento = SelectedAbilitazione.DataConseguimento;
         AbilitazioneDataScadenza = SelectedAbilitazione.DataScadenza;
         AbilitazioneNote = SelectedAbilitazione.Note;
+    }
+
+    private void AggiornaProfonditaSuggerite()
+    {
+        AbilitazioneProfonditaSuggerite.Clear();
+
+        if (AbilitazioneTipoSelezionato?.ProfonditaSuggerite is null)
+        {
+            return;
+        }
+
+        foreach (var profondita in AbilitazioneTipoSelezionato.ProfonditaSuggerite)
+        {
+            AbilitazioneProfonditaSuggerite.Add(profondita);
+        }
+    }
+
+    private void AggiornaLivelliSuggeriti()
+    {
+        AbilitazioneLivelliSuggeriti.Clear();
+
+        if (AbilitazioneTipoSelezionato?.LivelliSuggeriti is null)
+        {
+            return;
+        }
+
+        foreach (var livello in AbilitazioneTipoSelezionato.LivelliSuggeriti)
+        {
+            AbilitazioneLivelliSuggeriti.Add(livello);
+        }
     }
 
     private void RimuoviAbilitazioneRiga()

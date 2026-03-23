@@ -493,13 +493,21 @@
                                                               SelectedItem="{Binding AbilitazioneTipoSelezionato}"
                                                               DisplayMemberPath="EtichettaCompleta" />
 
-                                                    <TextBlock Margin="0,10,0,0" Text="Livello" Foreground="#50626A" />
-                                                    <TextBox Text="{Binding AbilitazioneLivello, UpdateSourceTrigger=PropertyChanged}"
-                                                             IsEnabled="{Binding AbilitazioneRichiedeLivello}" />
+                                                    <TextBlock Margin="0,10,0,0" Text="{Binding AbilitazioneLivelloEtichetta}" Foreground="#50626A" />
+                                                    <ComboBox ItemsSource="{Binding AbilitazioneLivelliSuggeriti}"
+                                                              Text="{Binding AbilitazioneLivello, UpdateSourceTrigger=PropertyChanged}"
+                                                              IsEnabled="{Binding AbilitazioneRichiedeLivello}"
+                                                              IsEditable="True"
+                                                              IsTextSearchEnabled="False"
+                                                              ToolTip="Per la patente di guida seleziona un certificato da 1 a 5" />
 
                                                     <TextBlock Margin="0,10,0,0" Text="Profondita metri" Foreground="#50626A" />
-                                                    <TextBox Text="{Binding AbilitazioneProfondita, UpdateSourceTrigger=PropertyChanged}"
-                                                             IsEnabled="{Binding AbilitazioneRichiedeProfondita}" />
+                                                    <ComboBox ItemsSource="{Binding AbilitazioneProfonditaSuggerite}"
+                                                              Text="{Binding AbilitazioneProfondita, UpdateSourceTrigger=PropertyChanged}"
+                                                              IsEnabled="{Binding AbilitazioneRichiedeProfondita}"
+                                                              IsEditable="True"
+                                                              IsTextSearchEnabled="False"
+                                                              ToolTip="Seleziona una profondita suggerita oppure digita un valore personalizzato" />
                                                 </StackPanel>
 
                                                 <StackPanel Grid.Column="2">

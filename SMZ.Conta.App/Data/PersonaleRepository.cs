@@ -61,7 +61,7 @@ public sealed class PersonaleRepository
             """
             SELECT TipoAbilitazioneId, Codice, Descrizione, Categoria, RichiedeLivello, RichiedeScadenza, RichiedeProfondita
             FROM TipiAbilitazione
-            ORDER BY Categoria, Descrizione;
+            ORDER BY TipoAbilitazioneId;
             """;
 
         using var reader = command.ExecuteReader();
@@ -69,7 +69,7 @@ public sealed class PersonaleRepository
 
         while (reader.Read())
         {
-            items.Add(new TipoAbilitazione
+            items.Add(CatalogoAbilitazioni.ApplicaSuggerimenti(new TipoAbilitazione
             {
                 TipoAbilitazioneId = reader.GetInt32(0),
                 Codice = reader.GetString(1),
@@ -78,10 +78,13 @@ public sealed class PersonaleRepository
                 RichiedeLivello = reader.GetInt32(4) == 1,
                 RichiedeScadenza = reader.GetInt32(5) == 1,
                 RichiedeProfondita = reader.GetInt32(6) == 1,
-            });
+            }));
         }
 
-        return items;
+        return items
+            .OrderBy(CatalogoAbilitazioni.GetOrdineVisualizzazione)
+            .ThenBy(item => item.Descrizione)
+            .ToList();
     }
 
     public List<ScadenzaProgrammata> GetScadenzeProssime(DateOnly daData, DateOnly aData)
