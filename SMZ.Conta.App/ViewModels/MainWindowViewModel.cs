@@ -15,16 +15,19 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _deleteArchivioDefinitivoCommand;
     private readonly List<string> _allSearchSuggestions;
     private PersonaleListItemViewModel? _selectedPersonale;
+    private ScadenzaItemViewModel? _selectedScadenza;
     private PersonaleArchivioListItemViewModel? _selectedArchivio;
     private PersonaleAbilitazioneRowViewModel? _selectedAbilitazione;
     private VisitaMedicaRowViewModel? _selectedVisita;
     private PersonaleArchivio? _archivioDettaglio;
     private string? _selectedSearchSuggestion;
     private string _filtroCognome = string.Empty;
+    private string _filtroScadenzeSelezionato = "Tutte";
     private bool _isSearchSuggestionsOpen;
     private AbilitazioneFilterOptionViewModel? _filtroAbilitazione;
     private string _filtroVisiteEntro = string.Empty;
     private int _sezioneAttivaIndex;
+    private int _schedaDettaglioTabIndex;
     private int _perId;
     private string _perIdInput = string.Empty;
     private string _cognome = string.Empty;
@@ -35,9 +38,13 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _numeroBrevettoSmz = string.Empty;
     private string _dataNascita = string.Empty;
     private string _luogoNascita = string.Empty;
-    private string _indirizzoResidenza = string.Empty;
-    private string _telefono = string.Empty;
-    private string _mail = string.Empty;
+    private string _viaResidenza = string.Empty;
+    private string _capResidenza = string.Empty;
+    private string _cittaResidenza = string.Empty;
+    private string _telefono1 = string.Empty;
+    private string _telefono2 = string.Empty;
+    private string _mail1Utente = string.Empty;
+    private string _mail2Utente = string.Empty;
     private string _stato = "Pronto";
     private int _scadenzeTotali;
     private int _scadenzeUrgenti;
@@ -56,6 +63,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public MainWindowViewModel()
     {
         SearchCommand = new RelayCommand(CaricaElenco);
+        OpenScadenzaCommand = new RelayCommand(ApriScadenzaDaParametro);
         ClearFiltersCommand = new RelayCommand(PulisciFiltri);
         NewCommand = new RelayCommand(() =>
         {
@@ -82,6 +90,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ArchivioVisiteMediche = new ObservableCollection<VisitaMedicaRowViewModel>();
         ScadenzeProssime = new ObservableCollection<ScadenzaItemViewModel>();
         SearchSuggestions = new ObservableCollection<string>();
+        FiltriScadenze = new ObservableCollection<string>(["Tutte", "Solo visite", "Solo abilitazioni"]);
         TipiAbilitazioneCatalogo = new ObservableCollection<TipoAbilitazione>(_repository.GetTipiAbilitazione());
         AbilitazioneLivelliSuggeriti = new ObservableCollection<string>();
         AbilitazioneProfonditaSuggerite = new ObservableCollection<string>();
@@ -116,9 +125,17 @@ public sealed class MainWindowViewModel : ObservableObject
         set => SetProperty(ref _sezioneAttivaIndex, value);
     }
 
+    public int SchedaDettaglioTabIndex
+    {
+        get => _schedaDettaglioTabIndex;
+        set => SetProperty(ref _schedaDettaglioTabIndex, value);
+    }
+
     public ObservableCollection<PersonaleListItemViewModel> PersonaleItems { get; } = [];
 
     public ObservableCollection<string> SearchSuggestions { get; }
+
+    public ObservableCollection<string> FiltriScadenze { get; }
 
     public ObservableCollection<TipoAbilitazione> TipiAbilitazioneCatalogo { get; }
 
@@ -133,6 +150,22 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<VisitaMedicaRowViewModel> VisiteMediche { get; }
 
     public ObservableCollection<ScadenzaItemViewModel> ScadenzeProssime { get; }
+
+    public ScadenzaItemViewModel? SelectedScadenza
+    {
+        get => _selectedScadenza;
+        set
+        {
+            if (!SetProperty(ref _selectedScadenza, value) || value is null)
+            {
+                return;
+            }
+
+            ApriScadenza(value);
+            _selectedScadenza = null;
+            OnPropertyChanged(nameof(SelectedScadenza));
+        }
+    }
 
     public ObservableCollection<PersonaleArchivioListItemViewModel> ArchivioItems { get; }
 
@@ -168,6 +201,8 @@ public sealed class MainWindowViewModel : ObservableObject
         ]);
 
     public RelayCommand SearchCommand { get; }
+
+    public RelayCommand OpenScadenzaCommand { get; }
 
     public RelayCommand ClearFiltersCommand { get; }
 
@@ -293,6 +328,18 @@ public sealed class MainWindowViewModel : ObservableObject
         set => SetProperty(ref _isSearchSuggestionsOpen, value);
     }
 
+    public string FiltroScadenzeSelezionato
+    {
+        get => _filtroScadenzeSelezionato;
+        set
+        {
+            if (SetProperty(ref _filtroScadenzeSelezionato, value))
+            {
+                AggiornaScadenziario();
+            }
+        }
+    }
+
     public AbilitazioneFilterOptionViewModel? FiltroAbilitazione
     {
         get => _filtroAbilitazione;
@@ -392,22 +439,46 @@ public sealed class MainWindowViewModel : ObservableObject
         set => SetProperty(ref _luogoNascita, value);
     }
 
-    public string IndirizzoResidenza
+    public string ViaResidenza
     {
-        get => _indirizzoResidenza;
-        set => SetProperty(ref _indirizzoResidenza, value);
+        get => _viaResidenza;
+        set => SetProperty(ref _viaResidenza, value);
     }
 
-    public string Telefono
+    public string CapResidenza
     {
-        get => _telefono;
-        set => SetProperty(ref _telefono, value);
+        get => _capResidenza;
+        set => SetProperty(ref _capResidenza, value);
     }
 
-    public string Mail
+    public string CittaResidenza
     {
-        get => _mail;
-        set => SetProperty(ref _mail, value);
+        get => _cittaResidenza;
+        set => SetProperty(ref _cittaResidenza, value);
+    }
+
+    public string Telefono1
+    {
+        get => _telefono1;
+        set => SetProperty(ref _telefono1, value);
+    }
+
+    public string Telefono2
+    {
+        get => _telefono2;
+        set => SetProperty(ref _telefono2, value);
+    }
+
+    public string Mail1Utente
+    {
+        get => _mail1Utente;
+        set => SetProperty(ref _mail1Utente, value);
+    }
+
+    public string Mail2Utente
+    {
+        get => _mail2Utente;
+        set => SetProperty(ref _mail2Utente, value);
     }
 
     public TipoAbilitazione? AbilitazioneTipoSelezionato
@@ -532,7 +603,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string AzioneAbilitazioneLabel => SelectedAbilitazione is null ? "Aggiungi abilitazione" : "Aggiorna abilitazione";
 
-    public string AzioneVisitaLabel => SelectedVisita is null ? "Aggiungi visita" : "Aggiorna visita";
+    public string AzioneVisitaLabel => SelectedVisita is null ? "Seleziona una visita" : "Aggiorna visita";
 
     public string AbilitazioneIndicazioni
     {
@@ -570,7 +641,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    public string ScadenzeTitolo => "Scadenziario automatico: prossimi 90 giorni";
+    public string ScadenzeTitolo => "Scadute e in scadenza entro 90 giorni";
 
     public string RegoleVisiteTitolo => "Regole visite mediche";
 
@@ -598,7 +669,7 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             if (VisitaTipoSelezionato is null)
             {
-                return "Seleziona un tipo visita per vedere la regola di scadenza.";
+                return "Le tre visite sono obbligatorie e gia predisposte in scheda.";
             }
 
             return VisitaTipoSelezionato.RegolaScadenza;
@@ -613,7 +684,39 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public int SchedaAbilitazioniTotali => Abilitazioni.Count;
 
+    public string SchedaAbilitazioniPrincipali => BuildAbilitazioniPrincipali();
+
+    public string SchedaAbilitazioniPrincipaliFooter => Math.Max(Abilitazioni.Count - 3, 0) switch
+    {
+        <= 0 => "Nessuna altra abilitazione",
+        1 => "+1 altra abilitazione",
+        var altre => $"+{altre} altre abilitazioni",
+    };
+
+    public int SchedaScadenzeTotali => ContaScadenzeScheda();
+
     public int SchedaVisiteTotali => VisiteMediche.Count;
+
+    public int SchedaScaduteTotali => ContaScaduteScheda();
+
+    public bool SchedaHaScadute => SchedaScaduteTotali > 0;
+
+    public string SchedaScaduteTitolo => SchedaScaduteTotali switch
+    {
+        0 => "Nessuna scaduta",
+        1 => "Gia scaduta",
+        _ => $"Gia scadute ({SchedaScaduteTotali})",
+    };
+
+    public string SchedaScaduteHighlight => BuildScaduteHighlight();
+
+    public string SchedaScaduteDettaglio => SchedaScaduteTotali switch
+    {
+        0 => "Situazione regolare",
+        _ => BuildScaduteDettaglio(),
+    };
+
+    public string MailDominioFisso => MailPoliziaHelper.DominioFisso;
 
     public string SchedaProssimaScadenza
     {
@@ -679,14 +782,20 @@ public sealed class MainWindowViewModel : ObservableObject
         var oggi = DateOnly.FromDateTime(DateTime.Today);
         var finoA = oggi.AddDays(90);
         var items = _repository.GetScadenzeProssime(oggi, finoA);
-        var scadenzeViewModel = items.Select(ScadenzaItemViewModel.FromModel).ToList();
+        var scadenzeViewModel = items
+            .Select(ScadenzaItemViewModel.FromModel)
+            .Where(ApplicaFiltroScadenziario)
+            .OrderBy(item => item.IsExpired ? 0 : item.IsUrgent ? 1 : 2)
+            .ThenBy(item => item.IsExpired ? Math.Abs(item.GiorniResiduiNumero) : item.GiorniResiduiNumero)
+            .ThenBy(item => item.Nominativo)
+            .ToList();
 
         _scadenzeTotali = scadenzeViewModel.Count;
         _scadenzeScadute = scadenzeViewModel.Count(item => item.IsExpired);
         _scadenzeUrgenti = scadenzeViewModel.Count(item => item.IsUrgent);
 
         ScadenzeProssime.Clear();
-        foreach (var item in scadenzeViewModel.Take(12))
+        foreach (var item in scadenzeViewModel)
         {
             ScadenzeProssime.Add(item);
         }
@@ -694,6 +803,57 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ScadenzeTotali));
         OnPropertyChanged(nameof(ScadenzeScadute));
         OnPropertyChanged(nameof(ScadenzeUrgenti));
+    }
+
+    private void ApriScadenza(ScadenzaItemViewModel item)
+    {
+        var personaleListItem = PersonaleItems.FirstOrDefault(entry => entry.PerId == item.PerId);
+
+        if (personaleListItem is null)
+        {
+            CaricaPersonale(item.PerId);
+        }
+        else
+        {
+            SelectedPersonale = personaleListItem;
+        }
+
+        if (string.Equals(item.Origine, "Visita medica", StringComparison.OrdinalIgnoreCase))
+        {
+            SchedaDettaglioTabIndex = 1;
+            SelectedVisita = VisiteMediche.FirstOrDefault(row =>
+                string.Equals(row.TipoVisita, item.Titolo, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(row.DataScadenza, item.DataScadenza, StringComparison.OrdinalIgnoreCase))
+                ?? VisiteMediche.FirstOrDefault(row => string.Equals(row.TipoVisita, item.Titolo, StringComparison.OrdinalIgnoreCase));
+        }
+        else
+        {
+            SchedaDettaglioTabIndex = 0;
+            SelectedAbilitazione = Abilitazioni.FirstOrDefault(row =>
+                string.Equals(row.TipoDescrizione, item.Titolo, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(row.DataScadenza, item.DataScadenza, StringComparison.OrdinalIgnoreCase))
+                ?? Abilitazioni.FirstOrDefault(row => string.Equals(row.TipoDescrizione, item.Titolo, StringComparison.OrdinalIgnoreCase));
+        }
+
+        SezioneAttivaIndex = 1;
+    }
+
+    private void ApriScadenzaDaParametro(object? parameter)
+    {
+        if (parameter is ScadenzaItemViewModel item)
+        {
+            ApriScadenza(item);
+        }
+    }
+
+    private bool ApplicaFiltroScadenziario(ScadenzaItemViewModel item)
+    {
+        return FiltroScadenzeSelezionato switch
+        {
+            "Solo visite" => string.Equals(item.Origine, "Visita medica", StringComparison.OrdinalIgnoreCase),
+            "Solo abilitazioni" => string.Equals(item.Origine, "Abilitazione", StringComparison.OrdinalIgnoreCase),
+            _ => true,
+        };
     }
 
     public int ScadenzeTotali => _scadenzeTotali;
@@ -729,19 +889,9 @@ public sealed class MainWindowViewModel : ObservableObject
                 return "Contatti non disponibili";
             }
 
-            var parti = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.Telefono))
-            {
-                parti.Add(_archivioDettaglio.Telefono);
-            }
-
-            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.Mail))
-            {
-                parti.Add(_archivioDettaglio.Mail);
-            }
-
-            return parti.Count == 0 ? "Contatti non disponibili" : string.Join(" | ", parti);
+            return string.IsNullOrWhiteSpace(_archivioDettaglio.ContattiSintesi)
+                ? "Contatti non disponibili"
+                : _archivioDettaglio.ContattiSintesi;
         }
     }
 
@@ -781,9 +931,9 @@ public sealed class MainWindowViewModel : ObservableObject
                 parti.Add($"Brevetto SMZ {_archivioDettaglio.NumeroBrevettoSmz}");
             }
 
-            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.IndirizzoResidenza))
+            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.IndirizzoResidenzaCompleto))
             {
-                parti.Add(_archivioDettaglio.IndirizzoResidenza);
+                parti.Add(_archivioDettaglio.IndirizzoResidenzaCompleto);
             }
 
             return parti.Count == 0 ? "Nessun dato anagrafico aggiuntivo." : string.Join(" | ", parti);
@@ -879,11 +1029,16 @@ public sealed class MainWindowViewModel : ObservableObject
         NumeroBrevettoSmz = string.Empty;
         DataNascita = string.Empty;
         LuogoNascita = string.Empty;
-        IndirizzoResidenza = string.Empty;
-        Telefono = string.Empty;
-        Mail = string.Empty;
+        ViaResidenza = string.Empty;
+        CapResidenza = string.Empty;
+        CittaResidenza = string.Empty;
+        Telefono1 = string.Empty;
+        Telefono2 = string.Empty;
+        Mail1Utente = string.Empty;
+        Mail2Utente = string.Empty;
         Abilitazioni.Clear();
         VisiteMediche.Clear();
+        AllineaVisitePredefinite();
         PulisciEditorAbilitazione();
         PulisciEditorVisita();
         AggiornaRiepilogoScheda();
@@ -909,9 +1064,13 @@ public sealed class MainWindowViewModel : ObservableObject
         NumeroBrevettoSmz = personale.NumeroBrevettoSmz;
         DataNascita = FormatDate(personale.DataNascita);
         LuogoNascita = personale.LuogoNascita;
-        IndirizzoResidenza = personale.IndirizzoResidenza;
-        Telefono = personale.Telefono;
-        Mail = personale.Mail;
+        ViaResidenza = personale.ViaResidenza;
+        CapResidenza = personale.CapResidenza;
+        CittaResidenza = personale.CittaResidenza;
+        Telefono1 = personale.Telefono1;
+        Telefono2 = personale.Telefono2;
+        Mail1Utente = personale.Mail1Utente;
+        Mail2Utente = personale.Mail2Utente;
 
         Abilitazioni.Clear();
         foreach (var abilitazione in personale.Abilitazioni)
@@ -925,6 +1084,7 @@ public sealed class MainWindowViewModel : ObservableObject
             VisiteMediche.Add(VisitaMedicaRowViewModel.FromModel(visita));
         }
 
+        AllineaVisitePredefinite();
         PulisciEditorAbilitazione();
         PulisciEditorVisita();
         AggiornaRiepilogoScheda();
@@ -1228,6 +1388,11 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         try
         {
+            if (SelectedVisita is null)
+            {
+                throw new InvalidOperationException("Seleziona una visita dall'elenco obbligatorio.");
+            }
+
             if (VisitaTipoSelezionato is null)
             {
                 throw new InvalidOperationException("Seleziona prima il tipo visita.");
@@ -1250,20 +1415,14 @@ public sealed class MainWindowViewModel : ObservableObject
                 Note = VisitaNote.Trim(),
             };
 
-            if (SelectedVisita is null)
+            var visitaSelezionata = SelectedVisita ?? throw new InvalidOperationException("Seleziona una visita dall'elenco obbligatorio.");
+            var index = VisiteMediche.IndexOf(visitaSelezionata);
+            if (index >= 0)
             {
-                VisiteMediche.Add(nuovaRiga);
-            }
-            else
-            {
-                var index = VisiteMediche.IndexOf(SelectedVisita);
-                if (index >= 0)
-                {
-                    VisiteMediche[index] = nuovaRiga;
-                }
+                VisiteMediche[index] = nuovaRiga;
+                SelectedVisita = VisiteMediche[index];
             }
 
-            PulisciEditorVisita();
             AggiornaRiepilogoScheda();
             Stato = "Visita pronta in scheda. Salvare il personale per registrarla nel database.";
         }
@@ -1281,8 +1440,17 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
-        VisiteMediche.Remove(SelectedVisita);
-        PulisciEditorVisita();
+        var tipoVisita = SelectedVisita.TipoVisita;
+        var index = VisiteMediche.IndexOf(SelectedVisita);
+        if (index >= 0)
+        {
+            VisiteMediche[index] = new VisitaMedicaRowViewModel
+            {
+                TipoVisita = tipoVisita,
+            };
+            SelectedVisita = VisiteMediche[index];
+        }
+
         AggiornaRiepilogoScheda();
     }
 
@@ -1314,9 +1482,13 @@ public sealed class MainWindowViewModel : ObservableObject
             NumeroBrevettoSmz = NumeroBrevettoSmz.Trim(),
             DataNascita = ParseDate(DataNascita, "Data di nascita"),
             LuogoNascita = LuogoNascita.Trim(),
-            IndirizzoResidenza = IndirizzoResidenza.Trim(),
-            Telefono = Telefono.Trim(),
-            Mail = Mail.Trim(),
+            ViaResidenza = ViaResidenza.Trim(),
+            CapResidenza = CapResidenza.Trim(),
+            CittaResidenza = CittaResidenza.Trim(),
+            Telefono1 = Telefono1.Trim(),
+            Telefono2 = Telefono2.Trim(),
+            Mail1Utente = NormalizeMailUtente(Mail1Utente, "Mail Polizia"),
+            Mail2Utente = Mail2Utente.Trim(),
             Abilitazioni = BuildAbilitazioni(),
             VisiteMediche = BuildVisite(),
         };
@@ -1355,21 +1527,21 @@ public sealed class MainWindowViewModel : ObservableObject
     private List<VisitaMedica> BuildVisite()
     {
         var items = new List<VisitaMedica>();
+        var visitePerTipo = VisiteMediche.ToDictionary(
+            row => row.TipoVisita.Trim(),
+            row => row,
+            StringComparer.OrdinalIgnoreCase);
 
-        foreach (var row in VisiteMediche)
+        foreach (var tipo in TipiVisitaMedicaCatalogo)
         {
-            if (string.IsNullOrWhiteSpace(row.TipoVisita) &&
-                string.IsNullOrWhiteSpace(row.DataUltimaVisita) &&
-                string.IsNullOrWhiteSpace(row.DataScadenza) &&
-                string.IsNullOrWhiteSpace(row.Esito) &&
-                string.IsNullOrWhiteSpace(row.Note))
+            if (!visitePerTipo.TryGetValue(tipo.Descrizione, out var row))
             {
-                continue;
+                throw new InvalidOperationException($"{tipo.Descrizione}: visita obbligatoria non presente in scheda.");
             }
 
-            if (string.IsNullOrWhiteSpace(row.TipoVisita))
+            if (string.IsNullOrWhiteSpace(row.DataUltimaVisita))
             {
-                throw new InvalidOperationException("Ogni visita medica deve avere un tipo visita.");
+                throw new InvalidOperationException($"{tipo.Descrizione}: la data ultima visita e obbligatoria.");
             }
 
             var tipoVisita = row.TipoVisita.Trim();
@@ -1428,6 +1600,11 @@ public sealed class MainWindowViewModel : ObservableObject
         return parsed;
     }
 
+    private static string NormalizeMailUtente(string value, string fieldName)
+    {
+        return MailPoliziaHelper.NormalizeUserPart(value, fieldName);
+    }
+
     private static DateOnly? ParseDate(string value, string fieldName)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -1479,9 +1656,17 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private void PulisciEditorVisita()
     {
-        _selectedVisita = null;
-        OnPropertyChanged(nameof(SelectedVisita));
-        OnPropertyChanged(nameof(AzioneVisitaLabel));
+        if (SelectedVisita is not null)
+        {
+            CaricaEditorVisitaDaSelezione();
+            return;
+        }
+
+        if (VisiteMediche.Count > 0)
+        {
+            SelectedVisita = VisiteMediche[0];
+            return;
+        }
 
         VisitaTipoSelezionato = null;
         VisitaDataUltimaVisita = string.Empty;
@@ -1493,6 +1678,12 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         if (SelectedVisita is null)
         {
+            if (VisiteMediche.Count > 0)
+            {
+                SelectedVisita = VisiteMediche[0];
+                return;
+            }
+
             VisitaTipoSelezionato = null;
             VisitaDataUltimaVisita = string.Empty;
             VisitaEsito = string.Empty;
@@ -1511,9 +1702,136 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(SchedaRiepilogoTitolo));
         OnPropertyChanged(nameof(SchedaRiepilogoPerId));
         OnPropertyChanged(nameof(SchedaAbilitazioniTotali));
+        OnPropertyChanged(nameof(SchedaAbilitazioniPrincipali));
+        OnPropertyChanged(nameof(SchedaAbilitazioniPrincipaliFooter));
+        OnPropertyChanged(nameof(SchedaScadenzeTotali));
+        OnPropertyChanged(nameof(SchedaScaduteTotali));
+        OnPropertyChanged(nameof(SchedaHaScadute));
+        OnPropertyChanged(nameof(SchedaScaduteTitolo));
+        OnPropertyChanged(nameof(SchedaScaduteHighlight));
+        OnPropertyChanged(nameof(SchedaScaduteDettaglio));
         OnPropertyChanged(nameof(SchedaVisiteTotali));
         OnPropertyChanged(nameof(SchedaProssimaScadenza));
         OnPropertyChanged(nameof(SchedaProssimaScadenzaDettaglio));
+    }
+
+    private int ContaScadenzeScheda()
+    {
+        var totale = Abilitazioni.Count(item => TryParseDate(item.DataScadenza) is not null);
+        totale += VisiteMediche.Count(item => TryParseDate(item.DataScadenza) is not null);
+        return totale;
+    }
+
+    private int ContaScaduteScheda()
+    {
+        var oggi = DateOnly.FromDateTime(DateTime.Today);
+        var totale = Abilitazioni.Count(item => TryParseDate(item.DataScadenza) is DateOnly data && data < oggi);
+        totale += VisiteMediche.Count(item => TryParseDate(item.DataScadenza) is DateOnly data && data < oggi);
+        return totale;
+    }
+
+    private string BuildScaduteHighlight()
+    {
+        var scadute = GetScadenzeScaduteScheda();
+        if (scadute.Count == 0)
+        {
+            return "Nessuna voce da regolarizzare";
+        }
+
+        var prima = scadute[0];
+        return $"{prima.origine}: {prima.titolo}";
+    }
+
+    private string BuildScaduteDettaglio()
+    {
+        var scadute = GetScadenzeScaduteScheda();
+        if (scadute.Count == 0)
+        {
+            return "Situazione regolare";
+        }
+
+        var prima = scadute[0];
+        var dettaglio = $"Scaduta il {prima.data:dd/MM/yyyy}";
+
+        return scadute.Count == 1
+            ? dettaglio
+            : $"{dettaglio} | +{scadute.Count - 1} altre";
+    }
+
+    private string BuildAbilitazioniPrincipali()
+    {
+        var principali = Abilitazioni
+            .OrderBy(item =>
+            {
+                var categoria = item.Categoria ?? string.Empty;
+                return categoria switch
+                {
+                    "Subacquea" => 0,
+                    "Sanitaria" => 1,
+                    "Nautica" => 2,
+                    _ => 3,
+                };
+            })
+            .ThenBy(item => string.IsNullOrWhiteSpace(item.DataScadenza) ? 1 : 0)
+            .ThenBy(item => item.TipoDescrizione)
+            .Take(3)
+            .Select(item =>
+            {
+                var dettagli = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(item.Livello))
+                {
+                    dettagli.Add(item.Livello);
+                }
+
+                if (!string.IsNullOrWhiteSpace(item.ProfonditaMetri))
+                {
+                    dettagli.Add($"{item.ProfonditaMetri} m");
+                }
+
+                return dettagli.Count == 0
+                    ? item.TipoDescrizione
+                    : $"{item.TipoDescrizione} ({string.Join(", ", dettagli)})";
+            })
+            .ToList();
+
+        return principali.Count == 0 ? "Nessuna abilitazione registrata" : string.Join("\n", principali);
+    }
+
+    private void AllineaVisitePredefinite()
+    {
+        var visiteEsistenti = VisiteMediche
+            .GroupBy(item => item.TipoVisita.Trim(), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+        var tipoSelezionato = SelectedVisita?.TipoVisita;
+        var righe = new List<VisitaMedicaRowViewModel>();
+
+        foreach (var tipo in TipiVisitaMedicaCatalogo)
+        {
+            visiteEsistenti.TryGetValue(tipo.Descrizione, out var esistente);
+            var dataUltimaVisita = esistente?.DataUltimaVisita ?? string.Empty;
+            var dataScadenza = CalcolaScadenzaVisita(tipo.Descrizione, TryParseDate(dataUltimaVisita));
+
+            righe.Add(new VisitaMedicaRowViewModel
+            {
+                VisitaMedicaId = esistente?.VisitaMedicaId,
+                TipoVisita = tipo.Descrizione,
+                DataUltimaVisita = dataUltimaVisita,
+                DataScadenza = FormatDate(dataScadenza),
+                Esito = esistente?.Esito ?? string.Empty,
+                Note = esistente?.Note ?? string.Empty,
+            });
+        }
+
+        VisiteMediche.Clear();
+        foreach (var riga in righe)
+        {
+            VisiteMediche.Add(riga);
+        }
+
+        SelectedVisita = VisiteMediche.FirstOrDefault(item => string.Equals(item.TipoVisita, tipoSelezionato, StringComparison.OrdinalIgnoreCase))
+            ?? VisiteMediche.FirstOrDefault();
     }
 
     private (DateOnly data, string origine, string titolo)? CalcolaProssimaScadenzaScheda()
@@ -1539,6 +1857,34 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         return voci.Count == 0 ? null : voci.OrderBy(voce => voce.data).First();
+    }
+
+    private List<(DateOnly data, string origine, string titolo)> GetScadenzeScaduteScheda()
+    {
+        var oggi = DateOnly.FromDateTime(DateTime.Today);
+        var voci = new List<(DateOnly data, string origine, string titolo)>();
+
+        foreach (var abilitazione in Abilitazioni)
+        {
+            var data = TryParseDate(abilitazione.DataScadenza);
+            if (data is not null && data.Value < oggi)
+            {
+                voci.Add((data.Value, "Abilitazione", abilitazione.TipoDescrizione));
+            }
+        }
+
+        foreach (var visita in VisiteMediche)
+        {
+            var data = TryParseDate(visita.DataScadenza);
+            if (data is not null && data.Value < oggi)
+            {
+                voci.Add((data.Value, "Visita", visita.TipoVisita));
+            }
+        }
+
+        return voci
+            .OrderByDescending(voce => voce.data)
+            .ToList();
     }
 
     private int ParseRequiredPerId()

@@ -146,7 +146,6 @@ public sealed class PersonaleRepository
             INNER JOIN Personale p ON p.PerId = pa.PerId
             INNER JOIN TipiAbilitazione ta ON ta.TipoAbilitazioneId = pa.TipoAbilitazioneId
             WHERE pa.DataScadenza IS NOT NULL
-              AND pa.DataScadenza >= $daData
               AND pa.DataScadenza <= $aData
 
             UNION ALL
@@ -161,7 +160,6 @@ public sealed class PersonaleRepository
             FROM VisiteMediche vm
             INNER JOIN Personale p ON p.PerId = vm.PerId
             WHERE vm.DataScadenza IS NOT NULL
-              AND vm.DataScadenza >= $daData
               AND vm.DataScadenza <= $aData
 
             ORDER BY DataScadenza, Cognome, Nome, Titolo;
@@ -236,7 +234,22 @@ public sealed class PersonaleRepository
 
         command.CommandText =
             $"""
-            SELECT p.PerId, p.Cognome, p.Nome, p.Qualifica, p.CodiceFiscale, p.MatricolaPersonale, p.NumeroBrevettoSmz, p.DataNascita, p.LuogoNascita, p.IndirizzoResidenza, p.Telefono, p.Mail
+            SELECT p.PerId,
+                   p.Cognome,
+                   p.Nome,
+                   p.Qualifica,
+                   p.CodiceFiscale,
+                   p.MatricolaPersonale,
+                   p.NumeroBrevettoSmz,
+                   p.DataNascita,
+                   p.LuogoNascita,
+                   p.ViaResidenza,
+                   p.CapResidenza,
+                   p.CittaResidenza,
+                   p.Telefono1,
+                   p.Telefono2,
+                   p.Mail1Utente,
+                   p.Mail2Utente
             FROM Personale p
             {whereClause}
             ORDER BY p.Cognome, p.Nome;
@@ -259,7 +272,22 @@ public sealed class PersonaleRepository
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            SELECT PerId, Cognome, Nome, Qualifica, CodiceFiscale, MatricolaPersonale, NumeroBrevettoSmz, DataNascita, LuogoNascita, IndirizzoResidenza, Telefono, Mail
+            SELECT PerId,
+                   Cognome,
+                   Nome,
+                   Qualifica,
+                   CodiceFiscale,
+                   MatricolaPersonale,
+                   NumeroBrevettoSmz,
+                   DataNascita,
+                   LuogoNascita,
+                   ViaResidenza,
+                   CapResidenza,
+                   CittaResidenza,
+                   Telefono1,
+                   Telefono2,
+                   Mail1Utente,
+                   Mail2Utente
             FROM Personale
             WHERE PerId = $perId;
             """;
@@ -295,9 +323,13 @@ public sealed class PersonaleRepository
                    NumeroBrevettoSmz,
                    DataNascita,
                    LuogoNascita,
-                   IndirizzoResidenza,
-                   Telefono,
-                   Mail,
+                   ViaResidenza,
+                   CapResidenza,
+                   CittaResidenza,
+                   Telefono1,
+                   Telefono2,
+                   Mail1Utente,
+                   Mail2Utente,
                    DataArchiviazione
             FROM PersonaleArchivio
             WHERE PersonaleArchivioId = $archiveId;
@@ -322,10 +354,14 @@ public sealed class PersonaleRepository
             NumeroBrevettoSmz = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
             DataNascita = ParseDbDate(reader, 8),
             LuogoNascita = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
-            IndirizzoResidenza = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
-            Telefono = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-            Mail = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
-            DataArchiviazione = DateTime.Parse(reader.GetString(13)),
+            ViaResidenza = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+            CapResidenza = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+            CittaResidenza = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+            Telefono1 = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            Telefono2 = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            Mail1Utente = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
+            Mail2Utente = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
+            DataArchiviazione = DateTime.Parse(reader.GetString(17)),
         };
         reader.Close();
 
@@ -356,9 +392,13 @@ public sealed class PersonaleRepository
                     NumeroBrevettoSmz,
                     DataNascita,
                     LuogoNascita,
-                    IndirizzoResidenza,
-                    Telefono,
-                    Mail)
+                    ViaResidenza,
+                    CapResidenza,
+                    CittaResidenza,
+                    Telefono1,
+                    Telefono2,
+                    Mail1Utente,
+                    Mail2Utente)
                 VALUES (
                     $perId,
                     $cognome,
@@ -369,9 +409,13 @@ public sealed class PersonaleRepository
                     $numeroBrevettoSmz,
                     $dataNascita,
                     $luogoNascita,
-                    $indirizzoResidenza,
-                    $telefono,
-                    $mail);
+                    $viaResidenza,
+                    $capResidenza,
+                    $cittaResidenza,
+                    $telefono1,
+                    $telefono2,
+                    $mail1Utente,
+                    $mail2Utente);
                 """;
             AddPersonaleParameters(insert, personale);
             insert.Parameters.AddWithValue("$perId", personale.PerId);
@@ -393,9 +437,13 @@ public sealed class PersonaleRepository
                     NumeroBrevettoSmz = $numeroBrevettoSmz,
                     DataNascita = $dataNascita,
                     LuogoNascita = $luogoNascita,
-                    IndirizzoResidenza = $indirizzoResidenza,
-                    Telefono = $telefono,
-                    Mail = $mail
+                    ViaResidenza = $viaResidenza,
+                    CapResidenza = $capResidenza,
+                    CittaResidenza = $cittaResidenza,
+                    Telefono1 = $telefono1,
+                    Telefono2 = $telefono2,
+                    Mail1Utente = $mail1Utente,
+                    Mail2Utente = $mail2Utente
                 WHERE PerId = $perId;
                 """;
             AddPersonaleParameters(update, personale);
@@ -473,9 +521,13 @@ public sealed class PersonaleRepository
                 NumeroBrevettoSmz,
                 DataNascita,
                 LuogoNascita,
-                IndirizzoResidenza,
-                Telefono,
-                Mail
+                ViaResidenza,
+                CapResidenza,
+                CittaResidenza,
+                Telefono1,
+                Telefono2,
+                Mail1Utente,
+                Mail2Utente
             )
             VALUES (
                 $perId,
@@ -487,9 +539,13 @@ public sealed class PersonaleRepository
                 $numeroBrevettoSmz,
                 $dataNascita,
                 $luogoNascita,
-                $indirizzoResidenza,
-                $telefono,
-                $mail
+                $viaResidenza,
+                $capResidenza,
+                $cittaResidenza,
+                $telefono1,
+                $telefono2,
+                $mail1Utente,
+                $mail2Utente
             );
             """;
         insert.Parameters.AddWithValue("$perId", perIdDaRipristinare);
@@ -501,9 +557,13 @@ public sealed class PersonaleRepository
         insert.Parameters.AddWithValue("$numeroBrevettoSmz", DbText(archived.NumeroBrevettoSmz));
         insert.Parameters.AddWithValue("$dataNascita", ToDbValue(archived.DataNascita));
         insert.Parameters.AddWithValue("$luogoNascita", DbText(archived.LuogoNascita));
-        insert.Parameters.AddWithValue("$indirizzoResidenza", DbText(archived.IndirizzoResidenza));
-        insert.Parameters.AddWithValue("$telefono", DbText(archived.Telefono));
-        insert.Parameters.AddWithValue("$mail", DbText(archived.Mail));
+        insert.Parameters.AddWithValue("$viaResidenza", DbText(archived.ViaResidenza));
+        insert.Parameters.AddWithValue("$capResidenza", DbText(archived.CapResidenza));
+        insert.Parameters.AddWithValue("$cittaResidenza", DbText(archived.CittaResidenza));
+        insert.Parameters.AddWithValue("$telefono1", DbText(archived.Telefono1));
+        insert.Parameters.AddWithValue("$telefono2", DbText(archived.Telefono2));
+        insert.Parameters.AddWithValue("$mail1Utente", DbText(archived.Mail1Utente));
+        insert.Parameters.AddWithValue("$mail2Utente", DbText(archived.Mail2Utente));
         insert.ExecuteNonQuery();
 
         RestoreAbilitazioniArchivio(connection, transaction, archiveId, perIdDaRipristinare);
@@ -533,9 +593,13 @@ public sealed class PersonaleRepository
         command.Parameters.AddWithValue("$numeroBrevettoSmz", DbText(personale.NumeroBrevettoSmz));
         command.Parameters.AddWithValue("$dataNascita", ToDbValue(personale.DataNascita));
         command.Parameters.AddWithValue("$luogoNascita", DbText(personale.LuogoNascita));
-        command.Parameters.AddWithValue("$indirizzoResidenza", DbText(personale.IndirizzoResidenza));
-        command.Parameters.AddWithValue("$telefono", DbText(personale.Telefono));
-        command.Parameters.AddWithValue("$mail", DbText(personale.Mail));
+        command.Parameters.AddWithValue("$viaResidenza", DbText(personale.ViaResidenza));
+        command.Parameters.AddWithValue("$capResidenza", DbText(personale.CapResidenza));
+        command.Parameters.AddWithValue("$cittaResidenza", DbText(personale.CittaResidenza));
+        command.Parameters.AddWithValue("$telefono1", DbText(personale.Telefono1));
+        command.Parameters.AddWithValue("$telefono2", DbText(personale.Telefono2));
+        command.Parameters.AddWithValue("$mail1Utente", DbText(personale.Mail1Utente));
+        command.Parameters.AddWithValue("$mail2Utente", DbText(personale.Mail2Utente));
     }
 
     private static void DeleteChildRows(SqliteConnection connection, SqliteTransaction transaction, string tableName, int perId)
@@ -585,9 +649,13 @@ public sealed class PersonaleRepository
                 NumeroBrevettoSmz,
                 DataNascita,
                 LuogoNascita,
-                IndirizzoResidenza,
-                Telefono,
-                Mail,
+                ViaResidenza,
+                CapResidenza,
+                CittaResidenza,
+                Telefono1,
+                Telefono2,
+                Mail1Utente,
+                Mail2Utente,
                 DataArchiviazione
             )
             SELECT PerId,
@@ -599,9 +667,13 @@ public sealed class PersonaleRepository
                    NumeroBrevettoSmz,
                    DataNascita,
                    LuogoNascita,
-                   IndirizzoResidenza,
-                   Telefono,
-                   Mail,
+                   ViaResidenza,
+                   CapResidenza,
+                   CittaResidenza,
+                   Telefono1,
+                   Telefono2,
+                   Mail1Utente,
+                   Mail2Utente,
                    $dataArchiviazione
             FROM Personale
             WHERE PerId = $perId;
@@ -888,9 +960,13 @@ public sealed class PersonaleRepository
             NumeroBrevettoSmz = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
             DataNascita = ParseDbDate(reader, 7),
             LuogoNascita = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
-            IndirizzoResidenza = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
-            Telefono = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
-            Mail = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+            ViaResidenza = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+            CapResidenza = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+            CittaResidenza = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+            Telefono1 = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+            Telefono2 = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            Mail1Utente = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            Mail2Utente = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
         };
     }
 
@@ -910,9 +986,13 @@ public sealed class PersonaleRepository
                    NumeroBrevettoSmz,
                    DataNascita,
                    LuogoNascita,
-                   IndirizzoResidenza,
-                   Telefono,
-                   Mail,
+                   ViaResidenza,
+                   CapResidenza,
+                   CittaResidenza,
+                   Telefono1,
+                   Telefono2,
+                   Mail1Utente,
+                   Mail2Utente,
                    DataArchiviazione
             FROM PersonaleArchivio
             WHERE PersonaleArchivioId = $archiveId;
@@ -937,10 +1017,14 @@ public sealed class PersonaleRepository
             NumeroBrevettoSmz = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
             DataNascita = ParseDbDate(reader, 8),
             LuogoNascita = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
-            IndirizzoResidenza = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
-            Telefono = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-            Mail = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
-            DataArchiviazione = DateTime.Parse(reader.GetString(13)),
+            ViaResidenza = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+            CapResidenza = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+            CittaResidenza = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+            Telefono1 = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            Telefono2 = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            Mail1Utente = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
+            Mail2Utente = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
+            DataArchiviazione = DateTime.Parse(reader.GetString(17)),
         };
     }
 

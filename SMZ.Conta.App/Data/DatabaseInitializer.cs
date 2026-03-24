@@ -40,6 +40,13 @@ public static class DatabaseInitializer
                 NumeroBrevettoSmz TEXT NULL,
                 DataNascita TEXT NULL,
                 LuogoNascita TEXT NULL,
+                ViaResidenza TEXT NULL,
+                CapResidenza TEXT NULL,
+                CittaResidenza TEXT NULL,
+                Telefono1 TEXT NULL,
+                Telefono2 TEXT NULL,
+                Mail1Utente TEXT NULL,
+                Mail2Utente TEXT NULL,
                 IndirizzoResidenza TEXT NULL,
                 Telefono TEXT NULL,
                 Mail TEXT NULL
@@ -111,6 +118,13 @@ public static class DatabaseInitializer
                 NumeroBrevettoSmz TEXT NULL,
                 DataNascita TEXT NULL,
                 LuogoNascita TEXT NULL,
+                ViaResidenza TEXT NULL,
+                CapResidenza TEXT NULL,
+                CittaResidenza TEXT NULL,
+                Telefono1 TEXT NULL,
+                Telefono2 TEXT NULL,
+                Mail1Utente TEXT NULL,
+                Mail2Utente TEXT NULL,
                 IndirizzoResidenza TEXT NULL,
                 Telefono TEXT NULL,
                 Mail TEXT NULL,
@@ -163,10 +177,27 @@ public static class DatabaseInitializer
         AddColumnIfMissing(connection, transaction, "Personale", "Qualifica", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "MatricolaPersonale", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "NumeroBrevettoSmz", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "ViaResidenza", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "CapResidenza", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "CittaResidenza", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "Telefono1", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "Telefono2", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "Mail1Utente", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "Mail2Utente", "TEXT NULL");
 
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "Qualifica", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "MatricolaPersonale", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "NumeroBrevettoSmz", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "ViaResidenza", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "CapResidenza", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "CittaResidenza", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "Telefono1", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "Telefono2", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "Mail1Utente", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "Mail2Utente", "TEXT NULL");
+
+        MigrateLegacyAnagraficaData(connection, transaction, "Personale");
+        MigrateLegacyAnagraficaData(connection, transaction, "PersonaleArchivio");
     }
 
     private static void AddColumnIfMissing(
@@ -175,6 +206,19 @@ public static class DatabaseInitializer
         string tableName,
         string columnName,
         string columnDefinition)
+    {
+        if (ColumnExists(connection, transaction, tableName, columnName))
+        {
+            return;
+        }
+
+        using var alterCommand = connection.CreateCommand();
+        alterCommand.Transaction = transaction;
+        alterCommand.CommandText = $"ALTER TABLE {tableName} ADD COLUMN {columnName} {columnDefinition};";
+        alterCommand.ExecuteNonQuery();
+    }
+
+    private static bool ColumnExists(SqliteConnection connection, SqliteTransaction transaction, string tableName, string columnName)
     {
         using var existsCommand = connection.CreateCommand();
         existsCommand.Transaction = transaction;
@@ -185,16 +229,56 @@ public static class DatabaseInitializer
         {
             if (string.Equals(reader.GetString(1), columnName, StringComparison.OrdinalIgnoreCase))
             {
-                return;
+                return true;
             }
         }
 
-        reader.Close();
+        return false;
+    }
 
-        using var alterCommand = connection.CreateCommand();
-        alterCommand.Transaction = transaction;
-        alterCommand.CommandText = $"ALTER TABLE {tableName} ADD COLUMN {columnName} {columnDefinition};";
-        alterCommand.ExecuteNonQuery();
+    private static void MigrateLegacyAnagraficaData(SqliteConnection connection, SqliteTransaction transaction, string tableName)
+    {
+        if (ColumnExists(connection, transaction, tableName, "IndirizzoResidenza"))
+        {
+            ExecuteMigration(
+                connection,
+                transaction,
+                $"UPDATE {tableName} SET ViaResidenza = TRIM(IndirizzoResidenza) WHERE (ViaResidenza IS NULL OR TRIM(ViaResidenza) = '') AND IndirizzoResidenza IS NOT NULL AND TRIM(IndirizzoResidenza) <> '';");
+        }
+
+        if (ColumnExists(connection, transaction, tableName, "Telefono"))
+        {
+            ExecuteMigration(
+                connection,
+                transaction,
+                $"UPDATE {tableName} SET Telefono1 = TRIM(Telefono) WHERE (Telefono1 IS NULL OR TRIM(Telefono1) = '') AND Telefono IS NOT NULL AND TRIM(Telefono) <> '';");
+        }
+
+        if (ColumnExists(connection, transaction, tableName, "Mail"))
+        {
+            ExecuteMigration(
+                connection,
+                transaction,
+                $"""
+                UPDATE {tableName}
+                SET Mail1Utente = TRIM(
+                    CASE
+                        WHEN instr(Mail, '@') > 1 THEN substr(Mail, 1, instr(Mail, '@') - 1)
+                        ELSE Mail
+                    END)
+                WHERE (Mail1Utente IS NULL OR TRIM(Mail1Utente) = '')
+                  AND Mail IS NOT NULL
+                  AND TRIM(Mail) <> '';
+                """);
+        }
+    }
+
+    private static void ExecuteMigration(SqliteConnection connection, SqliteTransaction transaction, string commandText)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = commandText;
+        command.ExecuteNonQuery();
     }
 
     private static void SeedTipiAbilitazione(SqliteConnection connection, SqliteTransaction transaction)

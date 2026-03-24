@@ -5,6 +5,8 @@ namespace SMZ.Conta.App.ViewModels;
 
 public sealed class ScadenzaItemViewModel
 {
+    public int PerId { get; init; }
+
     public string Nominativo { get; init; } = string.Empty;
 
     public string Origine { get; init; } = string.Empty;
@@ -64,6 +66,7 @@ public sealed class ScadenzaItemViewModel
     {
         return new ScadenzaItemViewModel
         {
+            PerId = model.PerId,
             Nominativo = model.Nominativo,
             Origine = model.Origine,
             Titolo = model.Titolo,

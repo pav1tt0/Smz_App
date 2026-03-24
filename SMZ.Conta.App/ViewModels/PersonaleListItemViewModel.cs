@@ -9,8 +9,7 @@ public sealed class PersonaleListItemViewModel : ObservableObject
     private string _cognome = string.Empty;
     private string _nome = string.Empty;
     private string _codiceFiscale = string.Empty;
-    private string _telefono = string.Empty;
-    private string _mail = string.Empty;
+    private string _contatti = string.Empty;
 
     public int PerId
     {
@@ -48,16 +47,10 @@ public sealed class PersonaleListItemViewModel : ObservableObject
         set => SetProperty(ref _codiceFiscale, value);
     }
 
-    public string Telefono
+    public string Contatti
     {
-        get => _telefono;
-        set => SetProperty(ref _telefono, value);
-    }
-
-    public string Mail
-    {
-        get => _mail;
-        set => SetProperty(ref _mail, value);
+        get => _contatti;
+        set => SetProperty(ref _contatti, value);
     }
 
     public string Nominativo => $"{Cognome} {Nome}".Trim();
@@ -70,8 +63,7 @@ public sealed class PersonaleListItemViewModel : ObservableObject
             Cognome = personale.Cognome,
             Nome = personale.Nome,
             CodiceFiscale = personale.CodiceFiscale,
-            Telefono = personale.Telefono,
-            Mail = personale.Mail,
+            Contatti = personale.ContattiSintesi,
         };
     }
 }
