@@ -145,6 +145,10 @@
             <Setter Property="BorderBrush" Value="#8F3434"/>
             <Setter Property="Foreground" Value="#FFF7F3"/>
         </Style>
+
+        <ImageBrush x:Key="HomePhotoBrush"
+                    ImageSource="Assets/smz.jpg"
+                    Stretch="UniformToFill" />
     </Window.Resources>
 
     <Grid Margin="20">
@@ -155,34 +159,16 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="#0E68B2" CornerRadius="28" Padding="28" Margin="0,0,0,18">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel>
-                    <TextBlock Text="{Binding Titolo}"
-                               FontSize="32"
-                               FontWeight="SemiBold"
-                               Foreground="#FFF7EC" />
-                    <TextBlock Margin="0,8,0,0"
-                               Text="{Binding Sottotitolo}"
-                               FontSize="15"
-                               Foreground="#CBDBE0" />
-                </StackPanel>
-
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="Nuovo"
-                            Command="{Binding NewCommand}"
-                            Style="{StaticResource AccentButtonStyle}" />
-                    <Button Content="Salva"
-                            Command="{Binding SaveCommand}" />
-                    <Button Content="Archivia"
-                            Command="{Binding DeleteCommand}"
-                            Style="{StaticResource DangerButtonStyle}" />
-                </StackPanel>
-            </Grid>
+            <StackPanel>
+                <TextBlock Text="{Binding Titolo}"
+                           FontSize="32"
+                           FontWeight="SemiBold"
+                           Foreground="#FFF7EC" />
+                <TextBlock Margin="0,8,0,0"
+                           Text="{Binding Sottotitolo}"
+                           FontSize="15"
+                           Foreground="#CBDBE0" />
+            </StackPanel>
         </Border>
 
         <ScrollViewer Grid.Row="1"
@@ -258,11 +244,11 @@
                                     </WrapPanel>
                                 </StackPanel>
 
-                                <Grid Grid.Column="2">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="14" />
-                                        <RowDefinition Height="Auto" />
+                                    <Grid Grid.Column="2">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="14" />
+                                            <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
                                     <Border CornerRadius="24"
@@ -276,23 +262,20 @@
 
                                             <DockPanel LastChildFill="False">
                                                 <Border DockPanel.Dock="Left"
-                                                        Width="52"
-                                                        Height="52"
+                                                        Width="84"
+                                                        Height="84"
                                                         Background="#F2F5F8"
-                                                        CornerRadius="18">
-                                                    <TextBlock Text="SMZ"
-                                                               HorizontalAlignment="Center"
-                                                               VerticalAlignment="Center"
-                                                               Foreground="#17313E"
-                                                               FontSize="16"
-                                                               FontWeight="SemiBold" />
+                                                        CornerRadius="22"
+                                                        Padding="10">
+                                                    <Image Source="Assets/logo_smz.png"
+                                                           Stretch="Uniform" />
                                                 </Border>
                                                 <StackPanel Margin="14,0,0,0">
-                                                    <TextBlock Text="Logo e foto"
+                                                    <TextBlock Text="Identita visiva SMZ"
                                                                Foreground="#FFF8EE"
                                                                FontSize="18"
                                                                FontWeight="SemiBold" />
-                                                    <TextBlock Text="Area grafica pronta per logo ufficiale e immagine del nucleo."
+                                                    <TextBlock Text="Home collegata al logo ufficiale e a una foto reale del reparto."
                                                                Foreground="#B8C7D1"
                                                                TextWrapping="Wrap" />
                                                 </StackPanel>
@@ -301,25 +284,33 @@
                                             <Grid Grid.Row="1" Margin="0,18,0,0">
                                                 <Border Background="#274E73"
                                                         CornerRadius="20"
-                                                        Margin="0,18,70,0" />
+                                                        Margin="0,18,70,0"
+                                                        Opacity="0.55" />
                                                 <Border Background="#F7E5B6"
                                                         CornerRadius="20"
                                                         Margin="120,44,0,0"
-                                                        Opacity="0.95" />
-                                                <Border Background="#F6F0E6"
-                                                        CornerRadius="18"
+                                                        Opacity="0.75" />
+                                                <Border CornerRadius="18"
                                                         Margin="36,0,36,18"
-                                                        Padding="18">
-                                                    <StackPanel VerticalAlignment="Bottom">
-                                                        <TextBlock Text="Layout iniziale"
-                                                                   Foreground="#17313E"
-                                                                   FontSize="18"
-                                                                   FontWeight="SemiBold" />
-                                                        <TextBlock Margin="0,8,0,0"
-                                                                   Text="Possiamo sostituire questi blocchi con foto reali e marchio del reparto appena me li dai."
-                                                                   Foreground="#50626A"
-                                                                   TextWrapping="Wrap" />
-                                                    </StackPanel>
+                                                        BorderBrush="#FFFFFF"
+                                                        BorderThickness="1.5"
+                                                        Background="{StaticResource HomePhotoBrush}">
+                                                    <Grid>
+                                                        <Rectangle RadiusX="18"
+                                                                   RadiusY="18"
+                                                                   Fill="#440C1B29" />
+                                                        <StackPanel VerticalAlignment="Bottom"
+                                                                    Margin="18">
+                                                            <TextBlock Text="Nucleo Sommozzatori"
+                                                                       Foreground="#FFF8EE"
+                                                                       FontSize="22"
+                                                                       FontWeight="SemiBold" />
+                                                            <TextBlock Margin="0,8,0,0"
+                                                                       Text="Interfaccia iniziale aggiornata con logo e immagine reale del reparto."
+                                                                       Foreground="#E2EAF0"
+                                                                       TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                    </Grid>
                                                 </Border>
                                             </Grid>
                                         </Grid>
@@ -1145,10 +1136,26 @@
 
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel>
-                                <TextBlock Text="Scheda anagrafica"
-                                           FontSize="22"
-                                           FontWeight="SemiBold"
-                                           Foreground="#17313E" />
+                                <DockPanel LastChildFill="False">
+                                    <TextBlock DockPanel.Dock="Left"
+                                               Text="Scheda anagrafica"
+                                               FontSize="22"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E"
+                                               VerticalAlignment="Center" />
+                                    <StackPanel DockPanel.Dock="Right"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center">
+                                        <Button Content="Nuovo"
+                                                Command="{Binding NewCommand}"
+                                                Style="{StaticResource AccentButtonStyle}" />
+                                        <Button Content="Salva"
+                                                Command="{Binding SaveCommand}" />
+                                        <Button Content="Archivia"
+                                                Command="{Binding DeleteCommand}"
+                                                Style="{StaticResource DangerButtonStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
 
                                 <Border Margin="0,18,0,0"
                                         Background="#173A57"
