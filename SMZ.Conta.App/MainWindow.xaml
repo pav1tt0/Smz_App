@@ -191,6 +191,310 @@
             <TabControl SelectedIndex="{Binding SezioneAttivaIndex}"
                         Background="Transparent"
                         BorderThickness="0">
+                <TabItem Header="Home">
+                    <Grid Margin="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0"
+                                CornerRadius="28"
+                                Padding="28">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#143A63" Offset="0" />
+                                    <GradientStop Color="#0F6DB5" Offset="0.55" />
+                                    <GradientStop Color="#C59B32" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.2*" />
+                                    <ColumnDefinition Width="24" />
+                                    <ColumnDefinition Width="0.9*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <Border Width="132"
+                                            Padding="10,6"
+                                            Background="#F7E5B6"
+                                            CornerRadius="999"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="SMZ OPERATIVO"
+                                                   Foreground="#17313E"
+                                                   FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center" />
+                                    </Border>
+
+                                    <TextBlock Margin="0,18,0,0"
+                                               Text="{Binding HomeTitolo}"
+                                               FontSize="34"
+                                               FontWeight="SemiBold"
+                                               Foreground="#FFF8EE" />
+                                    <TextBlock Margin="0,10,0,0"
+                                               Text="{Binding HomeSottotitolo}"
+                                               FontSize="16"
+                                               Foreground="#D6E2EA"
+                                               TextWrapping="Wrap" />
+
+                                    <WrapPanel Margin="0,24,0,0">
+                                        <Button Content="Ricerca personale"
+                                                Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="1"
+                                                Style="{StaticResource AccentButtonStyle}" />
+                                        <Button Content="Servizio giornaliero"
+                                                Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="2" />
+                                        <Button Content="Scheda personale"
+                                                Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="3"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                        <Button Content="Archivio"
+                                                Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="4"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                    </WrapPanel>
+                                </StackPanel>
+
+                                <Grid Grid.Column="2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="14" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <Border CornerRadius="24"
+                                            Padding="18"
+                                            Background="#1A2430">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+
+                                            <DockPanel LastChildFill="False">
+                                                <Border DockPanel.Dock="Left"
+                                                        Width="52"
+                                                        Height="52"
+                                                        Background="#F2F5F8"
+                                                        CornerRadius="18">
+                                                    <TextBlock Text="SMZ"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="#17313E"
+                                                               FontSize="16"
+                                                               FontWeight="SemiBold" />
+                                                </Border>
+                                                <StackPanel Margin="14,0,0,0">
+                                                    <TextBlock Text="Logo e foto"
+                                                               Foreground="#FFF8EE"
+                                                               FontSize="18"
+                                                               FontWeight="SemiBold" />
+                                                    <TextBlock Text="Area grafica pronta per logo ufficiale e immagine del nucleo."
+                                                               Foreground="#B8C7D1"
+                                                               TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </DockPanel>
+
+                                            <Grid Grid.Row="1" Margin="0,18,0,0">
+                                                <Border Background="#274E73"
+                                                        CornerRadius="20"
+                                                        Margin="0,18,70,0" />
+                                                <Border Background="#F7E5B6"
+                                                        CornerRadius="20"
+                                                        Margin="120,44,0,0"
+                                                        Opacity="0.95" />
+                                                <Border Background="#F6F0E6"
+                                                        CornerRadius="18"
+                                                        Margin="36,0,36,18"
+                                                        Padding="18">
+                                                    <StackPanel VerticalAlignment="Bottom">
+                                                        <TextBlock Text="Layout iniziale"
+                                                                   Foreground="#17313E"
+                                                                   FontSize="18"
+                                                                   FontWeight="SemiBold" />
+                                                        <TextBlock Margin="0,8,0,0"
+                                                                   Text="Possiamo sostituire questi blocchi con foto reali e marchio del reparto appena me li dai."
+                                                                   Foreground="#50626A"
+                                                                   TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <Grid Grid.Row="2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Background="#F7F9FB"
+                                                CornerRadius="18"
+                                                Padding="14">
+                                            <StackPanel>
+                                                <TextBlock Text="Dipendenti"
+                                                           Foreground="#53646A"
+                                                           FontSize="13" />
+                                                <TextBlock Text="{Binding DashboardDipendentiTotali}"
+                                                           Foreground="#17313E"
+                                                           FontSize="28"
+                                                           FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Grid.Column="2"
+                                                Background="#FBEAEA"
+                                                CornerRadius="18"
+                                                Padding="14">
+                                            <StackPanel>
+                                                <TextBlock Text="Scadenze"
+                                                           Foreground="#8B2E2E"
+                                                           FontSize="13" />
+                                                <TextBlock Text="{Binding DashboardScadenzeAperte}"
+                                                           Foreground="#8B2E2E"
+                                                           FontSize="28"
+                                                           FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Grid.Column="4"
+                                                Background="#EEF4F8"
+                                                CornerRadius="18"
+                                                Padding="14">
+                                            <StackPanel>
+                                                <TextBlock Text="Cataloghi servizi"
+                                                           Foreground="#53646A"
+                                                           FontSize="13" />
+                                                <TextBlock Text="{Binding DashboardCataloghiServizioTotali}"
+                                                           Foreground="#17313E"
+                                                           FontSize="28"
+                                                           FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.1*" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="1.2*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Moduli principali"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,10,0,0"
+                                               Text="L'app si apre ora su una pagina iniziale piu istituzionale. Da qui entri subito nei blocchi di lavoro."
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+
+                                    <Border Margin="0,16,0,0"
+                                            Background="#F2F5F8"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <StackPanel>
+                                            <TextBlock Text="Ricerca personale"
+                                                       Foreground="#17313E"
+                                                       FontSize="17"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="Accesso rapido a nominativi, filtri e scadenziario operativo."
+                                                       Foreground="#53646A"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Margin="0,12,0,0"
+                                            Background="#F2F5F8"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <StackPanel>
+                                            <TextBlock Text="Servizio giornaliero"
+                                                       Foreground="#17313E"
+                                                       FontSize="17"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="Nuovo modulo per costruire il flusso di registro e contabilita partendo dai servizi del giorno."
+                                                       Foreground="#53646A"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Margin="0,12,0,0"
+                                            Background="#F2F5F8"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <StackPanel>
+                                            <TextBlock Text="Scheda personale e archivio"
+                                                       Foreground="#17313E"
+                                                       FontSize="17"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="Anagrafica, abilitazioni, visite, stato operativo e recupero storico."
+                                                       Foreground="#53646A"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2"
+                                    Style="{StaticResource CardStyle}"
+                                    Background="#173A57">
+                                <StackPanel>
+                                    <TextBlock Text="Prossimi passi"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               Foreground="#FFF8EE" />
+                                    <TextBlock Margin="0,10,0,0"
+                                               Text="Questa home e gia pronta per ospitare identita visiva e accessi rapidi. Le prossime evoluzioni naturali sono:"
+                                               Foreground="#D6E2EA"
+                                               TextWrapping="Wrap" />
+
+                                    <Border Margin="0,16,0,0"
+                                            Background="#254F74"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <TextBlock Text="1. Collegare il salvataggio del servizio giornaliero al database."
+                                                   Foreground="#FFF8EE"
+                                                   TextWrapping="Wrap" />
+                                    </Border>
+
+                                    <Border Margin="0,12,0,0"
+                                            Background="#254F74"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <TextBlock Text="2. Generare il registro immersioni mensile dai servizi salvati."
+                                                   Foreground="#FFF8EE"
+                                                   TextWrapping="Wrap" />
+                                    </Border>
+
+                                    <Border Margin="0,12,0,0"
+                                            Background="#254F74"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <TextBlock Text="3. Sostituire i placeholder con logo ufficiale e foto reali del reparto."
+                                                   Foreground="#FFF8EE"
+                                                   TextWrapping="Wrap" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+
                 <TabItem Header="Ricerca">
                     <Grid Margin="6">
                         <Grid.ColumnDefinitions>
@@ -476,6 +780,357 @@
                                     </ListBox.ItemTemplate>
                                 </ListBox>
                             </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Servizio giornaliero">
+                    <Grid Margin="6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="380" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Bozza modulo servizi"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,12,0,0"
+                                               Text="{Binding ServizioBozzaStato}"
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                        <Button Content="Nuovo servizio"
+                                                Command="{Binding NewServizioCommand}" />
+                                        <Button Content="Aggiorna personale"
+                                                Command="{Binding ReloadServizioPersonaleCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Margin="0,12,0,0"
+                                    Style="{StaticResource CardStyle}"
+                                    Background="#EEF4F8">
+                                <StackPanel>
+                                    <TextBlock Text="Sintesi operativa"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+
+                                    <Grid Margin="0,14,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="10" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Background="#173A57"
+                                                CornerRadius="16"
+                                                Padding="12">
+                                            <StackPanel>
+                                                <TextBlock Text="Partecipanti"
+                                                           Foreground="#C9D7DA"
+                                                           FontSize="13" />
+                                                <TextBlock Text="{Binding ServizioPartecipantiTotali}"
+                                                           Foreground="#FFF8EE"
+                                                           FontSize="24"
+                                                           FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Grid.Column="2"
+                                                Background="#CFA032"
+                                                CornerRadius="16"
+                                                Padding="12">
+                                            <StackPanel>
+                                                <TextBlock Text="Presenti"
+                                                           Foreground="#664B12"
+                                                           FontSize="13" />
+                                                <TextBlock Text="{Binding ServizioPresentiTotali}"
+                                                           Foreground="#17313E"
+                                                           FontSize="24"
+                                                           FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <Border Margin="0,10,0,0"
+                                            Background="#F8FBFD"
+                                            CornerRadius="16"
+                                            Padding="12">
+                                        <StackPanel>
+                                            <TextBlock Text="Categoria registro"
+                                                       Foreground="#53646A"
+                                                       FontSize="12" />
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Text="{Binding ServizioCategoriaRegistroDescrizione}"
+                                                       Foreground="#17313E"
+                                                       FontWeight="SemiBold"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Margin="0,10,0,0"
+                                            Background="#F8FBFD"
+                                            CornerRadius="16"
+                                            Padding="12">
+                                        <StackPanel>
+                                            <TextBlock Text="Tipo servizio"
+                                                       Foreground="#53646A"
+                                                       FontSize="12" />
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Text="{Binding ServizioTipoDescrizione}"
+                                                       Foreground="#17313E"
+                                                       FontWeight="SemiBold"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="{Binding ServizioFuoriSedeDescrizione}"
+                                                       Foreground="#53646A" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="{Binding ServizioImmersioniCompilate, StringFormat=Immersioni compilate: {0}/2}"
+                                                       Foreground="#53646A" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel>
+                                    <TextBlock Text="Servizio giornaliero"
+                                               FontSize="22"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,10,0,0"
+                                               Text="Prima schermata operativa del nuovo modulo. In questa fase puoi impostare la bozza del servizio, le immersioni e i partecipanti; il salvataggio definitivo verra collegato nel passo successivo."
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+
+                                    <Border Margin="0,18,0,0"
+                                            Background="#F2F5F8"
+                                            CornerRadius="18"
+                                            Padding="16">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="160" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="170" />
+                                                <ColumnDefinition Width="18" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <StackPanel>
+                                                <TextBlock Text="Data servizio" Foreground="#50626A" />
+                                                <TextBox Text="{Binding ServizioData, UpdateSourceTrigger=PropertyChanged}"
+                                                         Style="{StaticResource DateTextBoxStyle}"
+                                                         MaxLength="10"
+                                                         ToolTip="Digita 25032026 oppure 25/03/2026"
+                                                         infra:DateInputBehavior.AutoFormat="True" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2">
+                                                <TextBlock Text="Tipo servizio" Foreground="#50626A" />
+                                                <ComboBox ItemsSource="{Binding TipiServizioDisponibili}"
+                                                          SelectedItem="{Binding ServizioTipoSelezionato}" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="4">
+                                                <TextBlock Text="Localita" Foreground="#50626A" />
+                                                <ComboBox ItemsSource="{Binding LocalitaOperativeCatalogo}"
+                                                          SelectedItem="{Binding ServizioLocalitaSelezionata}"
+                                                          DisplayMemberPath="Descrizione" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                                                <TextBlock Text="Unita navale" Foreground="#50626A" />
+                                                <ComboBox ItemsSource="{Binding UnitaNavaliCatalogo}"
+                                                          SelectedItem="{Binding ServizioUnitaNavaleSelezionata}"
+                                                          DisplayMemberPath="Descrizione" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
+                                                <TextBlock Text="Fuori sede" Foreground="#50626A" />
+                                                <CheckBox Margin="0,10,0,0"
+                                                          IsChecked="{Binding ServizioFuoriSede}"
+                                                          Content="Applica indennita fuori sede" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="1" Grid.Column="4" Margin="0,10,0,0">
+                                                <TextBlock Text="Scopo immersione" Foreground="#50626A" />
+                                                <ComboBox ItemsSource="{Binding ScopiImmersioneCatalogo}"
+                                                          SelectedItem="{Binding ServizioScopoSelezionato}"
+                                                          DisplayMemberPath="Descrizione" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="2" Grid.ColumnSpan="5" Margin="0,10,0,0">
+                                                <TextBlock Text="Attivita svolta" Foreground="#50626A" />
+                                                <TextBox Text="{Binding ServizioAttivitaSvolta, UpdateSourceTrigger=PropertyChanged}"
+                                                         TextWrapping="Wrap"
+                                                         AcceptsReturn="True"
+                                                         MinHeight="64" />
+                                                <TextBlock Margin="0,10,0,0" Text="Note servizio" Foreground="#50626A" />
+                                                <TextBox Text="{Binding ServizioNote, UpdateSourceTrigger=PropertyChanged}"
+                                                         TextWrapping="Wrap"
+                                                         AcceptsReturn="True"
+                                                         MinHeight="54" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <ItemsControl Margin="0,18,0,0"
+                                                  ItemsSource="{Binding ServizioImmersioniBozza}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Width="520"
+                                                        Margin="0,0,16,16"
+                                                        Background="#F8FBFD"
+                                                        BorderBrush="#D8E1E8"
+                                                        BorderThickness="1"
+                                                        CornerRadius="18"
+                                                        Padding="16">
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding NumeroImmersione, StringFormat=Immersione {0}}"
+                                                                   FontSize="18"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#17313E" />
+
+                                                        <Grid Margin="0,12,0,0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="16" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <StackPanel>
+                                                                <TextBlock Text="Ora inizio" Foreground="#50626A" />
+                                                                <TextBox Text="{Binding OrarioInizio, UpdateSourceTrigger=PropertyChanged}"
+                                                                         Width="120"
+                                                                         ToolTip="Formato consigliato: 08:30" />
+                                                            </StackPanel>
+
+                                                            <StackPanel Grid.Column="2">
+                                                                <TextBlock Text="Ora fine" Foreground="#50626A" />
+                                                                <TextBox Text="{Binding OrarioFine, UpdateSourceTrigger=PropertyChanged}"
+                                                                         Width="120"
+                                                                         ToolTip="Formato consigliato: 10:15" />
+                                                            </StackPanel>
+                                                        </Grid>
+
+                                                        <TextBlock Margin="0,10,0,0" Text="Direttore immersione" Foreground="#50626A" />
+                                                        <ComboBox ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  SelectedItem="{Binding DirettoreImmersione}"
+                                                                  DisplayMemberPath="NominativoConQualifica" />
+
+                                                        <TextBlock Margin="0,10,0,0" Text="Operatore soccorso" Foreground="#50626A" />
+                                                        <ComboBox ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  SelectedItem="{Binding OperatoreSoccorso}"
+                                                                  DisplayMemberPath="NominativoConQualifica" />
+
+                                                        <TextBlock Margin="0,10,0,0" Text="Assistenza BLSD" Foreground="#50626A" />
+                                                        <ComboBox ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  SelectedItem="{Binding AssistenteBlsd}"
+                                                                  DisplayMemberPath="NominativoConQualifica" />
+
+                                                        <TextBlock Margin="0,10,0,0" Text="Assistenza sanitaria" Foreground="#50626A" />
+                                                        <ComboBox ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  SelectedItem="{Binding AssistenteSanitario}"
+                                                                  DisplayMemberPath="NominativoConQualifica" />
+
+                                                        <TextBlock Margin="0,10,0,0" Text="Note immersione" Foreground="#50626A" />
+                                                        <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}"
+                                                                 TextWrapping="Wrap"
+                                                                 AcceptsReturn="True"
+                                                                 MinHeight="48" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <TextBlock Text="Personale impiegato"
+                                               FontSize="19"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="In questa fase il personale e gestito in una griglia unica: scegli gruppo operativo, presenza e ruolo. E piu flessibile del modello Word e si presta meglio ai conteggi futuri."
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+
+                                    <DataGrid Margin="0,16,0,0"
+                                              ItemsSource="{Binding ServizioPartecipantiBozza}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              MinHeight="360"
+                                              HeadersVisibility="Column"
+                                              RowHeaderWidth="0"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Qualifica"
+                                                                Width="120"
+                                                                Binding="{Binding Qualifica}" />
+                                            <DataGridTextColumn Header="Cognome e nome"
+                                                                Width="220"
+                                                                Binding="{Binding Nominativo}" />
+                                            <DataGridCheckBoxColumn Header="Presente"
+                                                                    Width="90"
+                                                                    Binding="{Binding Presente, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTemplateColumn Header="Gruppo operativo" Width="180">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding GruppoOperativo.Descrizione}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                                <DataGridTemplateColumn.CellEditingTemplate>
+                                                    <DataTemplate>
+                                                        <ComboBox ItemsSource="{Binding DataContext.GruppiOperativiCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  SelectedItem="{Binding GruppoOperativo, UpdateSourceTrigger=PropertyChanged}"
+                                                                  DisplayMemberPath="Descrizione" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellEditingTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTemplateColumn Header="Ruolo" Width="180">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding RuoloOperativo.Descrizione}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                                <DataGridTemplateColumn.CellEditingTemplate>
+                                                    <DataTemplate>
+                                                        <ComboBox ItemsSource="{Binding DataContext.RuoliOperativiCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  SelectedItem="{Binding RuoloOperativo, UpdateSourceTrigger=PropertyChanged}"
+                                                                  DisplayMemberPath="Descrizione" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellEditingTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTextColumn Header="Contatti"
+                                                                Width="220"
+                                                                Binding="{Binding Contatti}" />
+                                            <DataGridTextColumn Header="Note"
+                                                                Width="*"
+                                                                Binding="{Binding Note, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </ScrollViewer>
                         </Border>
                     </Grid>
                 </TabItem>

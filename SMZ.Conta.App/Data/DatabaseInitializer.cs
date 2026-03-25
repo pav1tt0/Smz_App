@@ -18,6 +18,7 @@ public static class DatabaseInitializer
         CreateSchema(connection, transaction);
         EnsureColumnMigrations(connection, transaction);
         SeedTipiAbilitazione(connection, transaction);
+        SeedCataloghiServizio(connection, transaction);
 
         transaction.Commit();
     }
@@ -167,6 +168,214 @@ public static class DatabaseInitializer
 
             CREATE INDEX IF NOT EXISTS IX_VisiteMedicheArchivio_ArchivioId
                 ON VisiteMedicheArchivio (PersonaleArchivioId);
+
+            CREATE TABLE IF NOT EXISTS CategorieRegistro (
+                CategoriaRegistroId INTEGER PRIMARY KEY,
+                Descrizione TEXT NOT NULL,
+                Attiva INTEGER NOT NULL,
+                Ordine INTEGER NOT NULL
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_CategorieRegistro_Descrizione
+                ON CategorieRegistro (Descrizione);
+
+            CREATE TABLE IF NOT EXISTS LocalitaOperative (
+                LocalitaOperativaId INTEGER PRIMARY KEY,
+                Descrizione TEXT NOT NULL,
+                Provincia TEXT NULL,
+                Attiva INTEGER NOT NULL,
+                Ordine INTEGER NOT NULL
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_LocalitaOperative_Descrizione
+                ON LocalitaOperative (Descrizione);
+
+            CREATE TABLE IF NOT EXISTS ScopiImmersione (
+                ScopoImmersioneId INTEGER PRIMARY KEY,
+                Descrizione TEXT NOT NULL,
+                CategoriaRegistroId INTEGER NOT NULL,
+                Attiva INTEGER NOT NULL,
+                Ordine INTEGER NOT NULL,
+                FOREIGN KEY (CategoriaRegistroId) REFERENCES CategorieRegistro (CategoriaRegistroId) ON DELETE RESTRICT
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_ScopiImmersione_Descrizione
+                ON ScopiImmersione (Descrizione);
+
+            CREATE INDEX IF NOT EXISTS IX_ScopiImmersione_CategoriaRegistroId
+                ON ScopiImmersione (CategoriaRegistroId);
+
+            CREATE TABLE IF NOT EXISTS UnitaNavali (
+                UnitaNavaleId INTEGER PRIMARY KEY,
+                Descrizione TEXT NOT NULL,
+                Sigla TEXT NULL,
+                Attiva INTEGER NOT NULL,
+                Ordine INTEGER NOT NULL
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_UnitaNavali_Descrizione
+                ON UnitaNavali (Descrizione);
+
+            CREATE TABLE IF NOT EXISTS TipologieImmersioneOperative (
+                TipologiaImmersioneOperativaId INTEGER PRIMARY KEY,
+                Codice TEXT NOT NULL,
+                Descrizione TEXT NOT NULL,
+                Attiva INTEGER NOT NULL,
+                Ordine INTEGER NOT NULL
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_TipologieImmersioneOperative_Codice
+                ON TipologieImmersioneOperative (Codice);
+
+            CREATE TABLE IF NOT EXISTS FasceProfondita (
+                FasciaProfonditaId INTEGER PRIMARY KEY,
+                Descrizione TEXT NOT NULL,
+                MetriDa INTEGER NOT NULL,
+                MetriA INTEGER NOT NULL,
+                Attiva INTEGER NOT NULL,
+                Ordine INTEGER NOT NULL
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_FasceProfondita_Descrizione
+                ON FasceProfondita (Descrizione);
+
+            CREATE TABLE IF NOT EXISTS CategorieContabiliOre (
+                CategoriaContabileOreId INTEGER PRIMARY KEY,
+                Codice TEXT NOT NULL,
+                Descrizione TEXT NOT NULL,
+                Attiva INTEGER NOT NULL,
+                Ordine INTEGER NOT NULL
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_CategorieContabiliOre_Codice
+                ON CategorieContabiliOre (Codice);
+
+            CREATE TABLE IF NOT EXISTS GruppiOperativi (
+                GruppoOperativoId INTEGER PRIMARY KEY,
+                Codice TEXT NOT NULL,
+                Descrizione TEXT NOT NULL,
+                Attiva INTEGER NOT NULL,
+                Ordine INTEGER NOT NULL
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_GruppiOperativi_Codice
+                ON GruppiOperativi (Codice);
+
+            CREATE TABLE IF NOT EXISTS RuoliOperativi (
+                RuoloOperativoId INTEGER PRIMARY KEY,
+                Codice TEXT NOT NULL,
+                Descrizione TEXT NOT NULL,
+                Attiva INTEGER NOT NULL,
+                Ordine INTEGER NOT NULL
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_RuoliOperativi_Codice
+                ON RuoliOperativi (Codice);
+
+            CREATE TABLE IF NOT EXISTS RegoleContabiliImmersione (
+                RegolaContabileImmersioneId INTEGER PRIMARY KEY,
+                TipologiaImmersioneOperativaId INTEGER NOT NULL,
+                FasciaProfonditaId INTEGER NOT NULL,
+                CategoriaContabileOreId INTEGER NOT NULL,
+                Tariffa REAL NOT NULL,
+                DataInizioValidita TEXT NULL,
+                DataFineValidita TEXT NULL,
+                Attiva INTEGER NOT NULL,
+                FOREIGN KEY (TipologiaImmersioneOperativaId) REFERENCES TipologieImmersioneOperative (TipologiaImmersioneOperativaId) ON DELETE RESTRICT,
+                FOREIGN KEY (FasciaProfonditaId) REFERENCES FasceProfondita (FasciaProfonditaId) ON DELETE RESTRICT,
+                FOREIGN KEY (CategoriaContabileOreId) REFERENCES CategorieContabiliOre (CategoriaContabileOreId) ON DELETE RESTRICT
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_RegoleContabiliImmersione_Keys
+                ON RegoleContabiliImmersione (TipologiaImmersioneOperativaId, FasciaProfonditaId, CategoriaContabileOreId);
+
+            CREATE TABLE IF NOT EXISTS ServiziGiornalieri (
+                ServizioGiornalieroId INTEGER PRIMARY KEY AUTOINCREMENT,
+                DataServizio TEXT NOT NULL,
+                TipoServizio TEXT NOT NULL DEFAULT 'InSede',
+                LocalitaOperativaId INTEGER NULL,
+                ScopoImmersioneId INTEGER NULL,
+                UnitaNavaleId INTEGER NULL,
+                FuoriSede INTEGER NOT NULL DEFAULT 0,
+                AttivitaSvolta TEXT NULL,
+                Note TEXT NULL,
+                CreatoIl TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                AggiornatoIl TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (LocalitaOperativaId) REFERENCES LocalitaOperative (LocalitaOperativaId) ON DELETE RESTRICT,
+                FOREIGN KEY (ScopoImmersioneId) REFERENCES ScopiImmersione (ScopoImmersioneId) ON DELETE RESTRICT,
+                FOREIGN KEY (UnitaNavaleId) REFERENCES UnitaNavali (UnitaNavaleId) ON DELETE RESTRICT
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_ServiziGiornalieri_DataServizio
+                ON ServiziGiornalieri (DataServizio);
+
+            CREATE TABLE IF NOT EXISTS ServizioImmersioni (
+                ServizioImmersioneId INTEGER PRIMARY KEY AUTOINCREMENT,
+                ServizioGiornalieroId INTEGER NOT NULL,
+                NumeroImmersione INTEGER NOT NULL,
+                OrarioInizio TEXT NULL,
+                OrarioFine TEXT NULL,
+                DirettoreImmersionePerId INTEGER NULL,
+                OperatoreSoccorsoPerId INTEGER NULL,
+                AssistenteBlsdPerId INTEGER NULL,
+                AssistenteSanitarioPerId INTEGER NULL,
+                LocalitaOperativaId INTEGER NULL,
+                ScopoImmersioneId INTEGER NULL,
+                Note TEXT NULL,
+                FOREIGN KEY (ServizioGiornalieroId) REFERENCES ServiziGiornalieri (ServizioGiornalieroId) ON DELETE CASCADE,
+                FOREIGN KEY (DirettoreImmersionePerId) REFERENCES Personale (PerId) ON DELETE RESTRICT,
+                FOREIGN KEY (OperatoreSoccorsoPerId) REFERENCES Personale (PerId) ON DELETE RESTRICT,
+                FOREIGN KEY (AssistenteBlsdPerId) REFERENCES Personale (PerId) ON DELETE RESTRICT,
+                FOREIGN KEY (AssistenteSanitarioPerId) REFERENCES Personale (PerId) ON DELETE RESTRICT,
+                FOREIGN KEY (LocalitaOperativaId) REFERENCES LocalitaOperative (LocalitaOperativaId) ON DELETE RESTRICT,
+                FOREIGN KEY (ScopoImmersioneId) REFERENCES ScopiImmersione (ScopoImmersioneId) ON DELETE RESTRICT
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_ServizioImmersioni_ServizioGiornalieroId
+                ON ServizioImmersioni (ServizioGiornalieroId);
+
+            CREATE TABLE IF NOT EXISTS ServizioPartecipanti (
+                ServizioPartecipanteId INTEGER PRIMARY KEY AUTOINCREMENT,
+                ServizioGiornalieroId INTEGER NOT NULL,
+                PerId INTEGER NOT NULL,
+                GruppoOperativoId INTEGER NOT NULL,
+                Presente INTEGER NOT NULL DEFAULT 1,
+                RuoloOperativoId INTEGER NULL,
+                Note TEXT NULL,
+                FOREIGN KEY (ServizioGiornalieroId) REFERENCES ServiziGiornalieri (ServizioGiornalieroId) ON DELETE CASCADE,
+                FOREIGN KEY (PerId) REFERENCES Personale (PerId) ON DELETE RESTRICT,
+                FOREIGN KEY (GruppoOperativoId) REFERENCES GruppiOperativi (GruppoOperativoId) ON DELETE RESTRICT,
+                FOREIGN KEY (RuoloOperativoId) REFERENCES RuoliOperativi (RuoloOperativoId) ON DELETE RESTRICT
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_ServizioPartecipanti_ServizioGiornalieroId
+                ON ServizioPartecipanti (ServizioGiornalieroId);
+
+            CREATE INDEX IF NOT EXISTS IX_ServizioPartecipanti_PerId
+                ON ServizioPartecipanti (PerId);
+
+            CREATE TABLE IF NOT EXISTS ServizioPartecipantiImmersioni (
+                ServizioPartecipanteImmersioneId INTEGER PRIMARY KEY AUTOINCREMENT,
+                ServizioImmersioneId INTEGER NOT NULL,
+                ServizioPartecipanteId INTEGER NOT NULL,
+                TipologiaImmersioneOperativaId INTEGER NULL,
+                ProfonditaMetri INTEGER NULL,
+                FasciaProfonditaId INTEGER NULL,
+                OreImmersione REAL NULL,
+                CategoriaContabileOreId INTEGER NULL,
+                Note TEXT NULL,
+                FOREIGN KEY (ServizioImmersioneId) REFERENCES ServizioImmersioni (ServizioImmersioneId) ON DELETE CASCADE,
+                FOREIGN KEY (ServizioPartecipanteId) REFERENCES ServizioPartecipanti (ServizioPartecipanteId) ON DELETE CASCADE,
+                FOREIGN KEY (TipologiaImmersioneOperativaId) REFERENCES TipologieImmersioneOperative (TipologiaImmersioneOperativaId) ON DELETE RESTRICT,
+                FOREIGN KEY (FasciaProfonditaId) REFERENCES FasceProfondita (FasciaProfonditaId) ON DELETE RESTRICT,
+                FOREIGN KEY (CategoriaContabileOreId) REFERENCES CategorieContabiliOre (CategoriaContabileOreId) ON DELETE RESTRICT
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_ServizioPartecipantiImmersioni_ServizioImmersioneId
+                ON ServizioPartecipantiImmersioni (ServizioImmersioneId);
+
+            CREATE INDEX IF NOT EXISTS IX_ServizioPartecipantiImmersioni_ServizioPartecipanteId
+                ON ServizioPartecipantiImmersioni (ServizioPartecipanteId);
             """;
 
         command.ExecuteNonQuery();
@@ -323,6 +532,294 @@ public static class DatabaseInitializer
             command.Parameters.AddWithValue("$richiedeLivello", tipo.RichiedeLivello ? 1 : 0);
             command.Parameters.AddWithValue("$richiedeScadenza", tipo.RichiedeScadenza ? 1 : 0);
             command.Parameters.AddWithValue("$richiedeProfondita", tipo.RichiedeProfondita ? 1 : 0);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SeedCataloghiServizio(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        SeedCategorieRegistro(connection, transaction);
+        SeedLocalitaOperative(connection, transaction);
+        SeedScopiImmersione(connection, transaction);
+        SeedUnitaNavali(connection, transaction);
+        SeedTipologieImmersioneOperative(connection, transaction);
+        SeedFasceProfondita(connection, transaction);
+        SeedCategorieContabiliOre(connection, transaction);
+        SeedGruppiOperativi(connection, transaction);
+        SeedRuoliOperativi(connection, transaction);
+        SeedRegoleContabiliImmersione(connection, transaction);
+    }
+
+    private static void SeedCategorieRegistro(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        foreach (var item in CataloghiServizio.CategorieRegistro)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO CategorieRegistro (CategoriaRegistroId, Descrizione, Attiva, Ordine)
+                VALUES ($id, $descrizione, $attiva, $ordine)
+                ON CONFLICT(CategoriaRegistroId) DO UPDATE SET
+                    Descrizione = excluded.Descrizione,
+                    Attiva = excluded.Attiva,
+                    Ordine = excluded.Ordine;
+                """;
+            command.Parameters.AddWithValue("$id", item.CategoriaRegistroId);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SeedLocalitaOperative(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        foreach (var item in CataloghiServizio.LocalitaOperative)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO LocalitaOperative (LocalitaOperativaId, Descrizione, Provincia, Attiva, Ordine)
+                VALUES ($id, $descrizione, $provincia, $attiva, $ordine)
+                ON CONFLICT(LocalitaOperativaId) DO UPDATE SET
+                    Descrizione = excluded.Descrizione,
+                    Provincia = excluded.Provincia,
+                    Attiva = excluded.Attiva,
+                    Ordine = excluded.Ordine;
+                """;
+            command.Parameters.AddWithValue("$id", item.LocalitaOperativaId);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$provincia", string.IsNullOrWhiteSpace(item.Provincia) ? DBNull.Value : item.Provincia);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SeedScopiImmersione(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        foreach (var item in CataloghiServizio.ScopiImmersione)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO ScopiImmersione (ScopoImmersioneId, Descrizione, CategoriaRegistroId, Attiva, Ordine)
+                VALUES ($id, $descrizione, $categoriaRegistroId, $attiva, $ordine)
+                ON CONFLICT(ScopoImmersioneId) DO UPDATE SET
+                    Descrizione = excluded.Descrizione,
+                    CategoriaRegistroId = excluded.CategoriaRegistroId,
+                    Attiva = excluded.Attiva,
+                    Ordine = excluded.Ordine;
+                """;
+            command.Parameters.AddWithValue("$id", item.ScopoImmersioneId);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$categoriaRegistroId", item.CategoriaRegistroId);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SeedUnitaNavali(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        foreach (var item in CataloghiServizio.UnitaNavali)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO UnitaNavali (UnitaNavaleId, Descrizione, Sigla, Attiva, Ordine)
+                VALUES ($id, $descrizione, $sigla, $attiva, $ordine)
+                ON CONFLICT(UnitaNavaleId) DO UPDATE SET
+                    Descrizione = excluded.Descrizione,
+                    Sigla = excluded.Sigla,
+                    Attiva = excluded.Attiva,
+                    Ordine = excluded.Ordine;
+                """;
+            command.Parameters.AddWithValue("$id", item.UnitaNavaleId);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$sigla", string.IsNullOrWhiteSpace(item.Sigla) ? DBNull.Value : item.Sigla);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SeedTipologieImmersioneOperative(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        foreach (var item in CataloghiServizio.TipologieImmersione)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO TipologieImmersioneOperative (TipologiaImmersioneOperativaId, Codice, Descrizione, Attiva, Ordine)
+                VALUES ($id, $codice, $descrizione, $attiva, $ordine)
+                ON CONFLICT(TipologiaImmersioneOperativaId) DO UPDATE SET
+                    Codice = excluded.Codice,
+                    Descrizione = excluded.Descrizione,
+                    Attiva = excluded.Attiva,
+                    Ordine = excluded.Ordine;
+                """;
+            command.Parameters.AddWithValue("$id", item.TipologiaImmersioneOperativaId);
+            command.Parameters.AddWithValue("$codice", item.Codice);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SeedFasceProfondita(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        foreach (var item in CataloghiServizio.FasceProfondita)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO FasceProfondita (FasciaProfonditaId, Descrizione, MetriDa, MetriA, Attiva, Ordine)
+                VALUES ($id, $descrizione, $metriDa, $metriA, $attiva, $ordine)
+                ON CONFLICT(FasciaProfonditaId) DO UPDATE SET
+                    Descrizione = excluded.Descrizione,
+                    MetriDa = excluded.MetriDa,
+                    MetriA = excluded.MetriA,
+                    Attiva = excluded.Attiva,
+                    Ordine = excluded.Ordine;
+                """;
+            command.Parameters.AddWithValue("$id", item.FasciaProfonditaId);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$metriDa", item.MetriDa);
+            command.Parameters.AddWithValue("$metriA", item.MetriA);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SeedCategorieContabiliOre(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        foreach (var item in CataloghiServizio.CategorieContabiliOre)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO CategorieContabiliOre (CategoriaContabileOreId, Codice, Descrizione, Attiva, Ordine)
+                VALUES ($id, $codice, $descrizione, $attiva, $ordine)
+                ON CONFLICT(CategoriaContabileOreId) DO UPDATE SET
+                    Codice = excluded.Codice,
+                    Descrizione = excluded.Descrizione,
+                    Attiva = excluded.Attiva,
+                    Ordine = excluded.Ordine;
+                """;
+            command.Parameters.AddWithValue("$id", item.CategoriaContabileOreId);
+            command.Parameters.AddWithValue("$codice", item.Codice);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SeedGruppiOperativi(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        foreach (var item in CataloghiServizio.GruppiOperativi)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO GruppiOperativi (GruppoOperativoId, Codice, Descrizione, Attiva, Ordine)
+                VALUES ($id, $codice, $descrizione, $attiva, $ordine)
+                ON CONFLICT(GruppoOperativoId) DO UPDATE SET
+                    Codice = excluded.Codice,
+                    Descrizione = excluded.Descrizione,
+                    Attiva = excluded.Attiva,
+                    Ordine = excluded.Ordine;
+                """;
+            command.Parameters.AddWithValue("$id", item.GruppoOperativoId);
+            command.Parameters.AddWithValue("$codice", item.Codice);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SeedRuoliOperativi(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        foreach (var item in CataloghiServizio.RuoliOperativi)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO RuoliOperativi (RuoloOperativoId, Codice, Descrizione, Attiva, Ordine)
+                VALUES ($id, $codice, $descrizione, $attiva, $ordine)
+                ON CONFLICT(RuoloOperativoId) DO UPDATE SET
+                    Codice = excluded.Codice,
+                    Descrizione = excluded.Descrizione,
+                    Attiva = excluded.Attiva,
+                    Ordine = excluded.Ordine;
+                """;
+            command.Parameters.AddWithValue("$id", item.RuoloOperativoId);
+            command.Parameters.AddWithValue("$codice", item.Codice);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void SeedRegoleContabiliImmersione(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        foreach (var item in CataloghiServizio.RegoleContabiliImmersione)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO RegoleContabiliImmersione (
+                    RegolaContabileImmersioneId,
+                    TipologiaImmersioneOperativaId,
+                    FasciaProfonditaId,
+                    CategoriaContabileOreId,
+                    Tariffa,
+                    DataInizioValidita,
+                    DataFineValidita,
+                    Attiva
+                )
+                VALUES (
+                    $id,
+                    $tipologiaImmersioneOperativaId,
+                    $fasciaProfonditaId,
+                    $categoriaContabileOreId,
+                    $tariffa,
+                    $dataInizioValidita,
+                    $dataFineValidita,
+                    $attiva
+                )
+                ON CONFLICT(RegolaContabileImmersioneId) DO UPDATE SET
+                    TipologiaImmersioneOperativaId = excluded.TipologiaImmersioneOperativaId,
+                    FasciaProfonditaId = excluded.FasciaProfonditaId,
+                    CategoriaContabileOreId = excluded.CategoriaContabileOreId,
+                    Tariffa = excluded.Tariffa,
+                    DataInizioValidita = excluded.DataInizioValidita,
+                    DataFineValidita = excluded.DataFineValidita,
+                    Attiva = excluded.Attiva;
+                """;
+            command.Parameters.AddWithValue("$id", item.RegolaContabileImmersioneId);
+            command.Parameters.AddWithValue("$tipologiaImmersioneOperativaId", item.TipologiaImmersioneOperativaId);
+            command.Parameters.AddWithValue("$fasciaProfonditaId", item.FasciaProfonditaId);
+            command.Parameters.AddWithValue("$categoriaContabileOreId", item.CategoriaContabileOreId);
+            command.Parameters.AddWithValue("$tariffa", item.Tariffa);
+            command.Parameters.AddWithValue("$dataInizioValidita", item.DataInizioValidita?.ToString("yyyy-MM-dd") ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("$dataFineValidita", item.DataFineValidita?.ToString("yyyy-MM-dd") ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
             command.ExecuteNonQuery();
         }
     }

@@ -8,6 +8,7 @@ public sealed class PersonaleListItemViewModel : ObservableObject
     private int _perId;
     private string _cognome = string.Empty;
     private string _nome = string.Empty;
+    private string _qualifica = string.Empty;
     private string _codiceFiscale = string.Empty;
     private string _contatti = string.Empty;
 
@@ -37,6 +38,19 @@ public sealed class PersonaleListItemViewModel : ObservableObject
             if (SetProperty(ref _nome, value))
             {
                 OnPropertyChanged(nameof(Nominativo));
+                OnPropertyChanged(nameof(NominativoConQualifica));
+            }
+        }
+    }
+
+    public string Qualifica
+    {
+        get => _qualifica;
+        set
+        {
+            if (SetProperty(ref _qualifica, value))
+            {
+                OnPropertyChanged(nameof(NominativoConQualifica));
             }
         }
     }
@@ -55,6 +69,9 @@ public sealed class PersonaleListItemViewModel : ObservableObject
 
     public string Nominativo => $"{Cognome} {Nome}".Trim();
 
+    public string NominativoConQualifica =>
+        string.IsNullOrWhiteSpace(Qualifica) ? Nominativo : $"{Qualifica} - {Nominativo}";
+
     public static PersonaleListItemViewModel FromModel(Personale personale)
     {
         return new PersonaleListItemViewModel
@@ -62,6 +79,7 @@ public sealed class PersonaleListItemViewModel : ObservableObject
             PerId = personale.PerId,
             Cognome = personale.Cognome,
             Nome = personale.Nome,
+            Qualifica = personale.Qualifica,
             CodiceFiscale = personale.CodiceFiscale,
             Contatti = personale.ContattiSintesi,
         };

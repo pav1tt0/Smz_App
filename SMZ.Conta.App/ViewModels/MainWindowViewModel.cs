@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Infrastructure;
@@ -8,9 +9,18 @@ namespace SMZ.Conta.App.ViewModels;
 
 public sealed class MainWindowViewModel : ObservableObject
 {
+    private const int HomeSectionIndex = 0;
+    private const int SearchSectionIndex = 1;
+    private const int ServicesSectionIndex = 2;
+    private const int PersonalSectionIndex = 3;
+    private const int ArchiveSectionIndex = 4;
+
     private readonly PersonaleRepository _repository = new();
     private readonly RelayCommand _deleteCommand;
+    private readonly RelayCommand _navigateSectionCommand;
+    private readonly RelayCommand _newServizioCommand;
     private readonly RelayCommand _openSelectedPersonaleCommand;
+    private readonly RelayCommand _reloadServizioPersonaleCommand;
     private readonly RelayCommand _restoreArchivioCommand;
     private readonly RelayCommand _deleteArchivioDefinitivoCommand;
     private readonly List<string> _allSearchSuggestions;
@@ -59,16 +69,28 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _visitaDataUltimaVisita = string.Empty;
     private string _visitaEsito = string.Empty;
     private string _visitaNote = string.Empty;
+    private string _servizioData = DateTime.Today.ToString("dd/MM/yyyy");
+    private string _servizioTipoSelezionato = "InSede";
+    private LocalitaOperativa? _servizioLocalitaSelezionata;
+    private ScopoImmersioneItem? _servizioScopoSelezionato;
+    private UnitaNavale? _servizioUnitaNavaleSelezionata;
+    private bool _servizioFuoriSede;
+    private string _servizioAttivitaSvolta = string.Empty;
+    private string _servizioNote = string.Empty;
 
     public MainWindowViewModel()
     {
+        var cataloghiServizio = _repository.GetCataloghiServizio();
+
         SearchCommand = new RelayCommand(CaricaElenco);
         OpenScadenzaCommand = new RelayCommand(ApriScadenzaDaParametro);
         ClearFiltersCommand = new RelayCommand(PulisciFiltri);
+        _navigateSectionCommand = new RelayCommand(NavigaAllaSezione);
+        _newServizioCommand = new RelayCommand(NuovoServizioGiornaliero);
         NewCommand = new RelayCommand(() =>
         {
             NuovoPersonale();
-            SezioneAttivaIndex = 1;
+            SezioneAttivaIndex = PersonalSectionIndex;
         });
         SaveCommand = new RelayCommand(SalvaPersonale);
         _deleteCommand = new RelayCommand(EliminaPersonale, () => PerId > 0);
@@ -82,9 +104,13 @@ public sealed class MainWindowViewModel : ObservableObject
         ClearVisitaEditorCommand = new RelayCommand(PulisciEditorVisita);
         AddVisitaCommand = new RelayCommand(PulisciEditorVisita);
         RemoveVisitaCommand = new RelayCommand(RimuoviVisitaRiga);
+        _reloadServizioPersonaleCommand = new RelayCommand(() => InizializzaBozzaServizio(preserveSelections: true));
 
         Abilitazioni = new ObservableCollection<PersonaleAbilitazioneRowViewModel>();
         VisiteMediche = new ObservableCollection<VisitaMedicaRowViewModel>();
+        OperatoriServizioDisponibili = new ObservableCollection<PersonaleListItemViewModel>();
+        ServizioPartecipantiBozza = new ObservableCollection<ServizioPartecipanteDraftViewModel>();
+        ServizioImmersioniBozza = new ObservableCollection<ServizioImmersioneDraftViewModel>();
         ArchivioItems = new ObservableCollection<PersonaleArchivioListItemViewModel>();
         ArchivioAbilitazioni = new ObservableCollection<PersonaleAbilitazioneRowViewModel>();
         ArchivioVisiteMediche = new ObservableCollection<VisitaMedicaRowViewModel>();
@@ -92,6 +118,17 @@ public sealed class MainWindowViewModel : ObservableObject
         SearchSuggestions = new ObservableCollection<string>();
         FiltriScadenze = new ObservableCollection<string>(["Tutte", "Solo visite", "Solo abilitazioni"]);
         TipiAbilitazioneCatalogo = new ObservableCollection<TipoAbilitazione>(_repository.GetTipiAbilitazione());
+        TipiServizioDisponibili = new ObservableCollection<string>(["InSede", "FuoriSede", "Misto"]);
+        CategorieRegistroCatalogo = new ObservableCollection<CategoriaRegistroItem>(cataloghiServizio.CategorieRegistro);
+        LocalitaOperativeCatalogo = new ObservableCollection<LocalitaOperativa>(cataloghiServizio.LocalitaOperative);
+        ScopiImmersioneCatalogo = new ObservableCollection<ScopoImmersioneItem>(cataloghiServizio.ScopiImmersione);
+        UnitaNavaliCatalogo = new ObservableCollection<UnitaNavale>(cataloghiServizio.UnitaNavali);
+        TipologieImmersioneOperativeCatalogo = new ObservableCollection<TipologiaImmersioneOperativa>(cataloghiServizio.TipologieImmersione);
+        FasceProfonditaCatalogo = new ObservableCollection<FasciaProfondita>(cataloghiServizio.FasceProfondita);
+        CategorieContabiliOreCatalogo = new ObservableCollection<CategoriaContabileOre>(cataloghiServizio.CategorieContabiliOre);
+        GruppiOperativiCatalogo = new ObservableCollection<GruppoOperativo>(cataloghiServizio.GruppiOperativi);
+        RuoliOperativiCatalogo = new ObservableCollection<RuoloOperativo>(cataloghiServizio.RuoliOperativi);
+        RegoleContabiliImmersioneCatalogo = new ObservableCollection<RegolaContabileImmersione>(cataloghiServizio.RegoleContabiliImmersione);
         AbilitazioneLivelliSuggeriti = new ObservableCollection<string>();
         AbilitazioneProfonditaSuggerite = new ObservableCollection<string>();
         _allSearchSuggestions = _repository.GetSearchSuggestions();
@@ -106,18 +143,39 @@ public sealed class MainWindowViewModel : ObservableObject
         ]);
 
         _filtroAbilitazione = FiltroAbilitazioni.FirstOrDefault();
+        _servizioLocalitaSelezionata = LocalitaOperativeCatalogo.FirstOrDefault();
+        _servizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault();
+        _servizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault();
         AggiornaSuggerimentiRicerca();
+        InizializzaBozzaServizio(preserveSelections: false);
 
         CaricaElenco();
         CaricaArchivio();
         AggiornaScadenziario();
         NuovoPersonale();
-        SezioneAttivaIndex = 0;
+        SezioneAttivaIndex = HomeSectionIndex;
     }
 
-    public string Titolo => "Sommozzatori Polizia di Stato";
+    public string Titolo => "SMZ La Spezia";
 
-    public string Sottotitolo => "Gestione personale, abilitazioni professionali e visite mediche";
+    public string Sottotitolo => "Gestione integrata di personale, servizi, immersioni e scadenze";
+
+    public string HomeTitolo => "Centro Nautico e Sommozzatori";
+
+    public string HomeSottotitolo =>
+        "Una home iniziale piu moderna per accedere ai moduli del nucleo: ricerca, servizi giornalieri, anagrafica e archivio.";
+
+    public int DashboardDipendentiTotali => PersonaleItems.Count;
+
+    public int DashboardScadenzeAperte => ScadenzeTotali;
+
+    public int DashboardCataloghiServizioTotali =>
+        LocalitaOperativeCatalogo.Count
+        + ScopiImmersioneCatalogo.Count
+        + UnitaNavaliCatalogo.Count
+        + TipologieImmersioneOperativeCatalogo.Count;
+
+    public RelayCommand NavigateSectionCommand => _navigateSectionCommand;
 
     public int SezioneAttivaIndex
     {
@@ -139,6 +197,28 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<TipoAbilitazione> TipiAbilitazioneCatalogo { get; }
 
+    public ObservableCollection<string> TipiServizioDisponibili { get; }
+
+    public ObservableCollection<CategoriaRegistroItem> CategorieRegistroCatalogo { get; }
+
+    public ObservableCollection<LocalitaOperativa> LocalitaOperativeCatalogo { get; }
+
+    public ObservableCollection<ScopoImmersioneItem> ScopiImmersioneCatalogo { get; }
+
+    public ObservableCollection<UnitaNavale> UnitaNavaliCatalogo { get; }
+
+    public ObservableCollection<TipologiaImmersioneOperativa> TipologieImmersioneOperativeCatalogo { get; }
+
+    public ObservableCollection<FasciaProfondita> FasceProfonditaCatalogo { get; }
+
+    public ObservableCollection<CategoriaContabileOre> CategorieContabiliOreCatalogo { get; }
+
+    public ObservableCollection<GruppoOperativo> GruppiOperativiCatalogo { get; }
+
+    public ObservableCollection<RuoloOperativo> RuoliOperativiCatalogo { get; }
+
+    public ObservableCollection<RegolaContabileImmersione> RegoleContabiliImmersioneCatalogo { get; }
+
     public ObservableCollection<string> AbilitazioneLivelliSuggeriti { get; }
 
     public ObservableCollection<string> AbilitazioneProfonditaSuggerite { get; }
@@ -148,6 +228,12 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<PersonaleAbilitazioneRowViewModel> Abilitazioni { get; }
 
     public ObservableCollection<VisitaMedicaRowViewModel> VisiteMediche { get; }
+
+    public ObservableCollection<PersonaleListItemViewModel> OperatoriServizioDisponibili { get; }
+
+    public ObservableCollection<ServizioPartecipanteDraftViewModel> ServizioPartecipantiBozza { get; }
+
+    public ObservableCollection<ServizioImmersioneDraftViewModel> ServizioImmersioniBozza { get; }
 
     public ObservableCollection<ScadenzaItemViewModel> ScadenzeProssime { get; }
 
@@ -175,6 +261,110 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<TipoVisitaMedica> TipiVisitaMedicaCatalogo { get; } =
         new(CatalogoVisiteMediche.Tutte);
+
+    public string ServizioData
+    {
+        get => _servizioData;
+        set => SetProperty(ref _servizioData, value);
+    }
+
+    public string ServizioTipoSelezionato
+    {
+        get => _servizioTipoSelezionato;
+        set
+        {
+            if (SetProperty(ref _servizioTipoSelezionato, value))
+            {
+                OnPropertyChanged(nameof(ServizioTipoDescrizione));
+            }
+        }
+    }
+
+    public LocalitaOperativa? ServizioLocalitaSelezionata
+    {
+        get => _servizioLocalitaSelezionata;
+        set => SetProperty(ref _servizioLocalitaSelezionata, value);
+    }
+
+    public ScopoImmersioneItem? ServizioScopoSelezionato
+    {
+        get => _servizioScopoSelezionato;
+        set
+        {
+            if (SetProperty(ref _servizioScopoSelezionato, value))
+            {
+                OnPropertyChanged(nameof(ServizioCategoriaRegistroDescrizione));
+            }
+        }
+    }
+
+    public UnitaNavale? ServizioUnitaNavaleSelezionata
+    {
+        get => _servizioUnitaNavaleSelezionata;
+        set => SetProperty(ref _servizioUnitaNavaleSelezionata, value);
+    }
+
+    public bool ServizioFuoriSede
+    {
+        get => _servizioFuoriSede;
+        set
+        {
+            if (SetProperty(ref _servizioFuoriSede, value))
+            {
+                OnPropertyChanged(nameof(ServizioFuoriSedeDescrizione));
+            }
+        }
+    }
+
+    public string ServizioAttivitaSvolta
+    {
+        get => _servizioAttivitaSvolta;
+        set => SetProperty(ref _servizioAttivitaSvolta, value);
+    }
+
+    public string ServizioNote
+    {
+        get => _servizioNote;
+        set => SetProperty(ref _servizioNote, value);
+    }
+
+    public string ServizioTipoDescrizione => ServizioTipoSelezionato switch
+    {
+        "FuoriSede" => "Servizio operativo fuori sede",
+        "Misto" => "Servizio con componenti in sede e fuori sede",
+        _ => "Servizio operativo in sede",
+    };
+
+    public string ServizioFuoriSedeDescrizione => ServizioFuoriSede ? "Indennita fuori sede: SI" : "Indennita fuori sede: NO";
+
+    public string ServizioCategoriaRegistroDescrizione
+    {
+        get
+        {
+            if (ServizioScopoSelezionato is null)
+            {
+                return "Categoria registro non selezionata";
+            }
+
+            var categoria = CategorieRegistroCatalogo.FirstOrDefault(item => item.CategoriaRegistroId == ServizioScopoSelezionato.CategoriaRegistroId);
+            return categoria is null ? "Categoria registro non disponibile" : categoria.Descrizione;
+        }
+    }
+
+    public int ServizioPartecipantiTotali => ServizioPartecipantiBozza.Count;
+
+    public int ServizioPresentiTotali => ServizioPartecipantiBozza.Count(item => item.Presente);
+
+    public int ServizioImmersioniCompilate => ServizioImmersioniBozza.Count(item =>
+        !string.IsNullOrWhiteSpace(item.OrarioInizio)
+        || !string.IsNullOrWhiteSpace(item.OrarioFine)
+        || item.DirettoreImmersione is not null
+        || item.OperatoreSoccorso is not null
+        || item.AssistenteBlsd is not null
+        || item.AssistenteSanitario is not null);
+
+    public string ServizioBozzaStato =>
+        "Prima bozza del modulo servizi: campi e selezioni pronti. Il salvataggio su database verra collegato nel passo successivo.";
 
     public ObservableCollection<string> QualificheDisponibili { get; } =
         new(
@@ -206,6 +396,8 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public RelayCommand ClearFiltersCommand { get; }
 
+    public RelayCommand NewServizioCommand => _newServizioCommand;
+
     public RelayCommand NewCommand { get; }
 
     public RelayCommand SaveCommand { get; }
@@ -231,6 +423,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand AddVisitaCommand { get; }
 
     public RelayCommand RemoveVisitaCommand { get; }
+
+    public RelayCommand ReloadServizioPersonaleCommand => _reloadServizioPersonaleCommand;
 
     public PersonaleListItemViewModel? SelectedPersonale
     {
@@ -769,6 +963,7 @@ public sealed class MainWindowViewModel : ObservableObject
             Stato = ricercaPerNomeAttiva && FiltroAbilitazione?.TipoAbilitazioneId is not null
                 ? $"{PersonaleItems.Count} dipendenti trovati. Ricerca per cognome/nome attiva: filtro abilitazione sospeso."
                 : $"{PersonaleItems.Count} dipendenti trovati";
+            OnPropertyChanged(nameof(DashboardDipendentiTotali));
         }
         catch (Exception ex)
         {
@@ -803,6 +998,7 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ScadenzeTotali));
         OnPropertyChanged(nameof(ScadenzeScadute));
         OnPropertyChanged(nameof(ScadenzeUrgenti));
+        OnPropertyChanged(nameof(DashboardScadenzeAperte));
     }
 
     private void ApriScadenza(ScadenzaItemViewModel item)
@@ -835,7 +1031,7 @@ public sealed class MainWindowViewModel : ObservableObject
                 ?? Abilitazioni.FirstOrDefault(row => string.Equals(row.TipoDescrizione, item.Titolo, StringComparison.OrdinalIgnoreCase));
         }
 
-        SezioneAttivaIndex = 1;
+        SezioneAttivaIndex = PersonalSectionIndex;
     }
 
     private void ApriScadenzaDaParametro(object? parameter)
@@ -1016,6 +1212,54 @@ public sealed class MainWindowViewModel : ObservableObject
         CaricaElenco();
     }
 
+    private void NavigaAllaSezione(object? parameter)
+    {
+        if (parameter is int index)
+        {
+            SezioneAttivaIndex = index;
+            return;
+        }
+
+        if (parameter is not null && int.TryParse(parameter.ToString(), out var parsed))
+        {
+            SezioneAttivaIndex = parsed;
+        }
+    }
+
+    private void NuovoServizioGiornaliero()
+    {
+        ServizioData = DateTime.Today.ToString("dd/MM/yyyy");
+        ServizioTipoSelezionato = "InSede";
+        ServizioLocalitaSelezionata = LocalitaOperativeCatalogo.FirstOrDefault();
+        ServizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault();
+        ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault();
+        ServizioFuoriSede = false;
+        ServizioAttivitaSvolta = string.Empty;
+        ServizioNote = string.Empty;
+
+        foreach (var partecipante in ServizioPartecipantiBozza)
+        {
+            partecipante.Presente = false;
+            partecipante.GruppoOperativo = null;
+            partecipante.RuoloOperativo = null;
+            partecipante.Note = string.Empty;
+        }
+
+        foreach (var immersione in ServizioImmersioniBozza)
+        {
+            immersione.OrarioInizio = string.Empty;
+            immersione.OrarioFine = string.Empty;
+            immersione.DirettoreImmersione = null;
+            immersione.OperatoreSoccorso = null;
+            immersione.AssistenteBlsd = null;
+            immersione.AssistenteSanitario = null;
+            immersione.Note = string.Empty;
+        }
+
+        AggiornaRiepilogoBozzaServizio();
+        Stato = "Nuova bozza servizio giornaliero.";
+    }
+
     private void NuovoPersonale()
     {
         SelectedPersonale = null;
@@ -1099,7 +1343,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         CaricaPersonale(SelectedPersonale.PerId);
-        SezioneAttivaIndex = 1;
+        SezioneAttivaIndex = PersonalSectionIndex;
     }
 
     private void SalvaPersonale()
@@ -1115,6 +1359,7 @@ public sealed class MainWindowViewModel : ObservableObject
             var perId = _repository.SavePersonale(personale, isNewRecord: !IsExistingPerson);
             RicaricaSuggerimentiRicerca();
             CaricaElenco();
+            InizializzaBozzaServizio(preserveSelections: true);
             AggiornaScadenziario();
             SelectedPersonale = PersonaleItems.FirstOrDefault(item => item.PerId == perId);
             if (SelectedPersonale is null)
@@ -1152,11 +1397,12 @@ public sealed class MainWindowViewModel : ObservableObject
         var archiveId = _repository.DeletePersonale(PerId);
         RicaricaSuggerimentiRicerca();
         CaricaElenco();
+        InizializzaBozzaServizio(preserveSelections: true);
         CaricaArchivio();
         AggiornaScadenziario();
         NuovoPersonale();
         SelectedArchivio = ArchivioItems.FirstOrDefault(item => item.PersonaleArchivioId == archiveId);
-        SezioneAttivaIndex = 2;
+        SezioneAttivaIndex = ArchiveSectionIndex;
         Stato = "Scheda archiviata. I dati restano conservati nell'archivio interno.";
     }
 
@@ -1185,6 +1431,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
             RicaricaSuggerimentiRicerca();
             CaricaElenco();
+            InizializzaBozzaServizio(preserveSelections: true);
             CaricaArchivio();
             AggiornaScadenziario();
 
@@ -1194,7 +1441,7 @@ public sealed class MainWindowViewModel : ObservableObject
                 CaricaPersonale(perIdRipristinato);
             }
 
-            SezioneAttivaIndex = 1;
+            SezioneAttivaIndex = PersonalSectionIndex;
             Stato = perIdRipristinato == perIdOriginale
                 ? $"Scheda ripristinata con PerID {perIdRipristinato}."
                 : $"Scheda ripristinata con PerID {perIdRipristinato}. Il PerID originario {perIdOriginale} era gia occupato.";
@@ -1713,6 +1960,112 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(SchedaVisiteTotali));
         OnPropertyChanged(nameof(SchedaProssimaScadenza));
         OnPropertyChanged(nameof(SchedaProssimaScadenzaDettaglio));
+    }
+
+    private void InizializzaBozzaServizio(bool preserveSelections)
+    {
+        var personaleAttivo = _repository
+            .SearchPersonale(string.Empty, null, null)
+            .OrderBy(item => item.Cognome)
+            .ThenBy(item => item.Nome)
+            .ToList();
+
+        var selezioniEsistenti = preserveSelections
+            ? ServizioPartecipantiBozza.ToDictionary(item => item.PerId)
+            : new Dictionary<int, ServizioPartecipanteDraftViewModel>();
+
+        OperatoriServizioDisponibili.Clear();
+        foreach (var personale in personaleAttivo)
+        {
+            OperatoriServizioDisponibili.Add(PersonaleListItemViewModel.FromModel(personale));
+        }
+
+        ServizioPartecipantiBozza.Clear();
+        foreach (var personale in personaleAttivo)
+        {
+            selezioniEsistenti.TryGetValue(personale.PerId, out var esistente);
+
+            var item = new ServizioPartecipanteDraftViewModel
+            {
+                PerId = personale.PerId,
+                Qualifica = personale.Qualifica,
+                Nominativo = personale.NominativoCompleto,
+                Contatti = personale.ContattiSintesi,
+                Presente = esistente?.Presente ?? false,
+                GruppoOperativo = TrovaGruppoOperativo(esistente?.GruppoOperativo?.GruppoOperativoId),
+                RuoloOperativo = TrovaRuoloOperativo(esistente?.RuoloOperativo?.RuoloOperativoId),
+                Note = esistente?.Note ?? string.Empty,
+            };
+
+            item.PropertyChanged += ServizioPartecipanteBozza_PropertyChanged;
+            ServizioPartecipantiBozza.Add(item);
+        }
+
+        if (ServizioImmersioniBozza.Count == 0)
+        {
+            ServizioImmersioniBozza.Add(new ServizioImmersioneDraftViewModel { NumeroImmersione = 1 });
+            ServizioImmersioniBozza.Add(new ServizioImmersioneDraftViewModel { NumeroImmersione = 2 });
+
+            foreach (var immersione in ServizioImmersioniBozza)
+            {
+                immersione.PropertyChanged += ServizioImmersioneBozza_PropertyChanged;
+            }
+        }
+        else if (preserveSelections)
+        {
+            foreach (var immersione in ServizioImmersioniBozza)
+            {
+                immersione.DirettoreImmersione = TrovaOperatoreServizio(immersione.DirettoreImmersione?.PerId);
+                immersione.OperatoreSoccorso = TrovaOperatoreServizio(immersione.OperatoreSoccorso?.PerId);
+                immersione.AssistenteBlsd = TrovaOperatoreServizio(immersione.AssistenteBlsd?.PerId);
+                immersione.AssistenteSanitario = TrovaOperatoreServizio(immersione.AssistenteSanitario?.PerId);
+            }
+        }
+
+        AggiornaRiepilogoBozzaServizio();
+    }
+
+    private void ServizioPartecipanteBozza_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ServizioPartecipanteDraftViewModel.Presente)
+            or nameof(ServizioPartecipanteDraftViewModel.GruppoOperativo)
+            or nameof(ServizioPartecipanteDraftViewModel.RuoloOperativo))
+        {
+            AggiornaRiepilogoBozzaServizio();
+        }
+    }
+
+    private void ServizioImmersioneBozza_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ServizioImmersioneDraftViewModel.OrarioInizio)
+            or nameof(ServizioImmersioneDraftViewModel.OrarioFine)
+            or nameof(ServizioImmersioneDraftViewModel.DirettoreImmersione)
+            or nameof(ServizioImmersioneDraftViewModel.OperatoreSoccorso)
+            or nameof(ServizioImmersioneDraftViewModel.AssistenteBlsd)
+            or nameof(ServizioImmersioneDraftViewModel.AssistenteSanitario))
+        {
+            AggiornaRiepilogoBozzaServizio();
+        }
+    }
+
+    private GruppoOperativo? TrovaGruppoOperativo(int? gruppoOperativoId) =>
+        gruppoOperativoId is null ? null : GruppiOperativiCatalogo.FirstOrDefault(item => item.GruppoOperativoId == gruppoOperativoId.Value);
+
+    private RuoloOperativo? TrovaRuoloOperativo(int? ruoloOperativoId) =>
+        ruoloOperativoId is null ? null : RuoliOperativiCatalogo.FirstOrDefault(item => item.RuoloOperativoId == ruoloOperativoId.Value);
+
+    private PersonaleListItemViewModel? TrovaOperatoreServizio(int? perId) =>
+        perId is null ? null : OperatoriServizioDisponibili.FirstOrDefault(item => item.PerId == perId.Value);
+
+    private void AggiornaRiepilogoBozzaServizio()
+    {
+        OnPropertyChanged(nameof(ServizioTipoDescrizione));
+        OnPropertyChanged(nameof(ServizioFuoriSedeDescrizione));
+        OnPropertyChanged(nameof(ServizioCategoriaRegistroDescrizione));
+        OnPropertyChanged(nameof(ServizioPartecipantiTotali));
+        OnPropertyChanged(nameof(ServizioPresentiTotali));
+        OnPropertyChanged(nameof(ServizioImmersioniCompilate));
+        OnPropertyChanged(nameof(ServizioBozzaStato));
     }
 
     private int ContaScadenzeScheda()
