@@ -15,8 +15,15 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
+            var dettagli = ex.Message;
+            if (dettagli.Contains("readonly database", StringComparison.OrdinalIgnoreCase))
+            {
+                dettagli =
+                    $"{ex.Message}{Environment.NewLine}{Environment.NewLine}Percorso database: {DatabasePaths.DatabasePath}";
+            }
+
             MessageBox.Show(
-                $"Errore durante l'inizializzazione del database SQLite.{Environment.NewLine}{Environment.NewLine}{ex.Message}",
+                $"Errore durante l'inizializzazione del database SQLite.{Environment.NewLine}{Environment.NewLine}{dettagli}",
                 "SMZ Conta",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -25,8 +32,21 @@ public partial class App : Application
             return;
         }
 
-        var mainWindow = new MainWindow();
-        MainWindow = mainWindow;
-        mainWindow.Show();
+        try
+        {
+            var mainWindow = new MainWindow();
+            MainWindow = mainWindow;
+            mainWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Errore durante l'avvio dell'interfaccia principale.{Environment.NewLine}{Environment.NewLine}{ex.Message}",
+                "SMZ Conta",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+
+            Shutdown(-1);
+        }
     }
 }

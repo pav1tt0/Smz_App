@@ -12,4 +12,9 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Assets\**\*.*" />
+    <Resource Include="Assets\**\*.*" />
+  </ItemGroup>
+
 </Project>

@@ -175,13 +175,64 @@ public sealed class MainWindowViewModel : ObservableObject
         + UnitaNavaliCatalogo.Count
         + TipologieImmersioneOperativeCatalogo.Count;
 
+    public string DashboardScadenzeSintesi =>
+        ScadenzeTotali == 0
+            ? "Nessuna scadenza aperta nei prossimi 90 giorni."
+            : $"{ScadenzeScadute} scadute, {ScadenzeUrgenti} urgenti, {ScadenzeTotali} totali.";
+
+    public string DashboardServizioSintesi =>
+        $"{ServizioPresentiTotali} presenti su {ServizioPartecipantiTotali} operatori, {ServizioImmersioniCompilate} immersioni compilate.";
+
+    public string DashboardArchivioSintesi =>
+        ArchivioItems.Count == 0
+            ? "Nessuna scheda eliminata recuperabile."
+            : $"{ArchivioItems.Count} schede eliminate ancora recuperabili.";
+
+    public string DashboardStatoSintesi => ScadenzeScadute switch
+    {
+        > 0 => "Richiede attenzione: sono presenti scadenze scadute.",
+        _ when ScadenzeUrgenti > 0 => "Monitoraggio attivo: ci sono scadenze urgenti nei prossimi 7 giorni.",
+        _ => "Situazione regolare: nessuna priorita immediata.",
+    };
+
+    public IReadOnlyList<ScadenzaItemViewModel> DashboardTopScadenze =>
+        ScadenzeProssime.Take(6).ToList();
+
+    public string DashboardTopScadenzeTitolo =>
+        ScadenzeProssime.Count == 0
+            ? "Nessuna scadenza prioritaria"
+            : "Da controllare subito";
+
+    public IReadOnlyList<ScadenzaItemViewModel> DashboardCriticitaItems =>
+        ScadenzeProssime.Take(3).ToList();
+
+    public int DashboardVisiteScadutePersonale => ScadenzeProssime
+        .Where(item => string.Equals(item.Origine, "Visita medica", StringComparison.OrdinalIgnoreCase) && item.IsExpired)
+        .Select(item => item.PerId)
+        .Distinct()
+        .Count();
+
+    public int DashboardVisiteInScadenzaPersonale => ScadenzeProssime
+        .Where(item => string.Equals(item.Origine, "Visita medica", StringComparison.OrdinalIgnoreCase) && !item.IsExpired)
+        .Select(item => item.PerId)
+        .Distinct()
+        .Count();
+
     public RelayCommand NavigateSectionCommand => _navigateSectionCommand;
 
     public int SezioneAttivaIndex
     {
         get => _sezioneAttivaIndex;
-        set => SetProperty(ref _sezioneAttivaIndex, value);
+        set
+        {
+            if (SetProperty(ref _sezioneAttivaIndex, value))
+            {
+                OnPropertyChanged(nameof(IsHomeSection));
+            }
+        }
     }
+
+    public bool IsHomeSection => SezioneAttivaIndex == HomeSectionIndex;
 
     public int SchedaDettaglioTabIndex
     {
@@ -964,6 +1015,7 @@ public sealed class MainWindowViewModel : ObservableObject
                 ? $"{PersonaleItems.Count} dipendenti trovati. Ricerca per cognome/nome attiva: filtro abilitazione sospeso."
                 : $"{PersonaleItems.Count} dipendenti trovati";
             OnPropertyChanged(nameof(DashboardDipendentiTotali));
+            OnPropertyChanged(nameof(DashboardStatoSintesi));
         }
         catch (Exception ex)
         {
@@ -999,6 +1051,13 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ScadenzeScadute));
         OnPropertyChanged(nameof(ScadenzeUrgenti));
         OnPropertyChanged(nameof(DashboardScadenzeAperte));
+        OnPropertyChanged(nameof(DashboardScadenzeSintesi));
+        OnPropertyChanged(nameof(DashboardStatoSintesi));
+        OnPropertyChanged(nameof(DashboardTopScadenze));
+        OnPropertyChanged(nameof(DashboardTopScadenzeTitolo));
+        OnPropertyChanged(nameof(DashboardCriticitaItems));
+        OnPropertyChanged(nameof(DashboardVisiteScadutePersonale));
+        OnPropertyChanged(nameof(DashboardVisiteInScadenzaPersonale));
     }
 
     private void ApriScadenza(ScadenzaItemViewModel item)
@@ -1150,10 +1209,12 @@ public sealed class MainWindowViewModel : ObservableObject
         if (ArchivioItems.Count == 0)
         {
             SelectedArchivio = null;
+            OnPropertyChanged(nameof(DashboardArchivioSintesi));
             return;
         }
 
         SelectedArchivio = ArchivioItems.FirstOrDefault(item => item.PersonaleArchivioId == selectedArchiveId) ?? ArchivioItems[0];
+        OnPropertyChanged(nameof(DashboardArchivioSintesi));
     }
 
     private void CaricaDettaglioArchivio(long archiveId)
@@ -2066,6 +2127,7 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ServizioPresentiTotali));
         OnPropertyChanged(nameof(ServizioImmersioniCompilate));
         OnPropertyChanged(nameof(ServizioBozzaStato));
+        OnPropertyChanged(nameof(DashboardServizioSintesi));
     }
 
     private int ContaScadenzeScheda()
