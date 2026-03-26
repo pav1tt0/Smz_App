@@ -34,6 +34,14 @@ public sealed class ScadenzaItemViewModel
         _ => "Da monitorare",
     };
 
+    public string CriticitaBadgeText => GiorniResiduiNumero < 0 ? "SCADUTA" : "IN SCADENZA";
+
+    public string CriticitaDataText => GiorniResiduiNumero switch
+    {
+        < 0 => $"Scaduta il {DataScadenza}",
+        _ => $"In scadenza il {DataScadenza}",
+    };
+
     public Brush CardBackground => GiorniResiduiNumero switch
     {
         < 0 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FBEAEA")),

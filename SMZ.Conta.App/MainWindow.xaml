@@ -307,25 +307,12 @@
                     <ColumnDefinition Width="320" />
                 </Grid.ColumnDefinitions>
 
-                <Border Width="124"
-                        Height="94"
-                        Padding="12"
-                        CornerRadius="18"
-                        BorderBrush="#4A7CC7"
-                        BorderThickness="1"
-                        Background="#0A1628"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="22"
-                                          ShadowDepth="8"
-                                          Direction="270"
-                                          Opacity="0.2"
-                                          Color="#09111E" />
-                    </Border.Effect>
-                    <Image Source="Assets/logo_smz.png"
-                           Stretch="Uniform" />
-                </Border>
+                <Image Width="124"
+                       Height="94"
+                       Source="Assets/logo_smz.png"
+                       Stretch="Uniform"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center" />
 
                 <StackPanel Grid.Column="1"
                             HorizontalAlignment="Center"
@@ -369,23 +356,7 @@
                             BorderBrush="#284A78"
                             BorderThickness="1.2"
                             Background="{StaticResource HomePhotoBrush}"
-                            VerticalAlignment="Center">
-                        <Grid>
-                            <Rectangle RadiusX="18"
-                                       RadiusY="18"
-                                       Fill="#500A1628" />
-                            <StackPanel VerticalAlignment="Bottom"
-                                        Margin="16">
-                                <TextBlock Text="La Spezia"
-                                           FontSize="20"
-                                           FontWeight="SemiBold"
-                                           Foreground="#FFF8EE" />
-                                <TextBlock Margin="0,3,0,0"
-                                           Text="Accesso rapido ai moduli principali"
-                                           Foreground="#D9E5EA" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
+                            VerticalAlignment="Center" />
                 </Grid>
             </Grid>
         </Border>
@@ -431,11 +402,6 @@
                                         <TextBlock Text="GIORNALIERO"
                                                    Margin="0,4,0,0"
                                                    HorizontalAlignment="Center" />
-                                        <TextBlock Margin="0,12,0,0"
-                                                   Text="Turni, equipaggi, immersioni"
-                                                   FontSize="12"
-                                                   Foreground="#5A7190"
-                                                   HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
 
@@ -452,11 +418,6 @@
                                         <TextBlock Text="PERSONALE"
                                                    Margin="0,4,0,0"
                                                    HorizontalAlignment="Center" />
-                                        <TextBlock Margin="0,12,0,0"
-                                                   Text="Schede, qualifiche, scadenze"
-                                                   FontSize="12"
-                                                   Foreground="#5A7190"
-                                                   HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
 
@@ -471,11 +432,6 @@
                                         <TextBlock Text="CONTABILITA'"
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center" />
-                                        <TextBlock Margin="0,12,0,0"
-                                                   Text="Trentesimi, sanitari, supporto"
-                                                   FontSize="12"
-                                                   Foreground="#5A7190"
-                                                   HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
 
@@ -492,11 +448,6 @@
                                         <TextBlock Text="E REPORT"
                                                    Margin="0,4,0,0"
                                                    HorizontalAlignment="Center" />
-                                        <TextBlock Margin="0,12,0,0"
-                                                   Text="Fogli servizio e prospetti"
-                                                   FontSize="12"
-                                                   Foreground="#7A6545"
-                                                   HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
 
@@ -511,11 +462,6 @@
                                                    HorizontalAlignment="Center" />
                                         <TextBlock Text="SCHEDE"
                                                    Margin="0,4,0,0"
-                                                   HorizontalAlignment="Center" />
-                                        <TextBlock Margin="0,12,0,0"
-                                                   Text="Eliminate, ripristino, storico"
-                                                   FontSize="12"
-                                                   Foreground="#5F7A67"
                                                    HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
@@ -550,11 +496,6 @@
                                                 <TextBlock Text="RICERCA"
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center" />
-                                                <TextBlock Margin="0,12,0,0"
-                                                           Text="Matricola, nominativo, abilitazioni"
-                                                           FontSize="12"
-                                                           Foreground="#5A7190"
-                                                           HorizontalAlignment="Center" />
                                             </StackPanel>
                                         </Button>
                                     </StackPanel>
@@ -645,31 +586,75 @@
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Border Margin="0,0,0,8"
+                                                            Height="82"
                                                             Background="#12284C"
                                                             BorderBrush="#24406B"
                                                             BorderThickness="1"
                                                             CornerRadius="10"
                                                             Padding="10,8">
-                                                        <DockPanel LastChildFill="False">
-                                                            <StackPanel DockPanel.Dock="Left">
-                                                                <TextBlock Text="{Binding Nominativo}"
-                                                                           Foreground="#BCD1EC"
-                                                                           FontWeight="SemiBold" />
-                                                                <TextBlock Margin="0,3,0,0"
-                                                                           Text="{Binding Titolo}"
-                                                                           Foreground="#4F73A5"
-                                                                           FontSize="11" />
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="1.25*" />
+                                                                <ColumnDefinition Width="14" />
+                                                                <ColumnDefinition Width="1*" />
+                                                                <ColumnDefinition Width="14" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <TextBlock Grid.Column="0"
+                                                                       Text="{Binding Nominativo}"
+                                                                       Foreground="#E4EEF9"
+                                                                       FontSize="16"
+                                                                       FontWeight="SemiBold"
+                                                                       VerticalAlignment="Center"
+                                                                       TextTrimming="CharacterEllipsis" />
+
+                                                            <StackPanel Grid.Column="2"
+                                                                        VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Titolo}"
+                                                                           Foreground="#D7E5F7"
+                                                                           FontSize="12"
+                                                                           FontWeight="SemiBold"
+                                                                           TextAlignment="Right"
+                                                                           TextWrapping="Wrap" />
+                                                                <TextBlock Margin="0,4,0,0"
+                                                                           Text="{Binding CriticitaDataText}"
+                                                                           Foreground="#BFD2EA"
+                                                                           FontSize="12"
+                                                                           TextAlignment="Right"
+                                                                           TextWrapping="Wrap" />
                                                             </StackPanel>
-                                                            <Border DockPanel.Dock="Right"
-                                                                    Padding="8,3"
-                                                                    Background="{Binding BadgeBackground}"
-                                                                    CornerRadius="999">
-                                                                <TextBlock Text="{Binding GiorniResidui}"
-                                                                           Foreground="{Binding BadgeForeground}"
+
+                                                            <Border Grid.Column="4"
+                                                                    Padding="12,6"
+                                                                    CornerRadius="6"
+                                                                    VerticalAlignment="Center">
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="Background" Value="#D1A344" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsExpired}" Value="True">
+                                                                                <Setter Property="Background" Value="#B94141" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
+                                                                <TextBlock Text="{Binding CriticitaBadgeText}"
                                                                            FontSize="11"
-                                                                           FontWeight="SemiBold" />
+                                                                           FontWeight="SemiBold">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Setter Property="Foreground" Value="#5B430F" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsExpired}" Value="True">
+                                                                                    <Setter Property="Foreground" Value="#FFF7F3" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
                                                             </Border>
-                                                        </DockPanel>
+                                                        </Grid>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
@@ -921,13 +906,12 @@
                                          Margin="0,16,0,0"
                                          ItemsSource="{Binding PersonaleItems}"
                                          SelectedItem="{Binding SelectedPersonale}"
-                                         MaxHeight="640"
+                                         Height="640"
                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                          ScrollViewer.CanContentScroll="False"
                                          BorderThickness="0"
-                                         Background="Transparent"
-                                         MinHeight="640">
+                                         Background="Transparent">
                                     <ListBox.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel Orientation="Horizontal" />
@@ -2190,9 +2174,9 @@
 
                                                     <StackPanel>
                                                         <TextBlock Text="Tipo visita" Foreground="#50626A" />
-                                                        <TextBox Text="{Binding VisitaTipoSelezionato.Descrizione, Mode=OneWay}"
-                                                                 IsReadOnly="True"
-                                                                 Background="#F6F8F6" />
+                                                        <ComboBox ItemsSource="{Binding TipiVisitaMedicaCatalogo}"
+                                                                  SelectedItem="{Binding VisitaTipoSelezionato}"
+                                                                  DisplayMemberPath="Descrizione" />
 
                                                         <TextBlock Margin="0,10,0,0" Text="Data ultima visita" Foreground="#50626A" />
                                                         <TextBox Text="{Binding VisitaDataUltimaVisita, UpdateSourceTrigger=PropertyChanged}"
@@ -2240,7 +2224,7 @@
                                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="18,0,0,0">
                                                         <Button Content="{Binding AzioneVisitaLabel}"
                                                                 Command="{Binding SaveVisitaCommand}" />
-                                                        <Button Content="Ricarica selezionata"
+                                                        <Button Content="Ricarica visita"
                                                                 Command="{Binding ClearVisitaEditorCommand}"
                                                                 Style="{StaticResource SecondaryButtonStyle}" />
                                                     </StackPanel>

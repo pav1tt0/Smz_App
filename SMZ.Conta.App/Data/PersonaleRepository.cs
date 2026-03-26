@@ -527,7 +527,15 @@ public sealed class PersonaleRepository
 
         if (!string.IsNullOrWhiteSpace(cognomeFiltro))
         {
-            clauses.Add("(p.Cognome LIKE $cognome OR p.Nome LIKE $cognome)");
+            clauses.Add(
+                """
+                (
+                    p.Cognome LIKE $cognome
+                    OR p.Nome LIKE $cognome
+                    OR TRIM(p.Cognome || ' ' || p.Nome) LIKE $cognome
+                    OR TRIM(p.Nome || ' ' || p.Cognome) LIKE $cognome
+                )
+                """);
             command.Parameters.AddWithValue("$cognome", $"%{cognomeFiltro.Trim()}%");
         }
 

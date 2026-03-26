@@ -1107,6 +1107,17 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             if (SetProperty(ref _visitaTipoSelezionato, value))
             {
+                if (value is not null)
+                {
+                    var visitaAssociata = VisiteMediche.FirstOrDefault(item =>
+                        string.Equals(item.TipoVisita, value.Descrizione, StringComparison.OrdinalIgnoreCase));
+
+                    if (visitaAssociata is not null && !ReferenceEquals(SelectedVisita, visitaAssociata))
+                    {
+                        SelectedVisita = visitaAssociata;
+                    }
+                }
+
                 OnPropertyChanged(nameof(VisitaScadenzaCalcolata));
                 OnPropertyChanged(nameof(VisitaIndicazioni));
             }
@@ -1150,7 +1161,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string AzioneAbilitazioneLabel => SelectedAbilitazione is null ? "Aggiungi abilitazione" : "Aggiorna abilitazione";
 
-    public string AzioneVisitaLabel => SelectedVisita is null ? "Seleziona una visita" : "Aggiorna visita";
+    public string AzioneVisitaLabel => "Aggiorna visita";
 
     public string AbilitazioneIndicazioni
     {
@@ -1270,7 +1281,7 @@ public sealed class MainWindowViewModel : ObservableObject
         get
         {
             var prossima = CalcolaProssimaScadenzaScheda();
-            return prossima is null ? "Nessuna scadenza registrata" : prossima.Value.data.ToString("dd/MM/yyyy");
+            return prossima is null ? "Nessuna scadenza futura" : prossima.Value.data.ToString("dd/MM/yyyy");
         }
     }
 
@@ -1279,7 +1290,11 @@ public sealed class MainWindowViewModel : ObservableObject
         get
         {
             var prossima = CalcolaProssimaScadenzaScheda();
-            return prossima is null ? "Aggiungi abilitazioni o visite con scadenza." : $"{prossima.Value.origine}: {prossima.Value.titolo}";
+            return prossima is null
+                ? SchedaHaScadute
+                    ? "Controlla la card delle scadute per gli adempimenti gia superati."
+                    : "Aggiungi abilitazioni o visite con scadenza."
+                : $"{prossima.Value.origine}: {prossima.Value.titolo}";
         }
     }
 
@@ -2437,11 +2452,6 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         try
         {
-            if (SelectedVisita is null)
-            {
-                throw new InvalidOperationException("Seleziona una visita dall'elenco obbligatorio.");
-            }
-
             if (VisitaTipoSelezionato is null)
             {
                 throw new InvalidOperationException("Seleziona prima il tipo visita.");
@@ -2464,7 +2474,10 @@ public sealed class MainWindowViewModel : ObservableObject
                 Note = VisitaNote.Trim(),
             };
 
-            var visitaSelezionata = SelectedVisita ?? throw new InvalidOperationException("Seleziona una visita dall'elenco obbligatorio.");
+            var visitaSelezionata = SelectedVisita
+                ?? VisiteMediche.FirstOrDefault(item =>
+                    string.Equals(item.TipoVisita, VisitaTipoSelezionato.Descrizione, StringComparison.OrdinalIgnoreCase))
+                ?? throw new InvalidOperationException("Seleziona prima il tipo visita.");
             var index = VisiteMediche.IndexOf(visitaSelezionata);
             if (index >= 0)
             {
@@ -3582,12 +3595,13 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private (DateOnly data, string origine, string titolo)? CalcolaProssimaScadenzaScheda()
     {
+        var oggi = DateOnly.FromDateTime(DateTime.Today);
         var voci = new List<(DateOnly data, string origine, string titolo)>();
 
         foreach (var abilitazione in Abilitazioni)
         {
             var data = TryParseDate(abilitazione.DataScadenza);
-            if (data is not null)
+            if (data is not null && data.Value >= oggi)
             {
                 voci.Add((data.Value, "Abilitazione", abilitazione.TipoDescrizione));
             }
@@ -3596,7 +3610,7 @@ public sealed class MainWindowViewModel : ObservableObject
         foreach (var visita in VisiteMediche)
         {
             var data = TryParseDate(visita.DataScadenza);
-            if (data is not null)
+            if (data is not null && data.Value >= oggi)
             {
                 voci.Add((data.Value, "Visita", visita.TipoVisita));
             }
