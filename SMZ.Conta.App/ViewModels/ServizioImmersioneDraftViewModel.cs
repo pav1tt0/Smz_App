@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using SMZ.Conta.App.Infrastructure;
 
 namespace SMZ.Conta.App.ViewModels;
@@ -12,6 +13,11 @@ public sealed class ServizioImmersioneDraftViewModel : ObservableObject
     private PersonaleListItemViewModel? _assistenteBlsd;
     private PersonaleListItemViewModel? _assistenteSanitario;
     private string _note = string.Empty;
+
+    public ServizioImmersioneDraftViewModel()
+    {
+        Partecipazioni = new ObservableCollection<ServizioPartecipanteImmersioneDraftViewModel>();
+    }
 
     public int NumeroImmersione
     {
@@ -60,4 +66,6 @@ public sealed class ServizioImmersioneDraftViewModel : ObservableObject
         get => _note;
         set => SetProperty(ref _note, value);
     }
+
+    public ObservableCollection<ServizioPartecipanteImmersioneDraftViewModel> Partecipazioni { get; }
 }

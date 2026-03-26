@@ -36,6 +36,8 @@ public static class DatabaseInitializer
                 Cognome TEXT NOT NULL,
                 Nome TEXT NOT NULL,
                 Qualifica TEXT NULL,
+                ProfiloPersonale TEXT NOT NULL DEFAULT 'SMZ operativo',
+                RuoloSanitario TEXT NULL,
                 CodiceFiscale TEXT NOT NULL,
                 MatricolaPersonale TEXT NULL,
                 NumeroBrevettoSmz TEXT NULL,
@@ -114,6 +116,8 @@ public static class DatabaseInitializer
                 Cognome TEXT NOT NULL,
                 Nome TEXT NOT NULL,
                 Qualifica TEXT NULL,
+                ProfiloPersonale TEXT NOT NULL DEFAULT 'SMZ operativo',
+                RuoloSanitario TEXT NULL,
                 CodiceFiscale TEXT NOT NULL,
                 MatricolaPersonale TEXT NULL,
                 NumeroBrevettoSmz TEXT NULL,
@@ -292,6 +296,8 @@ public static class DatabaseInitializer
             CREATE TABLE IF NOT EXISTS ServiziGiornalieri (
                 ServizioGiornalieroId INTEGER PRIMARY KEY AUTOINCREMENT,
                 DataServizio TEXT NOT NULL,
+                NumeroOrdineServizio TEXT NULL,
+                OrarioServizio TEXT NULL,
                 TipoServizio TEXT NOT NULL DEFAULT 'InSede',
                 LocalitaOperativaId INTEGER NULL,
                 ScopoImmersioneId INTEGER NULL,
@@ -376,6 +382,21 @@ public static class DatabaseInitializer
 
             CREATE INDEX IF NOT EXISTS IX_ServizioPartecipantiImmersioni_ServizioPartecipanteId
                 ON ServizioPartecipantiImmersioni (ServizioPartecipanteId);
+
+            CREATE TABLE IF NOT EXISTS ServizioSupportiOccasionali (
+                ServizioSupportoOccasionaleId INTEGER PRIMARY KEY AUTOINCREMENT,
+                ServizioGiornalieroId INTEGER NOT NULL,
+                Nominativo TEXT NOT NULL,
+                Qualifica TEXT NULL,
+                Ruolo TEXT NULL,
+                Presente INTEGER NOT NULL DEFAULT 1,
+                Contatti TEXT NULL,
+                Note TEXT NULL,
+                FOREIGN KEY (ServizioGiornalieroId) REFERENCES ServiziGiornalieri (ServizioGiornalieroId) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_ServizioSupportiOccasionali_ServizioGiornalieroId
+                ON ServizioSupportiOccasionali (ServizioGiornalieroId);
             """;
 
         command.ExecuteNonQuery();
@@ -384,6 +405,8 @@ public static class DatabaseInitializer
     private static void EnsureColumnMigrations(SqliteConnection connection, SqliteTransaction transaction)
     {
         AddColumnIfMissing(connection, transaction, "Personale", "Qualifica", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "ProfiloPersonale", "TEXT NOT NULL DEFAULT 'SMZ operativo'");
+        AddColumnIfMissing(connection, transaction, "Personale", "RuoloSanitario", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "MatricolaPersonale", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "NumeroBrevettoSmz", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "ViaResidenza", "TEXT NULL");
@@ -395,6 +418,8 @@ public static class DatabaseInitializer
         AddColumnIfMissing(connection, transaction, "Personale", "Mail2Utente", "TEXT NULL");
 
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "Qualifica", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "ProfiloPersonale", "TEXT NOT NULL DEFAULT 'SMZ operativo'");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "RuoloSanitario", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "MatricolaPersonale", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "NumeroBrevettoSmz", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "ViaResidenza", "TEXT NULL");
@@ -407,6 +432,9 @@ public static class DatabaseInitializer
 
         MigrateLegacyAnagraficaData(connection, transaction, "Personale");
         MigrateLegacyAnagraficaData(connection, transaction, "PersonaleArchivio");
+
+        AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "NumeroOrdineServizio", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "OrarioServizio", "TEXT NULL");
     }
 
     private static void AddColumnIfMissing(
@@ -803,14 +831,7 @@ public static class DatabaseInitializer
                     $dataFineValidita,
                     $attiva
                 )
-                ON CONFLICT(RegolaContabileImmersioneId) DO UPDATE SET
-                    TipologiaImmersioneOperativaId = excluded.TipologiaImmersioneOperativaId,
-                    FasciaProfonditaId = excluded.FasciaProfonditaId,
-                    CategoriaContabileOreId = excluded.CategoriaContabileOreId,
-                    Tariffa = excluded.Tariffa,
-                    DataInizioValidita = excluded.DataInizioValidita,
-                    DataFineValidita = excluded.DataFineValidita,
-                    Attiva = excluded.Attiva;
+                ON CONFLICT(RegolaContabileImmersioneId) DO NOTHING;
                 """;
             command.Parameters.AddWithValue("$id", item.RegolaContabileImmersioneId);
             command.Parameters.AddWithValue("$tipologiaImmersioneOperativaId", item.TipologiaImmersioneOperativaId);

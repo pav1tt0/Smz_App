@@ -6,6 +6,10 @@ public sealed class ServizioGiornaliero
 
     public DateOnly DataServizio { get; set; }
 
+    public string NumeroOrdineServizio { get; set; } = string.Empty;
+
+    public string OrarioServizio { get; set; } = string.Empty;
+
     public string TipoServizio { get; set; } = "InSede";
 
     public int? LocalitaOperativaId { get; set; }
@@ -23,6 +27,8 @@ public sealed class ServizioGiornaliero
     public List<ServizioImmersione> Immersioni { get; set; } = [];
 
     public List<ServizioPartecipante> Partecipanti { get; set; } = [];
+
+    public List<ServizioSupportoOccasionale> SupportiOccasionali { get; set; } = [];
 }
 
 public sealed class ServizioImmersione
@@ -92,4 +98,52 @@ public sealed class ServizioPartecipanteImmersione
     public int? CategoriaContabileOreId { get; set; }
 
     public string Note { get; set; } = string.Empty;
+}
+
+public sealed class ServizioSupportoOccasionale
+{
+    public long ServizioSupportoOccasionaleId { get; set; }
+
+    public long ServizioGiornalieroId { get; set; }
+
+    public string Nominativo { get; set; } = string.Empty;
+
+    public string Qualifica { get; set; } = string.Empty;
+
+    public string Ruolo { get; set; } = string.Empty;
+
+    public bool Presente { get; set; }
+
+    public string Contatti { get; set; } = string.Empty;
+
+    public string Note { get; set; } = string.Empty;
+}
+
+public sealed class ServizioGiornalieroSummary
+{
+    public long ServizioGiornalieroId { get; set; }
+
+    public DateOnly DataServizio { get; set; }
+
+    public string NumeroOrdineServizio { get; set; } = string.Empty;
+
+    public string OrarioServizio { get; set; } = string.Empty;
+
+    public string TipoServizio { get; set; } = string.Empty;
+
+    public string LocalitaDescrizione { get; set; } = string.Empty;
+
+    public string ScopoDescrizione { get; set; } = string.Empty;
+
+    public string UnitaNavaleDescrizione { get; set; } = string.Empty;
+
+    public bool FuoriSede { get; set; }
+
+    public int PartecipantiTotali { get; set; }
+
+    public int PresentiTotali { get; set; }
+
+    public int ImmersioniTotali { get; set; }
+
+    public DateTime AggiornatoIl { get; set; }
 }

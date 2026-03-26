@@ -141,6 +141,317 @@ public sealed class PersonaleRepository
         };
     }
 
+    public List<ServizioGiornalieroSummary> GetServiziGiornalieriRecenti(int maxItems = 24)
+    {
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT s.ServizioGiornalieroId,
+                   s.DataServizio,
+                   COALESCE(s.NumeroOrdineServizio, '') AS NumeroOrdineServizio,
+                   COALESCE(s.OrarioServizio, '') AS OrarioServizio,
+                   s.TipoServizio,
+                   COALESCE(lo.Descrizione, '') AS LocalitaDescrizione,
+                   COALESCE(sc.Descrizione, '') AS ScopoDescrizione,
+                   COALESCE(unv.Descrizione, '') AS UnitaNavaleDescrizione,
+                   s.FuoriSede,
+                   (
+                       SELECT COUNT(1)
+                       FROM ServizioPartecipanti sp
+                       WHERE sp.ServizioGiornalieroId = s.ServizioGiornalieroId
+                   ) + (
+                       SELECT COUNT(1)
+                       FROM ServizioSupportiOccasionali so
+                       WHERE so.ServizioGiornalieroId = s.ServizioGiornalieroId
+                   ) AS PartecipantiTotali,
+                   (
+                       SELECT COUNT(1)
+                       FROM ServizioPartecipanti sp
+                       WHERE sp.ServizioGiornalieroId = s.ServizioGiornalieroId
+                         AND sp.Presente = 1
+                   ) + (
+                       SELECT COUNT(1)
+                       FROM ServizioSupportiOccasionali so
+                       WHERE so.ServizioGiornalieroId = s.ServizioGiornalieroId
+                         AND so.Presente = 1
+                   ) AS PresentiTotali,
+                   (
+                       SELECT COUNT(1)
+                       FROM ServizioImmersioni si
+                       WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                   ) AS ImmersioniTotali,
+                   s.AggiornatoIl
+            FROM ServiziGiornalieri s
+            LEFT JOIN LocalitaOperative lo ON lo.LocalitaOperativaId = s.LocalitaOperativaId
+            LEFT JOIN ScopiImmersione sc ON sc.ScopoImmersioneId = s.ScopoImmersioneId
+            LEFT JOIN UnitaNavali unv ON unv.UnitaNavaleId = s.UnitaNavaleId
+            ORDER BY s.DataServizio DESC, s.ServizioGiornalieroId DESC
+            LIMIT $maxItems;
+            """;
+        command.Parameters.AddWithValue("$maxItems", maxItems);
+
+        using var reader = command.ExecuteReader();
+        var items = new List<ServizioGiornalieroSummary>();
+
+        while (reader.Read())
+        {
+            items.Add(new ServizioGiornalieroSummary
+            {
+                ServizioGiornalieroId = reader.GetInt64(0),
+                DataServizio = DateOnly.Parse(reader.GetString(1)),
+                NumeroOrdineServizio = reader.GetString(2),
+                OrarioServizio = reader.GetString(3),
+                TipoServizio = reader.GetString(4),
+                LocalitaDescrizione = reader.GetString(5),
+                ScopoDescrizione = reader.GetString(6),
+                UnitaNavaleDescrizione = reader.GetString(7),
+                FuoriSede = reader.GetInt32(8) == 1,
+                PartecipantiTotali = reader.GetInt32(9),
+                PresentiTotali = reader.GetInt32(10),
+                ImmersioniTotali = reader.GetInt32(11),
+                AggiornatoIl = DateTime.Parse(reader.GetString(12)),
+            });
+        }
+
+        return items;
+    }
+
+    public List<int> GetAnniServiziDisponibili()
+    {
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT DISTINCT CAST(substr(DataServizio, 1, 4) AS INTEGER) AS Anno
+            FROM ServiziGiornalieri
+            WHERE DataServizio IS NOT NULL
+              AND length(DataServizio) >= 4
+            ORDER BY Anno DESC;
+            """;
+
+        using var reader = command.ExecuteReader();
+        var items = new List<int>();
+
+        while (reader.Read())
+        {
+            items.Add(reader.GetInt32(0));
+        }
+
+        return items;
+    }
+
+    public ContabilitaGiornateImpiegoSnapshot GetContabilitaGiornateImpiego(int anno, int mese)
+    {
+        using var connection = OpenConnection();
+        var dataInizio = new DateOnly(anno, mese, 1);
+        var dataFine = dataInizio.AddMonths(1).AddDays(-1);
+
+        return new ContabilitaGiornateImpiegoSnapshot
+        {
+            SmzImmersioni = GetContabilitaSmzImmersioni(connection, dataInizio, dataFine),
+            Sanitari = GetContabilitaSanitari(connection, dataInizio, dataFine),
+            SupportiOccasionali = GetContabilitaSupportiOccasionali(connection, dataInizio, dataFine),
+        };
+    }
+
+    public void UpdateRegoleContabiliImmersione(IEnumerable<RegolaContabileImmersione> regole)
+    {
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        foreach (var regola in regole)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                UPDATE RegoleContabiliImmersione
+                SET Tariffa = $tariffa,
+                    Attiva = $attiva
+                WHERE RegolaContabileImmersioneId = $regolaContabileImmersioneId;
+                """;
+            command.Parameters.AddWithValue("$regolaContabileImmersioneId", regola.RegolaContabileImmersioneId);
+            command.Parameters.AddWithValue("$tariffa", regola.Tariffa);
+            command.Parameters.AddWithValue("$attiva", regola.Attiva ? 1 : 0);
+
+            if (command.ExecuteNonQuery() == 0)
+            {
+                throw new InvalidOperationException($"Regola contabile {regola.RegolaContabileImmersioneId} non trovata.");
+            }
+        }
+
+        transaction.Commit();
+    }
+
+    public ServizioGiornaliero? GetServizioGiornalieroById(long servizioGiornalieroId)
+    {
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT ServizioGiornalieroId,
+                   DataServizio,
+                   NumeroOrdineServizio,
+                   OrarioServizio,
+                   TipoServizio,
+                   LocalitaOperativaId,
+                   ScopoImmersioneId,
+                   UnitaNavaleId,
+                   FuoriSede,
+                   AttivitaSvolta,
+                   Note
+            FROM ServiziGiornalieri
+            WHERE ServizioGiornalieroId = $servizioGiornalieroId;
+            """;
+        command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        var servizio = new ServizioGiornaliero
+        {
+            ServizioGiornalieroId = reader.GetInt64(0),
+            DataServizio = DateOnly.Parse(reader.GetString(1)),
+            NumeroOrdineServizio = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+            OrarioServizio = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+            TipoServizio = reader.GetString(4),
+            LocalitaOperativaId = reader.IsDBNull(5) ? null : reader.GetInt32(5),
+            ScopoImmersioneId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
+            UnitaNavaleId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+            FuoriSede = reader.GetInt32(8) == 1,
+            AttivitaSvolta = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+            Note = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+        };
+        reader.Close();
+
+        servizio.Partecipanti = GetServizioPartecipanti(connection, servizioGiornalieroId);
+        servizio.Immersioni = GetServizioImmersioni(connection, servizioGiornalieroId);
+        servizio.SupportiOccasionali = GetServizioSupportiOccasionali(connection, servizioGiornalieroId);
+        var partecipazioniImmersione = GetServizioPartecipantiImmersioni(connection, servizioGiornalieroId);
+        var immersioniById = servizio.Immersioni.ToDictionary(item => item.ServizioImmersioneId);
+        var partecipantiById = servizio.Partecipanti.ToDictionary(item => item.ServizioPartecipanteId);
+
+        foreach (var partecipazione in partecipazioniImmersione)
+        {
+            if (immersioniById.TryGetValue(partecipazione.ServizioImmersioneId, out var immersione))
+            {
+                immersione.Partecipazioni.Add(partecipazione);
+            }
+
+            if (partecipantiById.TryGetValue(partecipazione.ServizioPartecipanteId, out var partecipante))
+            {
+                partecipante.Immersioni.Add(partecipazione);
+            }
+        }
+
+        return servizio;
+    }
+
+    public long SaveServizioGiornaliero(ServizioGiornaliero servizio)
+    {
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        long servizioGiornalieroId;
+        if (servizio.ServizioGiornalieroId == 0)
+        {
+            using var insert = connection.CreateCommand();
+            insert.Transaction = transaction;
+            insert.CommandText =
+                """
+                INSERT INTO ServiziGiornalieri (
+                    DataServizio,
+                    NumeroOrdineServizio,
+                    OrarioServizio,
+                    TipoServizio,
+                    LocalitaOperativaId,
+                    ScopoImmersioneId,
+                    UnitaNavaleId,
+                    FuoriSede,
+                    AttivitaSvolta,
+                    Note
+                )
+                VALUES (
+                    $dataServizio,
+                    $numeroOrdineServizio,
+                    $orarioServizio,
+                    $tipoServizio,
+                    $localitaOperativaId,
+                    $scopoImmersioneId,
+                    $unitaNavaleId,
+                    $fuoriSede,
+                    $attivitaSvolta,
+                    $note
+                );
+                SELECT last_insert_rowid();
+                """;
+            AddServizioParameters(insert, servizio);
+            servizioGiornalieroId = Convert.ToInt64(insert.ExecuteScalar());
+        }
+        else
+        {
+            using var update = connection.CreateCommand();
+            update.Transaction = transaction;
+            update.CommandText =
+                """
+                UPDATE ServiziGiornalieri
+                SET DataServizio = $dataServizio,
+                    NumeroOrdineServizio = $numeroOrdineServizio,
+                    OrarioServizio = $orarioServizio,
+                    TipoServizio = $tipoServizio,
+                    LocalitaOperativaId = $localitaOperativaId,
+                    ScopoImmersioneId = $scopoImmersioneId,
+                    UnitaNavaleId = $unitaNavaleId,
+                    FuoriSede = $fuoriSede,
+                    AttivitaSvolta = $attivitaSvolta,
+                    Note = $note,
+                    AggiornatoIl = CURRENT_TIMESTAMP
+                WHERE ServizioGiornalieroId = $servizioGiornalieroId;
+                """;
+            AddServizioParameters(update, servizio);
+            update.Parameters.AddWithValue("$servizioGiornalieroId", servizio.ServizioGiornalieroId);
+
+            if (update.ExecuteNonQuery() == 0)
+            {
+                throw new InvalidOperationException("Servizio giornaliero non trovato.");
+            }
+
+            servizioGiornalieroId = servizio.ServizioGiornalieroId;
+            DeleteServizioChildRows(connection, transaction, servizioGiornalieroId);
+        }
+
+        var partecipantiMap = InsertServizioPartecipanti(connection, transaction, servizioGiornalieroId, servizio.Partecipanti);
+        var immersioniMap = InsertServizioImmersioni(
+            connection,
+            transaction,
+            servizioGiornalieroId,
+            servizio.Immersioni,
+            servizio.LocalitaOperativaId,
+            servizio.ScopoImmersioneId);
+        InsertServizioPartecipantiImmersioni(connection, transaction, servizio.Immersioni, immersioniMap, partecipantiMap);
+        InsertServizioSupportiOccasionali(connection, transaction, servizioGiornalieroId, servizio.SupportiOccasionali);
+
+        transaction.Commit();
+        return servizioGiornalieroId;
+    }
+
+    public void DeleteServizioGiornaliero(long servizioGiornalieroId)
+    {
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM ServiziGiornalieri WHERE ServizioGiornalieroId = $servizioGiornalieroId;";
+        command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+
+        if (command.ExecuteNonQuery() == 0)
+        {
+            throw new InvalidOperationException("Servizio giornaliero non trovato.");
+        }
+    }
+
     public List<ScadenzaProgrammata> GetScadenzeProssime(DateOnly daData, DateOnly aData)
     {
         using var connection = OpenConnection();
@@ -257,6 +568,8 @@ public sealed class PersonaleRepository
                    p.Cognome,
                    p.Nome,
                    p.Qualifica,
+                   p.ProfiloPersonale,
+                   p.RuoloSanitario,
                    p.CodiceFiscale,
                    p.MatricolaPersonale,
                    p.NumeroBrevettoSmz,
@@ -295,6 +608,8 @@ public sealed class PersonaleRepository
                    Cognome,
                    Nome,
                    Qualifica,
+                   ProfiloPersonale,
+                   RuoloSanitario,
                    CodiceFiscale,
                    MatricolaPersonale,
                    NumeroBrevettoSmz,
@@ -337,6 +652,8 @@ public sealed class PersonaleRepository
                    Cognome,
                    Nome,
                    Qualifica,
+                   ProfiloPersonale,
+                   RuoloSanitario,
                    CodiceFiscale,
                    MatricolaPersonale,
                    NumeroBrevettoSmz,
@@ -368,19 +685,21 @@ public sealed class PersonaleRepository
             Cognome = reader.GetString(2),
             Nome = reader.GetString(3),
             Qualifica = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
-            CodiceFiscale = reader.GetString(5),
-            MatricolaPersonale = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
-            NumeroBrevettoSmz = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
-            DataNascita = ParseDbDate(reader, 8),
-            LuogoNascita = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
-            ViaResidenza = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
-            CapResidenza = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-            CittaResidenza = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
-            Telefono1 = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
-            Telefono2 = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
-            Mail1Utente = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
-            Mail2Utente = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
-            DataArchiviazione = DateTime.Parse(reader.GetString(17)),
+            ProfiloPersonale = reader.IsDBNull(5) ? "SMZ operativo" : reader.GetString(5),
+            RuoloSanitario = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+            CodiceFiscale = reader.GetString(7),
+            MatricolaPersonale = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+            NumeroBrevettoSmz = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+            DataNascita = ParseDbDate(reader, 10),
+            LuogoNascita = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+            ViaResidenza = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+            CapResidenza = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            CittaResidenza = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            Telefono1 = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
+            Telefono2 = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
+            Mail1Utente = reader.IsDBNull(17) ? string.Empty : reader.GetString(17),
+            Mail2Utente = reader.IsDBNull(18) ? string.Empty : reader.GetString(18),
+            DataArchiviazione = DateTime.Parse(reader.GetString(19)),
         };
         reader.Close();
 
@@ -406,6 +725,8 @@ public sealed class PersonaleRepository
                     Cognome,
                     Nome,
                     Qualifica,
+                    ProfiloPersonale,
+                    RuoloSanitario,
                     CodiceFiscale,
                     MatricolaPersonale,
                     NumeroBrevettoSmz,
@@ -423,6 +744,8 @@ public sealed class PersonaleRepository
                     $cognome,
                     $nome,
                     $qualifica,
+                    $profiloPersonale,
+                    $ruoloSanitario,
                     $codiceFiscale,
                     $matricolaPersonale,
                     $numeroBrevettoSmz,
@@ -451,6 +774,8 @@ public sealed class PersonaleRepository
                 SET Cognome = $cognome,
                     Nome = $nome,
                     Qualifica = $qualifica,
+                    ProfiloPersonale = $profiloPersonale,
+                    RuoloSanitario = $ruoloSanitario,
                     CodiceFiscale = $codiceFiscale,
                     MatricolaPersonale = $matricolaPersonale,
                     NumeroBrevettoSmz = $numeroBrevettoSmz,
@@ -535,6 +860,8 @@ public sealed class PersonaleRepository
                 Cognome,
                 Nome,
                 Qualifica,
+                ProfiloPersonale,
+                RuoloSanitario,
                 CodiceFiscale,
                 MatricolaPersonale,
                 NumeroBrevettoSmz,
@@ -553,6 +880,8 @@ public sealed class PersonaleRepository
                 $cognome,
                 $nome,
                 $qualifica,
+                $profiloPersonale,
+                $ruoloSanitario,
                 $codiceFiscale,
                 $matricolaPersonale,
                 $numeroBrevettoSmz,
@@ -571,6 +900,8 @@ public sealed class PersonaleRepository
         insert.Parameters.AddWithValue("$cognome", archived.Cognome);
         insert.Parameters.AddWithValue("$nome", archived.Nome);
         insert.Parameters.AddWithValue("$qualifica", DbText(archived.Qualifica));
+        insert.Parameters.AddWithValue("$profiloPersonale", archived.ProfiloPersonale.Trim());
+        insert.Parameters.AddWithValue("$ruoloSanitario", DbText(archived.RuoloSanitario));
         insert.Parameters.AddWithValue("$codiceFiscale", archived.CodiceFiscale);
         insert.Parameters.AddWithValue("$matricolaPersonale", DbText(archived.MatricolaPersonale));
         insert.Parameters.AddWithValue("$numeroBrevettoSmz", DbText(archived.NumeroBrevettoSmz));
@@ -607,6 +938,8 @@ public sealed class PersonaleRepository
         command.Parameters.AddWithValue("$cognome", personale.Cognome.Trim());
         command.Parameters.AddWithValue("$nome", personale.Nome.Trim());
         command.Parameters.AddWithValue("$qualifica", DbText(personale.Qualifica));
+        command.Parameters.AddWithValue("$profiloPersonale", personale.ProfiloPersonale.Trim());
+        command.Parameters.AddWithValue("$ruoloSanitario", DbText(personale.RuoloSanitario));
         command.Parameters.AddWithValue("$codiceFiscale", personale.CodiceFiscale.Trim().ToUpperInvariant());
         command.Parameters.AddWithValue("$matricolaPersonale", DbText(personale.MatricolaPersonale));
         command.Parameters.AddWithValue("$numeroBrevettoSmz", DbText(personale.NumeroBrevettoSmz));
@@ -619,6 +952,20 @@ public sealed class PersonaleRepository
         command.Parameters.AddWithValue("$telefono2", DbText(personale.Telefono2));
         command.Parameters.AddWithValue("$mail1Utente", DbText(personale.Mail1Utente));
         command.Parameters.AddWithValue("$mail2Utente", DbText(personale.Mail2Utente));
+    }
+
+    private static void AddServizioParameters(SqliteCommand command, ServizioGiornaliero servizio)
+    {
+        command.Parameters.AddWithValue("$dataServizio", servizio.DataServizio.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue("$numeroOrdineServizio", DbText(servizio.NumeroOrdineServizio));
+        command.Parameters.AddWithValue("$orarioServizio", DbText(servizio.OrarioServizio));
+        command.Parameters.AddWithValue("$tipoServizio", servizio.TipoServizio.Trim());
+        command.Parameters.AddWithValue("$localitaOperativaId", servizio.LocalitaOperativaId is null ? DBNull.Value : servizio.LocalitaOperativaId.Value);
+        command.Parameters.AddWithValue("$scopoImmersioneId", servizio.ScopoImmersioneId is null ? DBNull.Value : servizio.ScopoImmersioneId.Value);
+        command.Parameters.AddWithValue("$unitaNavaleId", servizio.UnitaNavaleId is null ? DBNull.Value : servizio.UnitaNavaleId.Value);
+        command.Parameters.AddWithValue("$fuoriSede", servizio.FuoriSede ? 1 : 0);
+        command.Parameters.AddWithValue("$attivitaSvolta", DbText(servizio.AttivitaSvolta));
+        command.Parameters.AddWithValue("$note", DbText(servizio.Note));
     }
 
     private static void DeleteChildRows(SqliteConnection connection, SqliteTransaction transaction, string tableName, int perId)
@@ -663,6 +1010,8 @@ public sealed class PersonaleRepository
                 Cognome,
                 Nome,
                 Qualifica,
+                ProfiloPersonale,
+                RuoloSanitario,
                 CodiceFiscale,
                 MatricolaPersonale,
                 NumeroBrevettoSmz,
@@ -681,6 +1030,8 @@ public sealed class PersonaleRepository
                    Cognome,
                    Nome,
                    Qualifica,
+                   ProfiloPersonale,
+                   RuoloSanitario,
                    CodiceFiscale,
                    MatricolaPersonale,
                    NumeroBrevettoSmz,
@@ -1224,6 +1575,174 @@ public sealed class PersonaleRepository
         return items;
     }
 
+    private static List<ContabilitaSanitarioSummary> GetContabilitaSanitari(
+        SqliteConnection connection,
+        DateOnly dataInizio,
+        DateOnly dataFine)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT p.PerId,
+                   p.Cognome,
+                   p.Nome,
+                   COALESCE(p.Qualifica, '') AS Qualifica,
+                   COALESCE(p.RuoloSanitario, '') AS RuoloSanitario,
+                   COUNT(DISTINCT s.DataServizio) AS GiornateImpiego,
+                   MAX(s.DataServizio) AS UltimaDataServizio
+            FROM ServizioPartecipanti sp
+            INNER JOIN ServiziGiornalieri s ON s.ServizioGiornalieroId = sp.ServizioGiornalieroId
+            INNER JOIN Personale p ON p.PerId = sp.PerId
+            WHERE sp.Presente = 1
+              AND p.ProfiloPersonale = 'Sanitario'
+              AND s.DataServizio >= $dataInizio
+              AND s.DataServizio <= $dataFine
+            GROUP BY p.PerId, p.Cognome, p.Nome, p.Qualifica, p.RuoloSanitario
+            ORDER BY p.Cognome, p.Nome;
+            """;
+        command.Parameters.AddWithValue("$dataInizio", dataInizio.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue("$dataFine", dataFine.ToString("yyyy-MM-dd"));
+
+        using var reader = command.ExecuteReader();
+        var items = new List<ContabilitaSanitarioSummary>();
+
+        while (reader.Read())
+        {
+            items.Add(new ContabilitaSanitarioSummary
+            {
+                PerId = reader.GetInt32(0),
+                Cognome = reader.GetString(1),
+                Nome = reader.GetString(2),
+                Qualifica = reader.GetString(3),
+                RuoloSanitario = reader.GetString(4),
+                GiornateImpiego = reader.GetInt32(5),
+                UltimaDataServizio = ParseDbDate(reader, 6),
+            });
+        }
+
+        return items;
+    }
+
+    private static List<ContabilitaSmzSummary> GetContabilitaSmzImmersioni(
+        SqliteConnection connection,
+        DateOnly dataInizio,
+        DateOnly dataFine)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT p.PerId,
+                   s.DataServizio,
+                   COALESCE(s.NumeroOrdineServizio, '') AS NumeroOrdineServizio,
+                   p.Cognome,
+                   p.Nome,
+                   COALESCE(p.Qualifica, '') AS Qualifica,
+                   tio.Descrizione AS Apparato,
+                   fp.Descrizione AS FasciaProfondita,
+                   MAX(COALESCE(rci.Tariffa, 0)) AS Tariffa,
+                   SUM(CASE WHEN cco.Codice = 'ORD' THEN COALESCE(spi.OreImmersione, 0) ELSE 0 END) AS OreOrd,
+                   SUM(CASE WHEN cco.Codice = 'ADD' THEN COALESCE(spi.OreImmersione, 0) ELSE 0 END) AS OreAdd,
+                   SUM(CASE WHEN cco.Codice = 'SPER' THEN COALESCE(spi.OreImmersione, 0) ELSE 0 END) AS OreSper,
+                   SUM(CASE WHEN cco.Codice = 'CI' THEN COALESCE(spi.OreImmersione, 0) ELSE 0 END) AS OreCi,
+                   SUM(
+                       CASE cco.Codice
+                           WHEN 'ADD' THEN COALESCE(rci.Tariffa, 0) * COALESCE(spi.OreImmersione, 0) / 2.0
+                           WHEN 'SPER' THEN (COALESCE(rci.Tariffa, 0) + COALESCE(rci.Tariffa, 0) * 0.25) * COALESCE(spi.OreImmersione, 0)
+                           WHEN 'CI' THEN COALESCE(rci.Tariffa, 0) * COALESCE(spi.OreImmersione, 0) * 0.8
+                           ELSE COALESCE(rci.Tariffa, 0) * COALESCE(spi.OreImmersione, 0)
+                       END
+                   ) AS Importo
+            FROM ServizioPartecipantiImmersioni spi
+            INNER JOIN ServizioPartecipanti sp ON sp.ServizioPartecipanteId = spi.ServizioPartecipanteId
+            INNER JOIN ServiziGiornalieri s ON s.ServizioGiornalieroId = sp.ServizioGiornalieroId
+            INNER JOIN Personale p ON p.PerId = sp.PerId
+            INNER JOIN TipologieImmersioneOperative tio ON tio.TipologiaImmersioneOperativaId = spi.TipologiaImmersioneOperativaId
+            INNER JOIN FasceProfondita fp ON fp.FasciaProfonditaId = spi.FasciaProfonditaId
+            INNER JOIN CategorieContabiliOre cco ON cco.CategoriaContabileOreId = spi.CategoriaContabileOreId
+            LEFT JOIN RegoleContabiliImmersione rci
+                   ON rci.TipologiaImmersioneOperativaId = spi.TipologiaImmersioneOperativaId
+                  AND rci.FasciaProfonditaId = spi.FasciaProfonditaId
+                  AND rci.CategoriaContabileOreId = spi.CategoriaContabileOreId
+                  AND rci.Attiva = 1
+            WHERE s.DataServizio >= $dataInizio
+              AND s.DataServizio <= $dataFine
+              AND p.ProfiloPersonale = 'SMZ operativo'
+            GROUP BY p.PerId, s.DataServizio, s.NumeroOrdineServizio, p.Cognome, p.Nome, p.Qualifica, tio.Descrizione, fp.Descrizione
+            ORDER BY s.DataServizio, COALESCE(s.NumeroOrdineServizio, ''), p.Cognome, p.Nome, tio.Ordine, fp.Ordine;
+            """;
+        command.Parameters.AddWithValue("$dataInizio", dataInizio.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue("$dataFine", dataFine.ToString("yyyy-MM-dd"));
+
+        using var reader = command.ExecuteReader();
+        var items = new List<ContabilitaSmzSummary>();
+
+        while (reader.Read())
+        {
+            items.Add(new ContabilitaSmzSummary
+            {
+                PerId = reader.GetInt32(0),
+                DataServizio = DateOnly.Parse(reader.GetString(1)),
+                NumeroOrdineServizio = reader.GetString(2),
+                Cognome = reader.GetString(3),
+                Nome = reader.GetString(4),
+                Qualifica = reader.GetString(5),
+                Apparato = reader.GetString(6),
+                FasciaProfondita = reader.GetString(7),
+                Tariffa = Convert.ToDecimal(reader.GetValue(8)),
+                OreOrd = Convert.ToDecimal(reader.GetValue(9)),
+                OreAdd = Convert.ToDecimal(reader.GetValue(10)),
+                OreSper = Convert.ToDecimal(reader.GetValue(11)),
+                OreCi = Convert.ToDecimal(reader.GetValue(12)),
+                Importo = Convert.ToDecimal(reader.GetValue(13)),
+            });
+        }
+
+        return items;
+    }
+
+    private static List<ContabilitaSupportoSummary> GetContabilitaSupportiOccasionali(
+        SqliteConnection connection,
+        DateOnly dataInizio,
+        DateOnly dataFine)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT TRIM(so.Nominativo) AS Nominativo,
+                   MAX(COALESCE(TRIM(so.Qualifica), '')) AS Qualifica,
+                   MAX(COALESCE(TRIM(so.Ruolo), '')) AS Ruolo,
+                   COUNT(DISTINCT s.DataServizio) AS GiornateImpiego,
+                   MAX(s.DataServizio) AS UltimaDataServizio
+            FROM ServizioSupportiOccasionali so
+            INNER JOIN ServiziGiornalieri s ON s.ServizioGiornalieroId = so.ServizioGiornalieroId
+            WHERE so.Presente = 1
+              AND TRIM(COALESCE(so.Nominativo, '')) <> ''
+              AND s.DataServizio >= $dataInizio
+              AND s.DataServizio <= $dataFine
+            GROUP BY UPPER(TRIM(so.Nominativo))
+            ORDER BY UPPER(TRIM(so.Nominativo));
+            """;
+        command.Parameters.AddWithValue("$dataInizio", dataInizio.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue("$dataFine", dataFine.ToString("yyyy-MM-dd"));
+
+        using var reader = command.ExecuteReader();
+        var items = new List<ContabilitaSupportoSummary>();
+
+        while (reader.Read())
+        {
+            items.Add(new ContabilitaSupportoSummary
+            {
+                Nominativo = reader.GetString(0),
+                Qualifica = reader.GetString(1),
+                Ruolo = reader.GetString(2),
+                GiornateImpiego = reader.GetInt32(3),
+                UltimaDataServizio = ParseDbDate(reader, 4),
+            });
+        }
+
+        return items;
+    }
+
     private static List<VisitaMedica> GetVisite(SqliteConnection connection, int perId)
     {
         using var command = connection.CreateCommand();
@@ -1264,18 +1783,20 @@ public sealed class PersonaleRepository
             Cognome = reader.GetString(1),
             Nome = reader.GetString(2),
             Qualifica = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
-            CodiceFiscale = reader.GetString(4),
-            MatricolaPersonale = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
-            NumeroBrevettoSmz = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
-            DataNascita = ParseDbDate(reader, 7),
-            LuogoNascita = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
-            ViaResidenza = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
-            CapResidenza = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
-            CittaResidenza = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-            Telefono1 = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
-            Telefono2 = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
-            Mail1Utente = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
-            Mail2Utente = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
+            ProfiloPersonale = reader.IsDBNull(4) ? "SMZ operativo" : reader.GetString(4),
+            RuoloSanitario = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+            CodiceFiscale = reader.GetString(6),
+            MatricolaPersonale = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+            NumeroBrevettoSmz = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+            DataNascita = ParseDbDate(reader, 9),
+            LuogoNascita = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+            ViaResidenza = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+            CapResidenza = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+            CittaResidenza = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            Telefono1 = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            Telefono2 = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
+            Mail1Utente = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
+            Mail2Utente = reader.IsDBNull(17) ? string.Empty : reader.GetString(17),
         };
     }
 
@@ -1290,6 +1811,8 @@ public sealed class PersonaleRepository
                    Cognome,
                    Nome,
                    Qualifica,
+                   ProfiloPersonale,
+                   RuoloSanitario,
                    CodiceFiscale,
                    MatricolaPersonale,
                    NumeroBrevettoSmz,
@@ -1321,19 +1844,21 @@ public sealed class PersonaleRepository
             Cognome = reader.GetString(2),
             Nome = reader.GetString(3),
             Qualifica = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
-            CodiceFiscale = reader.GetString(5),
-            MatricolaPersonale = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
-            NumeroBrevettoSmz = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
-            DataNascita = ParseDbDate(reader, 8),
-            LuogoNascita = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
-            ViaResidenza = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
-            CapResidenza = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-            CittaResidenza = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
-            Telefono1 = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
-            Telefono2 = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
-            Mail1Utente = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
-            Mail2Utente = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
-            DataArchiviazione = DateTime.Parse(reader.GetString(17)),
+            ProfiloPersonale = reader.IsDBNull(5) ? "SMZ operativo" : reader.GetString(5),
+            RuoloSanitario = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+            CodiceFiscale = reader.GetString(7),
+            MatricolaPersonale = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+            NumeroBrevettoSmz = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+            DataNascita = ParseDbDate(reader, 10),
+            LuogoNascita = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+            ViaResidenza = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+            CapResidenza = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            CittaResidenza = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            Telefono1 = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
+            Telefono2 = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
+            Mail1Utente = reader.IsDBNull(17) ? string.Empty : reader.GetString(17),
+            Mail2Utente = reader.IsDBNull(18) ? string.Empty : reader.GetString(18),
+            DataArchiviazione = DateTime.Parse(reader.GetString(19)),
         };
     }
 
@@ -1455,5 +1980,421 @@ public sealed class PersonaleRepository
         return DateOnly.Parse(reader.GetString(ordinal));
     }
 
+    private static List<ServizioPartecipante> GetServizioPartecipanti(SqliteConnection connection, long servizioGiornalieroId)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT sp.ServizioPartecipanteId,
+                   sp.ServizioGiornalieroId,
+                   sp.PerId,
+                   sp.GruppoOperativoId,
+                   sp.Presente,
+                   sp.RuoloOperativoId,
+                   sp.Note
+            FROM ServizioPartecipanti sp
+            INNER JOIN Personale p ON p.PerId = sp.PerId
+            WHERE sp.ServizioGiornalieroId = $servizioGiornalieroId
+            ORDER BY p.Cognome, p.Nome, sp.ServizioPartecipanteId;
+            """;
+        command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+
+        using var reader = command.ExecuteReader();
+        var items = new List<ServizioPartecipante>();
+
+        while (reader.Read())
+        {
+            items.Add(new ServizioPartecipante
+            {
+                ServizioPartecipanteId = reader.GetInt64(0),
+                ServizioGiornalieroId = reader.GetInt64(1),
+                PerId = reader.GetInt32(2),
+                GruppoOperativoId = reader.GetInt32(3),
+                Presente = reader.GetInt32(4) == 1,
+                RuoloOperativoId = reader.IsDBNull(5) ? null : reader.GetInt32(5),
+                Note = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+            });
+        }
+
+        return items;
+    }
+
+    private static List<ServizioImmersione> GetServizioImmersioni(SqliteConnection connection, long servizioGiornalieroId)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT ServizioImmersioneId,
+                   ServizioGiornalieroId,
+                   NumeroImmersione,
+                   OrarioInizio,
+                   OrarioFine,
+                   DirettoreImmersionePerId,
+                   OperatoreSoccorsoPerId,
+                   AssistenteBlsdPerId,
+                   AssistenteSanitarioPerId,
+                   LocalitaOperativaId,
+                   ScopoImmersioneId,
+                   Note
+            FROM ServizioImmersioni
+            WHERE ServizioGiornalieroId = $servizioGiornalieroId
+            ORDER BY NumeroImmersione, ServizioImmersioneId;
+            """;
+        command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+
+        using var reader = command.ExecuteReader();
+        var items = new List<ServizioImmersione>();
+
+        while (reader.Read())
+        {
+            items.Add(new ServizioImmersione
+            {
+                ServizioImmersioneId = reader.GetInt64(0),
+                ServizioGiornalieroId = reader.GetInt64(1),
+                NumeroImmersione = reader.GetInt32(2),
+                OrarioInizio = ParseDbTime(reader, 3),
+                OrarioFine = ParseDbTime(reader, 4),
+                DirettoreImmersionePerId = reader.IsDBNull(5) ? null : reader.GetInt32(5),
+                OperatoreSoccorsoPerId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
+                AssistenteBlsdPerId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+                AssistenteSanitarioPerId = reader.IsDBNull(8) ? null : reader.GetInt32(8),
+                LocalitaOperativaId = reader.IsDBNull(9) ? null : reader.GetInt32(9),
+                ScopoImmersioneId = reader.IsDBNull(10) ? null : reader.GetInt32(10),
+                Note = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+            });
+        }
+
+        return items;
+    }
+
+    private static List<ServizioSupportoOccasionale> GetServizioSupportiOccasionali(SqliteConnection connection, long servizioGiornalieroId)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT ServizioSupportoOccasionaleId,
+                   ServizioGiornalieroId,
+                   Nominativo,
+                   Qualifica,
+                   Ruolo,
+                   Presente,
+                   Contatti,
+                   Note
+            FROM ServizioSupportiOccasionali
+            WHERE ServizioGiornalieroId = $servizioGiornalieroId
+            ORDER BY ServizioSupportoOccasionaleId;
+            """;
+        command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+
+        using var reader = command.ExecuteReader();
+        var items = new List<ServizioSupportoOccasionale>();
+
+        while (reader.Read())
+        {
+            items.Add(new ServizioSupportoOccasionale
+            {
+                ServizioSupportoOccasionaleId = reader.GetInt64(0),
+                ServizioGiornalieroId = reader.GetInt64(1),
+                Nominativo = reader.GetString(2),
+                Qualifica = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                Ruolo = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                Presente = reader.GetInt32(5) == 1,
+                Contatti = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+                Note = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+            });
+        }
+
+        return items;
+    }
+
+    private static List<ServizioPartecipanteImmersione> GetServizioPartecipantiImmersioni(
+        SqliteConnection connection,
+        long servizioGiornalieroId)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT spi.ServizioPartecipanteImmersioneId,
+                   spi.ServizioImmersioneId,
+                   spi.ServizioPartecipanteId,
+                   spi.TipologiaImmersioneOperativaId,
+                   spi.ProfonditaMetri,
+                   spi.FasciaProfonditaId,
+                   spi.OreImmersione,
+                   spi.CategoriaContabileOreId,
+                   spi.Note
+            FROM ServizioPartecipantiImmersioni spi
+            INNER JOIN ServizioImmersioni si ON si.ServizioImmersioneId = spi.ServizioImmersioneId
+            WHERE si.ServizioGiornalieroId = $servizioGiornalieroId
+            ORDER BY si.NumeroImmersione, spi.ServizioPartecipanteImmersioneId;
+            """;
+        command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+
+        using var reader = command.ExecuteReader();
+        var items = new List<ServizioPartecipanteImmersione>();
+
+        while (reader.Read())
+        {
+            items.Add(new ServizioPartecipanteImmersione
+            {
+                ServizioPartecipanteImmersioneId = reader.GetInt64(0),
+                ServizioImmersioneId = reader.GetInt64(1),
+                ServizioPartecipanteId = reader.GetInt64(2),
+                TipologiaImmersioneOperativaId = reader.IsDBNull(3) ? null : reader.GetInt32(3),
+                ProfonditaMetri = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+                FasciaProfonditaId = reader.IsDBNull(5) ? null : reader.GetInt32(5),
+                OreImmersione = reader.IsDBNull(6) ? null : Convert.ToDecimal(reader.GetDouble(6)),
+                CategoriaContabileOreId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+                Note = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+            });
+        }
+
+        return items;
+    }
+
+    private static void DeleteServizioChildRows(SqliteConnection connection, SqliteTransaction transaction, long servizioGiornalieroId)
+    {
+        using var deleteSupporti = connection.CreateCommand();
+        deleteSupporti.Transaction = transaction;
+        deleteSupporti.CommandText = "DELETE FROM ServizioSupportiOccasionali WHERE ServizioGiornalieroId = $servizioGiornalieroId;";
+        deleteSupporti.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+        deleteSupporti.ExecuteNonQuery();
+
+        using var deleteImmersioni = connection.CreateCommand();
+        deleteImmersioni.Transaction = transaction;
+        deleteImmersioni.CommandText = "DELETE FROM ServizioImmersioni WHERE ServizioGiornalieroId = $servizioGiornalieroId;";
+        deleteImmersioni.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+        deleteImmersioni.ExecuteNonQuery();
+
+        using var deletePartecipanti = connection.CreateCommand();
+        deletePartecipanti.Transaction = transaction;
+        deletePartecipanti.CommandText = "DELETE FROM ServizioPartecipanti WHERE ServizioGiornalieroId = $servizioGiornalieroId;";
+        deletePartecipanti.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+        deletePartecipanti.ExecuteNonQuery();
+    }
+
+    private static Dictionary<int, long> InsertServizioPartecipanti(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        long servizioGiornalieroId,
+        IEnumerable<ServizioPartecipante> partecipanti)
+    {
+        var map = new Dictionary<int, long>();
+
+        foreach (var partecipante in partecipanti)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO ServizioPartecipanti (
+                    ServizioGiornalieroId,
+                    PerId,
+                    GruppoOperativoId,
+                    Presente,
+                    RuoloOperativoId,
+                    Note
+                )
+                VALUES (
+                    $servizioGiornalieroId,
+                    $perId,
+                    $gruppoOperativoId,
+                    $presente,
+                    $ruoloOperativoId,
+                    $note
+                );
+                SELECT last_insert_rowid();
+                """;
+            command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+            command.Parameters.AddWithValue("$perId", partecipante.PerId);
+            command.Parameters.AddWithValue("$gruppoOperativoId", partecipante.GruppoOperativoId);
+            command.Parameters.AddWithValue("$presente", partecipante.Presente ? 1 : 0);
+            command.Parameters.AddWithValue("$ruoloOperativoId", partecipante.RuoloOperativoId is null ? DBNull.Value : partecipante.RuoloOperativoId.Value);
+            command.Parameters.AddWithValue("$note", DbText(partecipante.Note));
+            var servizioPartecipanteId = Convert.ToInt64(command.ExecuteScalar());
+            map[partecipante.PerId] = servizioPartecipanteId;
+        }
+
+        return map;
+    }
+
+    private static Dictionary<int, long> InsertServizioImmersioni(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        long servizioGiornalieroId,
+        IEnumerable<ServizioImmersione> immersioni,
+        int? defaultLocalitaOperativaId,
+        int? defaultScopoImmersioneId)
+    {
+        var map = new Dictionary<int, long>();
+
+        foreach (var immersione in immersioni)
+        {
+            var localitaOperativaId = immersione.LocalitaOperativaId ?? defaultLocalitaOperativaId;
+            var scopoImmersioneId = immersione.ScopoImmersioneId ?? defaultScopoImmersioneId;
+
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO ServizioImmersioni (
+                    ServizioGiornalieroId,
+                    NumeroImmersione,
+                    OrarioInizio,
+                    OrarioFine,
+                    DirettoreImmersionePerId,
+                    OperatoreSoccorsoPerId,
+                    AssistenteBlsdPerId,
+                    AssistenteSanitarioPerId,
+                    LocalitaOperativaId,
+                    ScopoImmersioneId,
+                    Note
+                )
+                VALUES (
+                    $servizioGiornalieroId,
+                    $numeroImmersione,
+                    $orarioInizio,
+                    $orarioFine,
+                    $direttoreImmersionePerId,
+                    $operatoreSoccorsoPerId,
+                    $assistenteBlsdPerId,
+                    $assistenteSanitarioPerId,
+                    $localitaOperativaId,
+                    $scopoImmersioneId,
+                    $note
+                );
+                SELECT last_insert_rowid();
+                """;
+            command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+            command.Parameters.AddWithValue("$numeroImmersione", immersione.NumeroImmersione);
+            command.Parameters.AddWithValue("$orarioInizio", ToDbValue(immersione.OrarioInizio));
+            command.Parameters.AddWithValue("$orarioFine", ToDbValue(immersione.OrarioFine));
+            command.Parameters.AddWithValue("$direttoreImmersionePerId", immersione.DirettoreImmersionePerId is null ? DBNull.Value : immersione.DirettoreImmersionePerId.Value);
+            command.Parameters.AddWithValue("$operatoreSoccorsoPerId", immersione.OperatoreSoccorsoPerId is null ? DBNull.Value : immersione.OperatoreSoccorsoPerId.Value);
+            command.Parameters.AddWithValue("$assistenteBlsdPerId", immersione.AssistenteBlsdPerId is null ? DBNull.Value : immersione.AssistenteBlsdPerId.Value);
+            command.Parameters.AddWithValue("$assistenteSanitarioPerId", immersione.AssistenteSanitarioPerId is null ? DBNull.Value : immersione.AssistenteSanitarioPerId.Value);
+            command.Parameters.AddWithValue("$localitaOperativaId", localitaOperativaId is null ? DBNull.Value : localitaOperativaId.Value);
+            command.Parameters.AddWithValue("$scopoImmersioneId", scopoImmersioneId is null ? DBNull.Value : scopoImmersioneId.Value);
+            command.Parameters.AddWithValue("$note", DbText(immersione.Note));
+            var servizioImmersioneId = Convert.ToInt64(command.ExecuteScalar());
+            map[immersione.NumeroImmersione] = servizioImmersioneId;
+        }
+
+        return map;
+    }
+
+    private static void InsertServizioPartecipantiImmersioni(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        IEnumerable<ServizioImmersione> immersioni,
+        IReadOnlyDictionary<int, long> immersioniMap,
+        IReadOnlyDictionary<int, long> partecipantiMap)
+    {
+        foreach (var immersione in immersioni)
+        {
+            if (!immersioniMap.TryGetValue(immersione.NumeroImmersione, out var servizioImmersioneId))
+            {
+                continue;
+            }
+
+            foreach (var partecipazione in immersione.Partecipazioni)
+            {
+                if (!partecipantiMap.TryGetValue((int)partecipazione.ServizioPartecipanteId, out var servizioPartecipanteId))
+                {
+                    continue;
+                }
+
+                using var command = connection.CreateCommand();
+                command.Transaction = transaction;
+                command.CommandText =
+                    """
+                    INSERT INTO ServizioPartecipantiImmersioni (
+                        ServizioImmersioneId,
+                        ServizioPartecipanteId,
+                        TipologiaImmersioneOperativaId,
+                        ProfonditaMetri,
+                        FasciaProfonditaId,
+                        OreImmersione,
+                        CategoriaContabileOreId,
+                        Note
+                    )
+                    VALUES (
+                        $servizioImmersioneId,
+                        $servizioPartecipanteId,
+                        $tipologiaImmersioneOperativaId,
+                        $profonditaMetri,
+                        $fasciaProfonditaId,
+                        $oreImmersione,
+                        $categoriaContabileOreId,
+                        $note
+                    );
+                    """;
+                command.Parameters.AddWithValue("$servizioImmersioneId", servizioImmersioneId);
+                command.Parameters.AddWithValue("$servizioPartecipanteId", servizioPartecipanteId);
+                command.Parameters.AddWithValue("$tipologiaImmersioneOperativaId", partecipazione.TipologiaImmersioneOperativaId is null ? DBNull.Value : partecipazione.TipologiaImmersioneOperativaId.Value);
+                command.Parameters.AddWithValue("$profonditaMetri", partecipazione.ProfonditaMetri is null ? DBNull.Value : partecipazione.ProfonditaMetri.Value);
+                command.Parameters.AddWithValue("$fasciaProfonditaId", partecipazione.FasciaProfonditaId is null ? DBNull.Value : partecipazione.FasciaProfonditaId.Value);
+                command.Parameters.AddWithValue("$oreImmersione", partecipazione.OreImmersione is null ? DBNull.Value : Convert.ToDouble(partecipazione.OreImmersione.Value));
+                command.Parameters.AddWithValue("$categoriaContabileOreId", partecipazione.CategoriaContabileOreId is null ? DBNull.Value : partecipazione.CategoriaContabileOreId.Value);
+                command.Parameters.AddWithValue("$note", DbText(partecipazione.Note));
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    private static void InsertServizioSupportiOccasionali(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        long servizioGiornalieroId,
+        IEnumerable<ServizioSupportoOccasionale> supportiOccasionali)
+    {
+        foreach (var supporto in supportiOccasionali)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO ServizioSupportiOccasionali (
+                    ServizioGiornalieroId,
+                    Nominativo,
+                    Qualifica,
+                    Ruolo,
+                    Presente,
+                    Contatti,
+                    Note
+                )
+                VALUES (
+                    $servizioGiornalieroId,
+                    $nominativo,
+                    $qualifica,
+                    $ruolo,
+                    $presente,
+                    $contatti,
+                    $note
+                );
+                """;
+            command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+            command.Parameters.AddWithValue("$nominativo", supporto.Nominativo.Trim());
+            command.Parameters.AddWithValue("$qualifica", DbText(supporto.Qualifica));
+            command.Parameters.AddWithValue("$ruolo", DbText(supporto.Ruolo));
+            command.Parameters.AddWithValue("$presente", supporto.Presente ? 1 : 0);
+            command.Parameters.AddWithValue("$contatti", DbText(supporto.Contatti));
+            command.Parameters.AddWithValue("$note", DbText(supporto.Note));
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static TimeOnly? ParseDbTime(SqliteDataReader reader, int ordinal)
+    {
+        if (reader.IsDBNull(ordinal))
+        {
+            return null;
+        }
+
+        return TimeOnly.Parse(reader.GetString(ordinal));
+    }
+
     private static object DbText(string value) => string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
+
+    private static object ToDbValue(TimeOnly? value) => value is null ? DBNull.Value : value.Value.ToString("HH:mm");
 }

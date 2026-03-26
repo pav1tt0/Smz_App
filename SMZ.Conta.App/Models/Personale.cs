@@ -12,6 +12,10 @@ public sealed class Personale
 
     public string Qualifica { get; set; } = string.Empty;
 
+    public string ProfiloPersonale { get; set; } = "SMZ operativo";
+
+    public string RuoloSanitario { get; set; } = string.Empty;
+
     public string CodiceFiscale { get; set; } = string.Empty;
 
     public string MatricolaPersonale { get; set; } = string.Empty;
@@ -39,6 +43,8 @@ public sealed class Personale
     public List<PersonaleAbilitazione> Abilitazioni { get; set; } = [];
 
     public List<VisitaMedica> VisiteMediche { get; set; } = [];
+
+    public bool IsProfiloSanitario => string.Equals(ProfiloPersonale, "Sanitario", StringComparison.OrdinalIgnoreCase);
 
     public string NominativoCompleto => $"{Cognome} {Nome}".Trim();
 

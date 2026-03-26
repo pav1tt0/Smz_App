@@ -9,6 +9,8 @@ public sealed class PersonaleListItemViewModel : ObservableObject
     private string _cognome = string.Empty;
     private string _nome = string.Empty;
     private string _qualifica = string.Empty;
+    private string _profiloPersonale = "SMZ operativo";
+    private string _ruoloSanitario = string.Empty;
     private string _codiceFiscale = string.Empty;
     private string _contatti = string.Empty;
 
@@ -55,6 +57,30 @@ public sealed class PersonaleListItemViewModel : ObservableObject
         }
     }
 
+    public string ProfiloPersonale
+    {
+        get => _profiloPersonale;
+        set
+        {
+            if (SetProperty(ref _profiloPersonale, value))
+            {
+                OnPropertyChanged(nameof(NominativoConQualifica));
+            }
+        }
+    }
+
+    public string RuoloSanitario
+    {
+        get => _ruoloSanitario;
+        set
+        {
+            if (SetProperty(ref _ruoloSanitario, value))
+            {
+                OnPropertyChanged(nameof(NominativoConQualifica));
+            }
+        }
+    }
+
     public string CodiceFiscale
     {
         get => _codiceFiscale;
@@ -69,8 +95,16 @@ public sealed class PersonaleListItemViewModel : ObservableObject
 
     public string Nominativo => $"{Cognome} {Nome}".Trim();
 
-    public string NominativoConQualifica =>
-        string.IsNullOrWhiteSpace(Qualifica) ? Nominativo : $"{Qualifica} - {Nominativo}";
+    public string NominativoConQualifica
+    {
+        get
+        {
+            var prefisso = string.IsNullOrWhiteSpace(Qualifica) ? Nominativo : $"{Qualifica} - {Nominativo}";
+            return string.Equals(ProfiloPersonale, "Sanitario", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(RuoloSanitario)
+                ? $"{prefisso} (Sanitario - {RuoloSanitario})"
+                : prefisso;
+        }
+    }
 
     public static PersonaleListItemViewModel FromModel(Personale personale)
     {
@@ -80,6 +114,8 @@ public sealed class PersonaleListItemViewModel : ObservableObject
             Cognome = personale.Cognome,
             Nome = personale.Nome,
             Qualifica = personale.Qualifica,
+            ProfiloPersonale = personale.ProfiloPersonale,
+            RuoloSanitario = personale.RuoloSanitario,
             CodiceFiscale = personale.CodiceFiscale,
             Contatti = personale.ContattiSintesi,
         };

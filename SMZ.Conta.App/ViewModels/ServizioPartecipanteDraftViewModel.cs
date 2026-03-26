@@ -9,6 +9,8 @@ public sealed class ServizioPartecipanteDraftViewModel : ObservableObject
     private string _qualifica = string.Empty;
     private string _nominativo = string.Empty;
     private string _contatti = string.Empty;
+    private int? _defaultGruppoOperativoId;
+    private int? _defaultRuoloOperativoId;
     private GruppoOperativo? _gruppoOperativo;
     private bool _presente = true;
     private RuoloOperativo? _ruoloOperativo;
@@ -36,6 +38,18 @@ public sealed class ServizioPartecipanteDraftViewModel : ObservableObject
     {
         get => _contatti;
         set => SetProperty(ref _contatti, value);
+    }
+
+    public int? DefaultGruppoOperativoId
+    {
+        get => _defaultGruppoOperativoId;
+        set => SetProperty(ref _defaultGruppoOperativoId, value);
+    }
+
+    public int? DefaultRuoloOperativoId
+    {
+        get => _defaultRuoloOperativoId;
+        set => SetProperty(ref _defaultRuoloOperativoId, value);
     }
 
     public GruppoOperativo? GruppoOperativo

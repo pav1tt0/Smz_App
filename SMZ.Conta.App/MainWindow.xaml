@@ -6,9 +6,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="{Binding Titolo}"
-        Width="1520"
+        Width="1660"
         Height="960"
-        MinWidth="1320"
+        MinWidth="1460"
         MinHeight="780"
         WindowState="Maximized"
         Background="#0A1628"
@@ -417,7 +417,7 @@
                         <Border Grid.Row="2"
                                 Style="{StaticResource HomeDarkPanelStyle}"
                                 Padding="22">
-                            <UniformGrid Columns="4">
+                            <UniformGrid Columns="5">
                                 <Button Margin="0,0,18,0"
                                     Command="{Binding NavigateSectionCommand}"
                                     CommandParameter="2"
@@ -462,7 +462,7 @@
 
                                 <Button Margin="0,0,18,0"
                                     Command="{Binding NavigateSectionCommand}"
-                                    CommandParameter="2"
+                                    CommandParameter="5"
                                     Background="#F4FAFF"
                                     BorderBrush="#3E7AA6"
                                     Foreground="#10274B"
@@ -472,28 +472,50 @@
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center" />
                                         <TextBlock Margin="0,12,0,0"
-                                                   Text="Ore, missioni, riepiloghi"
+                                                   Text="Trentesimi, sanitari, supporto"
                                                    FontSize="12"
                                                    Foreground="#5A7190"
                                                    HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
 
-                                <Button IsEnabled="False"
-                                    Background="#DFE5EC"
-                                    BorderBrush="#5A6F89"
-                                    Foreground="#56697E"
+                                <Button Margin="0,0,18,0"
+                                    Command="{Binding NavigateSectionCommand}"
+                                    CommandParameter="6"
+                                    Background="#FBF8F1"
+                                    BorderBrush="#A77D3E"
+                                    Foreground="#10274B"
                                     Style="{StaticResource HomeCardButtonStyle}">
                                     <StackPanel>
-                                        <TextBlock Text="STAMPE E"
+                                        <TextBlock Text="STAMPE"
                                                    HorizontalAlignment="Center" />
-                                        <TextBlock Text="REPORT"
+                                        <TextBlock Text="E REPORT"
                                                    Margin="0,4,0,0"
                                                    HorizontalAlignment="Center" />
                                         <TextBlock Margin="0,12,0,0"
-                                                   Text="Modulo previsto, non ancora attivo"
+                                                   Text="Fogli servizio e prospetti"
                                                    FontSize="12"
-                                                   Foreground="#6F8193"
+                                                   Foreground="#7A6545"
+                                                   HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Command="{Binding NavigateSectionCommand}"
+                                    CommandParameter="4"
+                                    Background="#F7FBF8"
+                                    BorderBrush="#6F8F77"
+                                    Foreground="#10274B"
+                                    Style="{StaticResource HomeCardButtonStyle}">
+                                    <StackPanel>
+                                        <TextBlock Text="ARCHIVIO"
+                                                   HorizontalAlignment="Center" />
+                                        <TextBlock Text="SCHEDE"
+                                                   Margin="0,4,0,0"
+                                                   HorizontalAlignment="Center" />
+                                        <TextBlock Margin="0,12,0,0"
+                                                   Text="Eliminate, ripristino, storico"
+                                                   FontSize="12"
+                                                   Foreground="#5F7A67"
                                                    HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
@@ -952,7 +974,7 @@
                 <TabItem Header="Servizio giornaliero">
                     <Grid Margin="6">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="380" />
+                            <ColumnDefinition Width="320" />
                             <ColumnDefinition Width="20" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
@@ -960,7 +982,7 @@
                         <StackPanel Grid.Column="0">
                             <Border Style="{StaticResource CardStyle}">
                                 <StackPanel>
-                                    <TextBlock Text="Bozza modulo servizi"
+                                    <TextBlock Text="Gestione servizi"
                                                FontSize="20"
                                                FontWeight="SemiBold"
                                                Foreground="#17313E" />
@@ -971,7 +993,22 @@
 
                                     <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
                                         <Button Content="Nuovo servizio"
-                                                Command="{Binding NewServizioCommand}" />
+                                                Command="{Binding NewServizioCommand}"
+                                                Style="{StaticResource AccentButtonStyle}" />
+                                        <Button Content="Salva servizio"
+                                                Command="{Binding SaveServizioCommand}" />
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <Button Content="Apri selezionato"
+                                                Command="{Binding OpenServizioCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                        <Button Content="Elimina servizio"
+                                                Command="{Binding DeleteServizioCommand}"
+                                                Style="{StaticResource DangerButtonStyle}" />
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                         <Button Content="Aggiorna personale"
                                                 Command="{Binding ReloadServizioPersonaleCommand}"
                                                 Style="{StaticResource SecondaryButtonStyle}" />
@@ -1064,18 +1101,90 @@
                                     </Border>
                                 </StackPanel>
                             </Border>
+
+                            <Border Margin="0,12,0,0"
+                                    Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Servizi registrati"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,10,0,0"
+                                               Text="{Binding ServiziSalvatiStato}"
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+
+                                    <ListBox Margin="0,14,0,0"
+                                             ItemsSource="{Binding ServiziSalvati}"
+                                             SelectedItem="{Binding SelectedServizioSalvato}"
+                                             MaxHeight="360"
+                                             BorderThickness="0"
+                                             Background="Transparent">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,0,10"
+                                                        Padding="14"
+                                                        Background="#F8FBFD"
+                                                        BorderBrush="#D8E1E8"
+                                                        BorderThickness="1"
+                                                        CornerRadius="16">
+                                                    <StackPanel>
+                                                        <DockPanel LastChildFill="False">
+                                                            <TextBlock DockPanel.Dock="Left"
+                                                                       Text="{Binding DataServizio, StringFormat={}{0:dd/MM/yyyy}}"
+                                                                       FontSize="16"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="#17313E" />
+                                                            <TextBlock DockPanel.Dock="Right"
+                                                                       Text="{Binding TipoServizio}"
+                                                                       Foreground="#4F73A5"
+                                                                       FontWeight="SemiBold" />
+                                                        </DockPanel>
+                                                        <TextBlock Margin="0,6,0,0"
+                                                                   Foreground="#53646A"
+                                                                   TextWrapping="Wrap">
+                                                            <Run Text="Ordine: " />
+                                                            <Run Text="{Binding NumeroOrdineServizio}" />
+                                                            <Run Text=" | Orario: " />
+                                                            <Run Text="{Binding OrarioServizio}" />
+                                                        </TextBlock>
+                                                        <TextBlock Margin="0,6,0,0"
+                                                                   Text="{Binding LocalitaDescrizione}"
+                                                                   Foreground="#17313E"
+                                                                   TextWrapping="Wrap" />
+                                                        <TextBlock Margin="0,4,0,0"
+                                                                   Text="{Binding ScopoDescrizione}"
+                                                                   Foreground="#53646A"
+                                                                   TextWrapping="Wrap" />
+                                                        <TextBlock Margin="0,6,0,0"
+                                                                   Foreground="#53646A"
+                                                                   TextWrapping="Wrap">
+                                                            <Run Text="{Binding PresentiTotali}" />
+                                                            <Run Text="/" />
+                                                            <Run Text="{Binding PartecipantiTotali}" />
+                                                            <Run Text=" presenti" />
+                                                            <Run Text=" | Immersioni: " />
+                                                            <Run Text="{Binding ImmersioniTotali}" />
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
 
                         <Border Grid.Column="2" Style="{StaticResource CardStyle}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled">
                                 <StackPanel>
-                                    <TextBlock Text="Servizio giornaliero"
+                                    <TextBlock Text="{Binding ServizioEditorTitolo}"
                                                FontSize="22"
                                                FontWeight="SemiBold"
                                                Foreground="#17313E" />
                                     <TextBlock Margin="0,10,0,0"
-                                               Text="Prima schermata operativa del nuovo modulo. In questa fase puoi impostare la bozza del servizio, le immersioni e i partecipanti; il salvataggio definitivo verra collegato nel passo successivo."
+                                               Text="{Binding ServizioEditorSottotitolo}"
                                                Foreground="#53646A"
                                                TextWrapping="Wrap" />
 
@@ -1095,6 +1204,7 @@
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
 
                                             <StackPanel>
@@ -1107,40 +1217,53 @@
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
+                                                <TextBlock Text="N. ordine servizio" Foreground="#50626A" />
+                                                <TextBox Text="{Binding ServizioNumeroOrdine, UpdateSourceTrigger=PropertyChanged}"
+                                                         MaxLength="40" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="4">
+                                                <TextBlock Text="Orario servizio" Foreground="#50626A" />
+                                                <TextBox Text="{Binding ServizioOrario, UpdateSourceTrigger=PropertyChanged}"
+                                                         MaxLength="40"
+                                                         ToolTip="Esempio: 08:00-14:00" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="1">
                                                 <TextBlock Text="Tipo servizio" Foreground="#50626A" />
                                                 <ComboBox ItemsSource="{Binding TipiServizioDisponibili}"
                                                           SelectedItem="{Binding ServizioTipoSelezionato}" />
                                             </StackPanel>
 
-                                            <StackPanel Grid.Column="4">
+                                            <StackPanel Grid.Row="1" Grid.Column="2">
                                                 <TextBlock Text="Localita" Foreground="#50626A" />
                                                 <ComboBox ItemsSource="{Binding LocalitaOperativeCatalogo}"
                                                           SelectedItem="{Binding ServizioLocalitaSelezionata}"
                                                           DisplayMemberPath="Descrizione" />
                                             </StackPanel>
 
-                                            <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                                            <StackPanel Grid.Row="1" Grid.Column="4">
                                                 <TextBlock Text="Unita navale" Foreground="#50626A" />
                                                 <ComboBox ItemsSource="{Binding UnitaNavaliCatalogo}"
                                                           SelectedItem="{Binding ServizioUnitaNavaleSelezionata}"
                                                           DisplayMemberPath="Descrizione" />
                                             </StackPanel>
 
-                                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
+                                            <StackPanel Grid.Row="2" Margin="0,10,0,0">
                                                 <TextBlock Text="Fuori sede" Foreground="#50626A" />
                                                 <CheckBox Margin="0,10,0,0"
                                                           IsChecked="{Binding ServizioFuoriSede}"
                                                           Content="Applica indennita fuori sede" />
                                             </StackPanel>
 
-                                            <StackPanel Grid.Row="1" Grid.Column="4" Margin="0,10,0,0">
+                                            <StackPanel Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="3" Margin="0,10,0,0">
                                                 <TextBlock Text="Scopo immersione" Foreground="#50626A" />
                                                 <ComboBox ItemsSource="{Binding ScopiImmersioneCatalogo}"
                                                           SelectedItem="{Binding ServizioScopoSelezionato}"
                                                           DisplayMemberPath="Descrizione" />
                                             </StackPanel>
 
-                                            <StackPanel Grid.Row="2" Grid.ColumnSpan="5" Margin="0,10,0,0">
+                                            <StackPanel Grid.Row="3" Grid.ColumnSpan="5" Margin="0,10,0,0">
                                                 <TextBlock Text="Attivita svolta" Foreground="#50626A" />
                                                 <TextBox Text="{Binding ServizioAttivitaSvolta, UpdateSourceTrigger=PropertyChanged}"
                                                          TextWrapping="Wrap"
@@ -1155,87 +1278,12 @@
                                         </Grid>
                                     </Border>
 
-                                    <ItemsControl Margin="0,18,0,0"
-                                                  ItemsSource="{Binding ServizioImmersioniBozza}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel Orientation="Horizontal" />
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Width="520"
-                                                        Margin="0,0,16,16"
-                                                        Background="#F8FBFD"
-                                                        BorderBrush="#D8E1E8"
-                                                        BorderThickness="1"
-                                                        CornerRadius="18"
-                                                        Padding="16">
-                                                    <StackPanel>
-                                                        <TextBlock Text="{Binding NumeroImmersione, StringFormat=Immersione {0}}"
-                                                                   FontSize="18"
-                                                                   FontWeight="SemiBold"
-                                                                   Foreground="#17313E" />
-
-                                                        <Grid Margin="0,12,0,0">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="16" />
-                                                                <ColumnDefinition Width="*" />
-                                                            </Grid.ColumnDefinitions>
-
-                                                            <StackPanel>
-                                                                <TextBlock Text="Ora inizio" Foreground="#50626A" />
-                                                                <TextBox Text="{Binding OrarioInizio, UpdateSourceTrigger=PropertyChanged}"
-                                                                         Width="120"
-                                                                         ToolTip="Formato consigliato: 08:30" />
-                                                            </StackPanel>
-
-                                                            <StackPanel Grid.Column="2">
-                                                                <TextBlock Text="Ora fine" Foreground="#50626A" />
-                                                                <TextBox Text="{Binding OrarioFine, UpdateSourceTrigger=PropertyChanged}"
-                                                                         Width="120"
-                                                                         ToolTip="Formato consigliato: 10:15" />
-                                                            </StackPanel>
-                                                        </Grid>
-
-                                                        <TextBlock Margin="0,10,0,0" Text="Direttore immersione" Foreground="#50626A" />
-                                                        <ComboBox ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                  SelectedItem="{Binding DirettoreImmersione}"
-                                                                  DisplayMemberPath="NominativoConQualifica" />
-
-                                                        <TextBlock Margin="0,10,0,0" Text="Operatore soccorso" Foreground="#50626A" />
-                                                        <ComboBox ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                  SelectedItem="{Binding OperatoreSoccorso}"
-                                                                  DisplayMemberPath="NominativoConQualifica" />
-
-                                                        <TextBlock Margin="0,10,0,0" Text="Assistenza BLSD" Foreground="#50626A" />
-                                                        <ComboBox ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                  SelectedItem="{Binding AssistenteBlsd}"
-                                                                  DisplayMemberPath="NominativoConQualifica" />
-
-                                                        <TextBlock Margin="0,10,0,0" Text="Assistenza sanitaria" Foreground="#50626A" />
-                                                        <ComboBox ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                  SelectedItem="{Binding AssistenteSanitario}"
-                                                                  DisplayMemberPath="NominativoConQualifica" />
-
-                                                        <TextBlock Margin="0,10,0,0" Text="Note immersione" Foreground="#50626A" />
-                                                        <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}"
-                                                                 TextWrapping="Wrap"
-                                                                 AcceptsReturn="True"
-                                                                 MinHeight="48" />
-                                                    </StackPanel>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-
                                     <TextBlock Text="Personale impiegato"
                                                FontSize="19"
                                                FontWeight="SemiBold"
                                                Foreground="#17313E" />
                                     <TextBlock Margin="0,8,0,0"
-                                               Text="In questa fase il personale e gestito in una griglia unica: scegli gruppo operativo, presenza e ruolo. E piu flessibile del modello Word e si presta meglio ai conteggi futuri."
+                                               Text="Seleziona il personale interno del servizio. I contatori ora considerano solo le righe effettivamente compilate."
                                                Foreground="#53646A"
                                                TextWrapping="Wrap" />
 
@@ -1243,7 +1291,6 @@
                                               ItemsSource="{Binding ServizioPartecipantiBozza}"
                                               AutoGenerateColumns="False"
                                               CanUserAddRows="False"
-                                              MinHeight="360"
                                               HeadersVisibility="Column"
                                               RowHeaderWidth="0"
                                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
@@ -1294,6 +1341,291 @@
                                                                 Binding="{Binding Note, UpdateSourceTrigger=PropertyChanged}" />
                                         </DataGrid.Columns>
                                     </DataGrid>
+
+                                    <DockPanel Margin="0,24,0,0" LastChildFill="False">
+                                        <TextBlock DockPanel.Dock="Left"
+                                                   Text="Supporto occasionale"
+                                                   FontSize="19"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E"
+                                                   VerticalAlignment="Center" />
+                                        <StackPanel DockPanel.Dock="Right"
+                                                    Orientation="Horizontal">
+                                            <Button Content="Aggiungi supporto"
+                                                    Command="{Binding AddSupportoOccasionaleCommand}"
+                                                    Style="{StaticResource SecondaryButtonStyle}" />
+                                            <Button Content="Rimuovi selezionato"
+                                                    Command="{Binding RemoveSupportoOccasionaleCommand}"
+                                                    Style="{StaticResource DangerButtonStyle}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="Usa questa griglia per personale di supporto sporadico che non deve entrare in anagrafica. Resta legato solo al singolo servizio."
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+
+                                    <DataGrid Margin="0,16,0,0"
+                                              ItemsSource="{Binding ServizioSupportiOccasionaliBozza}"
+                                              SelectedItem="{Binding SelectedSupportoOccasionale}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              HeadersVisibility="Column"
+                                              RowHeaderWidth="0"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Nominativo"
+                                                                Width="220"
+                                                                Binding="{Binding Nominativo, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTextColumn Header="Qualifica"
+                                                                Width="140"
+                                                                Binding="{Binding Qualifica, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTextColumn Header="Ruolo"
+                                                                Width="160"
+                                                                Binding="{Binding Ruolo, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridCheckBoxColumn Header="Presente"
+                                                                    Width="90"
+                                                                    Binding="{Binding Presente, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTextColumn Header="Contatti"
+                                                                Width="180"
+                                                                Binding="{Binding Contatti, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTextColumn Header="Note"
+                                                                Width="*"
+                                                                Binding="{Binding Note, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                    <TextBlock Margin="0,24,0,0"
+                                               Text="Immersioni del servizio"
+                                               FontSize="19"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="Compila le immersioni dopo aver selezionato il personale. Gli orari mostrano il formato atteso direttamente nel campo."
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+
+                                    <ItemsControl Margin="0,16,0,0"
+                                                  ItemsSource="{Binding ServizioImmersioniBozza}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,14,14"
+                                                        Background="#F8FBFD"
+                                                        BorderBrush="#D8E1E8"
+                                                        BorderThickness="1"
+                                                        CornerRadius="18"
+                                                        Padding="14">
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding NumeroImmersione, StringFormat=Immersione {0}}"
+                                                                   FontSize="18"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#17313E" />
+
+                                                        <Grid Margin="0,12,0,0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="14" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <StackPanel>
+                                                                <TextBlock Text="Ora inizio" Foreground="#50626A" />
+                                                                <Grid Width="120" Margin="0,6,0,0">
+                                                                    <TextBox Text="{Binding OrarioInizio, UpdateSourceTrigger=PropertyChanged}"
+                                                                             MaxLength="5"
+                                                                             ToolTip="Digita solo cifre, ad esempio 0830"
+                                                                             infra:TimeInputBehavior.AutoFormat="True" />
+                                                                    <TextBlock Text="xx:xx"
+                                                                               Margin="12,9,0,0"
+                                                                               Foreground="#9AAAB5"
+                                                                               IsHitTestVisible="False">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding OrarioInizio}" Value="">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </Grid>
+                                                            </StackPanel>
+
+                                                            <StackPanel Grid.Column="2">
+                                                                <TextBlock Text="Ora fine" Foreground="#50626A" />
+                                                                <Grid Width="120" Margin="0,6,0,0">
+                                                                    <TextBox Text="{Binding OrarioFine, UpdateSourceTrigger=PropertyChanged}"
+                                                                             MaxLength="5"
+                                                                             ToolTip="Digita solo cifre, ad esempio 1015"
+                                                                             infra:TimeInputBehavior.AutoFormat="True" />
+                                                                    <TextBlock Text="xx:xx"
+                                                                               Margin="12,9,0,0"
+                                                                               Foreground="#9AAAB5"
+                                                                               IsHitTestVisible="False">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding OrarioFine}" Value="">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </Grid>
+                                                            </StackPanel>
+                                                        </Grid>
+
+                                                        <Grid Margin="0,12,0,0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="14" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="Auto" />
+                                                            </Grid.RowDefinitions>
+
+                                                            <StackPanel>
+                                                                <TextBlock Text="Direttore immersione" Foreground="#50626A" />
+                                                                <ComboBox Margin="0,6,0,0"
+                                                                          ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          SelectedItem="{Binding DirettoreImmersione}"
+                                                                          DisplayMemberPath="NominativoConQualifica" />
+                                                            </StackPanel>
+
+                                                            <StackPanel Grid.Column="2">
+                                                                <TextBlock Text="Operatore soccorso" Foreground="#50626A" />
+                                                                <ComboBox Margin="0,6,0,0"
+                                                                          ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          SelectedItem="{Binding OperatoreSoccorso}"
+                                                                          DisplayMemberPath="NominativoConQualifica" />
+                                                            </StackPanel>
+
+                                                            <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                                                                <TextBlock Text="Assistenza BLSD" Foreground="#50626A" />
+                                                                <ComboBox Margin="0,6,0,0"
+                                                                          ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          SelectedItem="{Binding AssistenteBlsd}"
+                                                                          DisplayMemberPath="NominativoConQualifica" />
+                                                            </StackPanel>
+
+                                                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
+                                                                <TextBlock Text="Assistenza sanitaria" Foreground="#50626A" />
+                                                                <ComboBox Margin="0,6,0,0"
+                                                                          ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          SelectedItem="{Binding AssistenteSanitario}"
+                                                                          DisplayMemberPath="NominativoConQualifica" />
+                                                            </StackPanel>
+                                                        </Grid>
+
+                                                        <TextBlock Margin="0,12,0,0"
+                                                                   Text="Dettaglio contabile SMZ"
+                                                                   Foreground="#17313E"
+                                                                   FontWeight="SemiBold" />
+                                                        <TextBlock Margin="0,4,0,0"
+                                                                   Text="Compila solo gli operatori SMZ effettivamente entrati in immersione. Fascia, tariffa e importo vengono proposti in automatico."
+                                                                   Foreground="#53646A"
+                                                                   TextWrapping="Wrap" />
+
+                                                        <DataGrid Margin="0,10,0,0"
+                                                                  ItemsSource="{Binding Partecipazioni}"
+                                                                  AutoGenerateColumns="False"
+                                                                  CanUserAddRows="False"
+                                                                  HeadersVisibility="Column"
+                                                                  RowHeaderWidth="0"
+                                                                  MinHeight="180"
+                                                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                                            <DataGrid.Columns>
+                                                                <DataGridCheckBoxColumn Header="In"
+                                                                                        Width="42"
+                                                                                        Binding="{Binding InImmersione, UpdateSourceTrigger=PropertyChanged}" />
+                                                                <DataGridTextColumn Header="Operatore"
+                                                                                    Width="170"
+                                                                                    Binding="{Binding NominativoConQualifica}" />
+                                                                <DataGridTemplateColumn Header="Apparato"
+                                                                                        Width="120">
+                                                                    <DataGridTemplateColumn.CellTemplate>
+                                                                        <DataTemplate>
+                                                                            <ComboBox ItemsSource="{Binding DataContext.TipologieImmersioneOperativeCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                      SelectedItem="{Binding TipologiaImmersioneOperativa, UpdateSourceTrigger=PropertyChanged}"
+                                                                                      DisplayMemberPath="Descrizione" />
+                                                                        </DataTemplate>
+                                                                    </DataGridTemplateColumn.CellTemplate>
+                                                                </DataGridTemplateColumn>
+                                                                <DataGridTemplateColumn Header="Prof."
+                                                                                        Width="68">
+                                                                    <DataGridTemplateColumn.CellTemplate>
+                                                                        <DataTemplate>
+                                                                            <TextBox Text="{Binding ProfonditaMetri, UpdateSourceTrigger=PropertyChanged}" />
+                                                                        </DataTemplate>
+                                                                    </DataGridTemplateColumn.CellTemplate>
+                                                                </DataGridTemplateColumn>
+                                                                <DataGridTemplateColumn Header="Fascia"
+                                                                                        Width="88">
+                                                                    <DataGridTemplateColumn.CellTemplate>
+                                                                        <DataTemplate>
+                                                                            <ComboBox ItemsSource="{Binding DataContext.FasceProfonditaCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                      SelectedItem="{Binding FasciaProfondita, UpdateSourceTrigger=PropertyChanged}"
+                                                                                      DisplayMemberPath="Descrizione" />
+                                                                        </DataTemplate>
+                                                                    </DataGridTemplateColumn.CellTemplate>
+                                                                </DataGridTemplateColumn>
+                                                                <DataGridTemplateColumn Header="Ore"
+                                                                                        Width="68">
+                                                                    <DataGridTemplateColumn.CellTemplate>
+                                                                        <DataTemplate>
+                                                                            <TextBox Text="{Binding OreImmersione, UpdateSourceTrigger=PropertyChanged}" />
+                                                                        </DataTemplate>
+                                                                    </DataGridTemplateColumn.CellTemplate>
+                                                                </DataGridTemplateColumn>
+                                                                <DataGridTemplateColumn Header="Cat."
+                                                                                        Width="96">
+                                                                    <DataGridTemplateColumn.CellTemplate>
+                                                                        <DataTemplate>
+                                                                            <ComboBox ItemsSource="{Binding DataContext.CategorieContabiliOreCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                                      SelectedItem="{Binding CategoriaContabileOre, UpdateSourceTrigger=PropertyChanged}"
+                                                                                      DisplayMemberPath="Descrizione" />
+                                                                        </DataTemplate>
+                                                                    </DataGridTemplateColumn.CellTemplate>
+                                                                </DataGridTemplateColumn>
+                                                                <DataGridTextColumn Header="Tariffa"
+                                                                                    Width="72"
+                                                                                    Binding="{Binding TariffaPropostaDisplay}" />
+                                                                <DataGridTextColumn Header="Importo"
+                                                                                    Width="78"
+                                                                                    Binding="{Binding ImportoStimatoDisplay}" />
+                                                                <DataGridTemplateColumn Header="Note"
+                                                                                        Width="150">
+                                                                    <DataGridTemplateColumn.CellTemplate>
+                                                                        <DataTemplate>
+                                                                            <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}" />
+                                                                        </DataTemplate>
+                                                                    </DataGridTemplateColumn.CellTemplate>
+                                                                </DataGridTemplateColumn>
+                                                            </DataGrid.Columns>
+                                                        </DataGrid>
+
+                                                        <TextBlock Margin="0,10,0,0" Text="Note immersione" Foreground="#50626A" />
+                                                        <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}"
+                                                                 TextWrapping="Wrap"
+                                                                 AcceptsReturn="True"
+                                                                 MinHeight="44" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
@@ -1493,6 +1825,7 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
 
                                         <StackPanel>
@@ -1502,6 +1835,12 @@
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Profilo personale" Foreground="#50626A" />
+                                            <ComboBox ItemsSource="{Binding ProfiliPersonaleDisponibili}"
+                                                      SelectedItem="{Binding ProfiloPersonale}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="1">
                                             <TextBlock Text="Qualifica" Foreground="#50626A" />
                                             <ComboBox ItemsSource="{Binding QualificheDisponibili}"
                                                       Text="{Binding Qualifica, UpdateSourceTrigger=PropertyChanged}"
@@ -1509,16 +1848,39 @@
                                                       IsTextSearchEnabled="True" />
                                         </StackPanel>
 
-                                        <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                                        <StackPanel Grid.Row="1" Grid.Column="2">
+                                            <TextBlock Text="Ruolo sanitario" Foreground="#50626A" />
+                                            <ComboBox ItemsSource="{Binding RuoliSanitariDisponibili}"
+                                                      SelectedItem="{Binding RuoloSanitario}"
+                                                      IsEnabled="{Binding IsProfiloSanitario}" />
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsProfiloSanitario}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="2" Margin="0,10,0,0">
                                             <TextBlock Text="Matricola personale" Foreground="#50626A" />
                                             <TextBox Text="{Binding MatricolaPersonale, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
-                                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
+                                        <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,10,0,0">
                                             <TextBlock Text="Numero brevetto SMZ" Foreground="#50626A" />
                                             <TextBox Text="{Binding NumeroBrevettoSmz, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
                                     </Grid>
+
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="Per il profilo sanitario il ruolo sanitario e obbligatorio; visite e dati SMZ restano facoltativi."
+                                               Foreground="#6A7B80"
+                                               FontSize="12"
+                                               TextWrapping="Wrap" />
 
                                     <TextBlock Margin="0,20,0,0"
                                                Text="Dati anagrafici"
@@ -1922,7 +2284,7 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="Eliminate">
+                <TabItem Header="Archivio">
                     <Grid Margin="6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="390" />
@@ -2209,6 +2571,401 @@
                                 </Grid>
                             </Grid>
                         </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Contabilita">
+                    <Grid Margin="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Border Style="{StaticResource CardStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.5*" />
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock Text="{Binding ContabilitaPeriodoTitolo}"
+                                               FontSize="20"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="Modulo contabile operativo: riepilogo SMZ immersioni, piu giornate utili e trentesimi per sanitari e supporto occasionale."
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <StackPanel Width="170">
+                                        <TextBlock Text="Mese"
+                                                   Foreground="#50626A" />
+                                        <ComboBox ItemsSource="{Binding ContabilitaMesiDisponibili}"
+                                                  SelectedItem="{Binding ContabilitaMeseSelezionato}"
+                                                  DisplayMemberPath="Descrizione" />
+                                    </StackPanel>
+
+                                    <StackPanel Width="110"
+                                                Margin="12,0,0,0">
+                                        <TextBlock Text="Anno"
+                                                   Foreground="#50626A" />
+                                        <ComboBox ItemsSource="{Binding ContabilitaAnniDisponibili}"
+                                                  SelectedItem="{Binding ContabilitaAnnoSelezionato}" />
+                                    </StackPanel>
+
+                                    <Button Margin="12,20,0,0"
+                                            Content="Aggiorna"
+                                            Command="{Binding ReloadContabilitaCommand}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Row="2"
+                                Style="{StaticResource CardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <DockPanel LastChildFill="False">
+                                    <StackPanel DockPanel.Dock="Left">
+                                        <TextBlock Text="Contabilita SMZ immersioni"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E" />
+                                        <TextBlock Margin="0,6,0,0"
+                                                   Text="{Binding ContabilitaSmzStato}"
+                                                   Foreground="#53646A"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <Button DockPanel.Dock="Right"
+                                            Content="{Binding ToggleTariffeContabiliLabel}"
+                                            Command="{Binding ToggleTariffeContabiliCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" />
+                                </DockPanel>
+
+                                <TextBlock Grid.Row="1"
+                                           Margin="0,14,0,0"
+                                           Text="Le righe sono separate per data e ordine di servizio, cosi puoi risalire subito all'origine operativa della contabilita."
+                                           Foreground="#6A7B80"
+                                           TextWrapping="Wrap" />
+
+                                <DataGrid Grid.Row="2"
+                                          Margin="0,16,0,0"
+                                          ItemsSource="{Binding ContabilitaSmzItems}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          IsReadOnly="True"
+                                          HeadersVisibility="Column"
+                                          RowHeaderWidth="0"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Data"
+                                                            Width="95"
+                                                            Binding="{Binding DataServizioDescrizione}" />
+                                        <DataGridTextColumn Header="Ordine"
+                                                            Width="120"
+                                                            Binding="{Binding NumeroOrdineServizio}" />
+                                        <DataGridTextColumn Header="PerID"
+                                                            Width="80"
+                                                            Binding="{Binding PerId}" />
+                                        <DataGridTextColumn Header="Qual."
+                                                            Width="110"
+                                                            Binding="{Binding Qualifica}" />
+                                        <DataGridTextColumn Header="Cognome e nome"
+                                                            Width="220"
+                                                            Binding="{Binding Nominativo}" />
+                                        <DataGridTextColumn Header="Appar."
+                                                            Width="95"
+                                                            Binding="{Binding Apparato}" />
+                                        <DataGridTextColumn Header="Prof."
+                                                            Width="80"
+                                                            Binding="{Binding FasciaProfondita}" />
+                                        <DataGridTextColumn Header="Tariffa"
+                                                            Width="75"
+                                                            Binding="{Binding TariffaDisplay}" />
+                                        <DataGridTextColumn Header="ORE ORD"
+                                                            Width="80"
+                                                            Binding="{Binding OreOrdDisplay}" />
+                                        <DataGridTextColumn Header="ORE ADD"
+                                                            Width="80"
+                                                            Binding="{Binding OreAddDisplay}" />
+                                        <DataGridTextColumn Header="ORE SPER"
+                                                            Width="85"
+                                                            Binding="{Binding OreSperDisplay}" />
+                                        <DataGridTextColumn Header="ORE C.I."
+                                                            Width="80"
+                                                            Binding="{Binding OreCiDisplay}" />
+                                        <DataGridTextColumn Header="Importo"
+                                                            Width="90"
+                                                            Binding="{Binding ImportoDisplay}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Row="4"
+                                Style="{StaticResource CardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <DockPanel LastChildFill="False">
+                                    <StackPanel DockPanel.Dock="Left">
+                                        <TextBlock Text="Tariffe contabili"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E" />
+                                        <TextBlock Margin="0,6,0,0"
+                                                   Text="{Binding TariffeContabiliStato}"
+                                                   Foreground="#53646A"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <Button DockPanel.Dock="Right"
+                                            Content="Salva tariffe"
+                                            Command="{Binding SaveTariffeContabiliCommand}" />
+                                </DockPanel>
+
+                                <TextBlock Grid.Row="1"
+                                           Margin="0,12,0,0"
+                                           Text="Qui puoi adeguare le tariffe del prospetto contabile senza modificare il codice. I valori salvati restano nel database e vengono usati nei calcoli successivi."
+                                           Foreground="#6A7B80"
+                                           TextWrapping="Wrap"
+                                           Visibility="{Binding MostraTariffeContabili, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                <DataGrid Grid.Row="2"
+                                          Margin="0,16,0,0"
+                                          ItemsSource="{Binding RegoleContabiliEditorItems}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          HeadersVisibility="Column"
+                                          RowHeaderWidth="0"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                          MinHeight="260"
+                                          Visibility="{Binding MostraTariffeContabili, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Apparato"
+                                                            Width="140"
+                                                            Binding="{Binding TipologiaDescrizione}" />
+                                        <DataGridTextColumn Header="Fascia"
+                                                            Width="90"
+                                                            Binding="{Binding FasciaDescrizione}" />
+                                        <DataGridTextColumn Header="Categoria"
+                                                            Width="110"
+                                                            Binding="{Binding CategoriaDescrizione}" />
+                                        <DataGridTextColumn Header="Tariffa"
+                                                            Width="100"
+                                                            Binding="{Binding Tariffa, UpdateSourceTrigger=PropertyChanged}" />
+                                        <DataGridCheckBoxColumn Header="Attiva"
+                                                                Width="80"
+                                                                Binding="{Binding Attiva, UpdateSourceTrigger=PropertyChanged}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="Sanitari impiegati"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Grid.Row="1"
+                                               Margin="0,10,0,0"
+                                               Text="{Binding ContabilitaSanitariStato}"
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+
+                                    <DataGrid Grid.Row="2"
+                                              Margin="0,16,0,0"
+                                              ItemsSource="{Binding ContabilitaSanitariItems}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              IsReadOnly="True"
+                                              HeadersVisibility="Column"
+                                              RowHeaderWidth="0"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="PerID"
+                                                                Width="80"
+                                                                Binding="{Binding PerId}" />
+                                            <DataGridTextColumn Header="Nominativo"
+                                                                Width="220"
+                                                                Binding="{Binding Nominativo}" />
+                                            <DataGridTextColumn Header="Qualifica / ruolo"
+                                                                Width="200"
+                                                                Binding="{Binding QualificaConRuolo}" />
+                                            <DataGridTextColumn Header="Giornate"
+                                                                Width="90"
+                                                                Binding="{Binding GiornateImpiego}" />
+                                            <DataGridTextColumn Header="Trentesimi"
+                                                                Width="90"
+                                                                Binding="{Binding TrentesimiMaturati}" />
+                                            <DataGridTextColumn Header="Ultimo servizio"
+                                                                Width="120"
+                                                                Binding="{Binding UltimaDataServizioDescrizione}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Column="2"
+                                    Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="Supporto occasionale"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <StackPanel Grid.Row="1"
+                                                Margin="0,10,0,0">
+                                        <TextBlock Text="{Binding ContabilitaSupportoStato}"
+                                                   Foreground="#53646A"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Margin="0,4,0,0"
+                                                   Text="Aggregazione per nominativo: conviene usare sempre la stessa scrittura per avere conteggi coerenti."
+                                                   Foreground="#6A7B80"
+                                                   FontSize="12"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <DataGrid Grid.Row="2"
+                                              Margin="0,16,0,0"
+                                              ItemsSource="{Binding ContabilitaSupportiItems}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              IsReadOnly="True"
+                                              HeadersVisibility="Column"
+                                              RowHeaderWidth="0"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Nominativo"
+                                                                Width="220"
+                                                                Binding="{Binding Nominativo}" />
+                                            <DataGridTextColumn Header="Qualifica / ruolo"
+                                                                Width="200"
+                                                                Binding="{Binding QualificaConRuolo}" />
+                                            <DataGridTextColumn Header="Giornate"
+                                                                Width="90"
+                                                                Binding="{Binding GiornateImpiego}" />
+                                            <DataGridTextColumn Header="Trentesimi"
+                                                                Width="90"
+                                                                Binding="{Binding TrentesimiMaturati}" />
+                                            <DataGridTextColumn Header="Ultimo servizio"
+                                                                Width="120"
+                                                                Binding="{Binding UltimaDataServizioDescrizione}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Stampe e report">
+                    <Grid Margin="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Stampe e report"
+                                           FontSize="22"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+                                <TextBlock Margin="0,10,0,0"
+                                           Text="Area dedicata ai prospetti finali del programma. Archivio e tariffe restano nei rispettivi moduli per non mischiare funzioni diverse."
+                                           Foreground="#53646A"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <UniformGrid Grid.Row="2"
+                                     Columns="3">
+                            <Border Margin="0,0,16,0"
+                                    Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Foglio di servizio"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,10,0,0"
+                                               Text="Generazione del foglio giornaliero aderente al modello operativo."
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Margin="0,0,16,0"
+                                    Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Contabilita mensile"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,10,0,0"
+                                               Text="Esportazione del prospetto SMZ, sanitari e supporto nel formato finale."
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Riepiloghi"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,10,0,0"
+                                               Text="Report per mese, persona e anno. Qui andranno anche le stampe di controllo."
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
                     </Grid>
                 </TabItem>
             </TabControl>
