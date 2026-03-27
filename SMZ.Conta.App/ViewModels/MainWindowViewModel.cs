@@ -30,6 +30,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _openSelectedPersonaleCommand;
     private readonly RelayCommand _reloadServizioPersonaleCommand;
     private readonly RelayCommand _reloadContabilitaCommand;
+    private readonly RelayCommand _reloadRegistroImmersioniCommand;
     private readonly RelayCommand _saveTariffeContabiliCommand;
     private readonly RelayCommand _toggleTariffeContabiliCommand;
     private readonly RelayCommand _restoreArchivioCommand;
@@ -133,6 +134,7 @@ public sealed class MainWindowViewModel : ObservableObject
         RemoveVisitaCommand = new RelayCommand(RimuoviVisitaRiga);
         _reloadServizioPersonaleCommand = new RelayCommand(() => InizializzaBozzaServizio(preserveSelections: true));
         _reloadContabilitaCommand = new RelayCommand(CaricaContabilitaMensile);
+        _reloadRegistroImmersioniCommand = new RelayCommand(CaricaRegistroImmersioniMensile);
         _saveTariffeContabiliCommand = new RelayCommand(SalvaTariffeContabili);
         _toggleTariffeContabiliCommand = new RelayCommand(ToggleTariffeContabili);
 
@@ -146,6 +148,8 @@ public sealed class MainWindowViewModel : ObservableObject
         ContabilitaSmzItems = new ObservableCollection<ContabilitaSmzSummary>();
         ContabilitaSanitariItems = new ObservableCollection<ContabilitaSanitarioSummary>();
         ContabilitaSupportiItems = new ObservableCollection<ContabilitaSupportoSummary>();
+        RegistroImmersioniItems = new ObservableCollection<RegistroImmersioneRiga>();
+        RegistroImmersioniCategorieItems = new ObservableCollection<RegistroImmersioneCategoriaSummary>();
         RegoleContabiliEditorItems = new ObservableCollection<RegolaContabileEditorRowViewModel>();
         ContabilitaMesiDisponibili = new ObservableCollection<ContabilitaMeseItem>(
         [
@@ -207,6 +211,7 @@ public sealed class MainWindowViewModel : ObservableObject
         CaricaArchivio();
         CaricaServiziSalvati();
         CaricaContabilitaMensile();
+        CaricaRegistroImmersioniMensile();
         AggiornaScadenziario();
         NuovoPersonale();
         SezioneAttivaIndex = HomeSectionIndex;
@@ -288,7 +293,12 @@ public sealed class MainWindowViewModel : ObservableObject
                 if (value == AccountingSectionIndex)
                 {
                     AggiornaAnniContabilitaDisponibili();
-                    CaricaContabilitaMensile();
+                    AggiornaDatiMensili();
+                }
+                else if (value == ReportsSectionIndex)
+                {
+                    AggiornaAnniContabilitaDisponibili();
+                    AggiornaDatiMensili();
                 }
             }
         }
@@ -358,6 +368,10 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<ContabilitaSupportoSummary> ContabilitaSupportiItems { get; }
 
+    public ObservableCollection<RegistroImmersioneRiga> RegistroImmersioniItems { get; }
+
+    public ObservableCollection<RegistroImmersioneCategoriaSummary> RegistroImmersioniCategorieItems { get; }
+
     public ObservableCollection<RegolaContabileEditorRowViewModel> RegoleContabiliEditorItems { get; }
 
     public ObservableCollection<ContabilitaMeseItem> ContabilitaMesiDisponibili { get; }
@@ -424,10 +438,11 @@ public sealed class MainWindowViewModel : ObservableObject
             if (SetProperty(ref _contabilitaMeseSelezionato, value))
             {
                 OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
+                OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
 
                 if (_contabilitaSelezionePronta)
                 {
-                    CaricaContabilitaMensile();
+                    AggiornaDatiMensili();
                 }
             }
         }
@@ -453,10 +468,11 @@ public sealed class MainWindowViewModel : ObservableObject
             if (SetProperty(ref _contabilitaAnnoSelezionato, value))
             {
                 OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
+                OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
 
                 if (_contabilitaSelezionePronta)
                 {
-                    CaricaContabilitaMensile();
+                    AggiornaDatiMensili();
                 }
             }
         }
@@ -646,6 +662,37 @@ public sealed class MainWindowViewModel : ObservableObject
             ? "Nessun supporto occasionale presente nel periodo selezionato."
             : $"{ContabilitaSupportiItems.Count} nominativi di supporto con {ContabilitaSupportoTotaleGiornate} giornate utili.";
 
+    public string RegistroImmersioniPeriodoTitolo =>
+        ContabilitaMeseSelezionato is null
+            ? "Registro immersioni mensile"
+            : $"Registro immersioni {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoSelezionato}";
+
+    public int RegistroImmersioniTotaleRighe => RegistroImmersioniItems.Count;
+
+    public int RegistroImmersioniTotaleImmersioni => RegistroImmersioniItems
+        .Select(item => item.ServizioImmersioneId)
+        .Distinct()
+        .Count();
+
+    public int RegistroImmersioniTotaleOperatori => RegistroImmersioniItems
+        .Select(item => item.PerId)
+        .Distinct()
+        .Count();
+
+    public decimal RegistroImmersioniTotaleOre => RegistroImmersioniItems.Sum(item => item.OreImmersione);
+
+    public string RegistroImmersioniTotaleOreDisplay => RegistroImmersioniTotaleOre.ToString("0.##", CultureInfo.CurrentCulture);
+
+    public string RegistroImmersioniStato =>
+        RegistroImmersioniItems.Count == 0
+            ? "Nessuna immersione registrata nel periodo selezionato."
+            : $"{RegistroImmersioniTotaleImmersioni} immersioni, {RegistroImmersioniTotaleRighe} righe operatore e {RegistroImmersioniTotaleOreDisplay} ore complessive.";
+
+    public string RegistroImmersioniCategorieStato =>
+        RegistroImmersioniCategorieItems.Count == 0
+            ? "Nessuna categoria alimentata nel periodo selezionato."
+            : $"{RegistroImmersioniCategorieItems.Count} categorie di registro alimentate dai servizi del mese.";
+
     public bool IsExistingServizio => _servizioGiornalieroId > 0;
 
     public ObservableCollection<string> QualificheDisponibili { get; } =
@@ -734,6 +781,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand ReloadServizioPersonaleCommand => _reloadServizioPersonaleCommand;
 
     public RelayCommand ReloadContabilitaCommand => _reloadContabilitaCommand;
+
+    public RelayCommand ReloadRegistroImmersioniCommand => _reloadRegistroImmersioniCommand;
 
     public RelayCommand SaveTariffeContabiliCommand => _saveTariffeContabiliCommand;
 
@@ -1661,6 +1710,25 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             ContabilitaAnniDisponibili.Add(anno);
         }
+
+        if (_contabilitaAnnoSelezionato > 0 && ContabilitaAnniDisponibili.Contains(_contabilitaAnnoSelezionato))
+        {
+            return;
+        }
+
+        _contabilitaAnnoSelezionato = ContabilitaAnniDisponibili.Contains(annoCorrente)
+            ? annoCorrente
+            : ContabilitaAnniDisponibili.FirstOrDefault();
+
+        OnPropertyChanged(nameof(ContabilitaAnnoSelezionato));
+        OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
+        OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
+    }
+
+    private void AggiornaDatiMensili()
+    {
+        CaricaContabilitaMensile();
+        CaricaRegistroImmersioniMensile();
     }
 
     private void CaricaContabilitaMensile()
@@ -1693,6 +1761,45 @@ public sealed class MainWindowViewModel : ObservableObject
         AggiornaRiepilogoContabilita();
     }
 
+    private void CaricaRegistroImmersioniMensile()
+    {
+        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        {
+            return;
+        }
+
+        var items = _repository.GetRegistroImmersioniMensile(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese);
+
+        RegistroImmersioniItems.Clear();
+        foreach (var item in items)
+        {
+            RegistroImmersioniItems.Add(item);
+        }
+
+        var categorie = items
+            .GroupBy(item => item.CategoriaRegistro)
+            .OrderBy(group =>
+                CategorieRegistroCatalogo.FirstOrDefault(item =>
+                    string.Equals(item.Descrizione, group.Key, StringComparison.OrdinalIgnoreCase))?.Ordine ?? int.MaxValue)
+            .ThenBy(group => group.Key)
+            .Select(group => new RegistroImmersioneCategoriaSummary
+            {
+                CategoriaRegistro = group.Key,
+                ImmersioniTotali = group.Select(item => item.ServizioImmersioneId).Distinct().Count(),
+                RigheOperatoreTotali = group.Count(),
+                OreTotali = group.Sum(item => item.OreImmersione),
+            })
+            .ToList();
+
+        RegistroImmersioniCategorieItems.Clear();
+        foreach (var item in categorie)
+        {
+            RegistroImmersioniCategorieItems.Add(item);
+        }
+
+        AggiornaRiepilogoRegistroImmersioni();
+    }
+
     private void AggiornaRiepilogoContabilita()
     {
         OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
@@ -1710,6 +1817,18 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ContabilitaSanitariStato));
         OnPropertyChanged(nameof(ContabilitaSupportoStato));
         OnPropertyChanged(nameof(TariffeContabiliStato));
+    }
+
+    private void AggiornaRiepilogoRegistroImmersioni()
+    {
+        OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
+        OnPropertyChanged(nameof(RegistroImmersioniTotaleRighe));
+        OnPropertyChanged(nameof(RegistroImmersioniTotaleImmersioni));
+        OnPropertyChanged(nameof(RegistroImmersioniTotaleOperatori));
+        OnPropertyChanged(nameof(RegistroImmersioniTotaleOre));
+        OnPropertyChanged(nameof(RegistroImmersioniTotaleOreDisplay));
+        OnPropertyChanged(nameof(RegistroImmersioniStato));
+        OnPropertyChanged(nameof(RegistroImmersioniCategorieStato));
     }
 
     private void SalvaTariffeContabili()
@@ -1792,7 +1911,7 @@ public sealed class MainWindowViewModel : ObservableObject
             AggiornaContestoServizio();
             CaricaServiziSalvati(servizioGiornalieroId);
             AggiornaAnniContabilitaDisponibili();
-            CaricaContabilitaMensile();
+            AggiornaDatiMensili();
             Stato = isNuovoServizio
                 ? $"Servizio giornaliero salvato con ID {servizioGiornalieroId}."
                 : $"Servizio giornaliero #{servizioGiornalieroId} aggiornato.";
@@ -1870,7 +1989,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
             CaricaServiziSalvati();
             AggiornaAnniContabilitaDisponibili();
-            CaricaContabilitaMensile();
+            AggiornaDatiMensili();
             Stato = $"Servizio giornaliero #{servizioGiornalieroId} eliminato.";
         }
         catch (Exception ex)

@@ -255,6 +255,14 @@ public sealed class PersonaleRepository
         };
     }
 
+    public List<RegistroImmersioneRiga> GetRegistroImmersioniMensile(int anno, int mese)
+    {
+        using var connection = OpenConnection();
+        var dataInizio = new DateOnly(anno, mese, 1);
+        var dataFine = dataInizio.AddMonths(1).AddDays(-1);
+        return GetRegistroImmersioniMensile(connection, dataInizio, dataFine);
+    }
+
     public void UpdateRegoleContabiliImmersione(IEnumerable<RegolaContabileImmersione> regole)
     {
         using var connection = OpenConnection();
@@ -1702,6 +1710,90 @@ public sealed class PersonaleRepository
                 OreSper = Convert.ToDecimal(reader.GetValue(11)),
                 OreCi = Convert.ToDecimal(reader.GetValue(12)),
                 Importo = Convert.ToDecimal(reader.GetValue(13)),
+            });
+        }
+
+        return items;
+    }
+
+    private static List<RegistroImmersioneRiga> GetRegistroImmersioniMensile(
+        SqliteConnection connection,
+        DateOnly dataInizio,
+        DateOnly dataFine)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT s.ServizioGiornalieroId,
+                   si.ServizioImmersioneId,
+                   s.DataServizio,
+                   COALESCE(s.NumeroOrdineServizio, '') AS NumeroOrdineServizio,
+                   si.NumeroImmersione,
+                   COALESCE(loi.Descrizione, los.Descrizione, '') AS Localita,
+                   COALESCE(sci.Descrizione, scs.Descrizione, '') AS ScopoImmersione,
+                   COALESCE(cr.Descrizione, 'Altro') AS CategoriaRegistro,
+                   p.PerId,
+                   p.Cognome,
+                   p.Nome,
+                   COALESCE(p.Qualifica, '') AS Qualifica,
+                   COALESCE(tio.Descrizione, '') AS Apparato,
+                   spi.ProfonditaMetri,
+                   COALESCE(fp.Descrizione, '') AS FasciaProfondita,
+                   COALESCE(spi.OreImmersione, 0) AS OreImmersione,
+                   si.OrarioInizio,
+                   si.OrarioFine
+            FROM ServizioPartecipantiImmersioni spi
+            INNER JOIN ServizioImmersioni si ON si.ServizioImmersioneId = spi.ServizioImmersioneId
+            INNER JOIN ServizioPartecipanti sp ON sp.ServizioPartecipanteId = spi.ServizioPartecipanteId
+            INNER JOIN ServiziGiornalieri s ON s.ServizioGiornalieroId = si.ServizioGiornalieroId
+            INNER JOIN Personale p ON p.PerId = sp.PerId
+            LEFT JOIN LocalitaOperative loi ON loi.LocalitaOperativaId = si.LocalitaOperativaId
+            LEFT JOIN LocalitaOperative los ON los.LocalitaOperativaId = s.LocalitaOperativaId
+            LEFT JOIN ScopiImmersione sci ON sci.ScopoImmersioneId = si.ScopoImmersioneId
+            LEFT JOIN ScopiImmersione scs ON scs.ScopoImmersioneId = s.ScopoImmersioneId
+            LEFT JOIN CategorieRegistro cr ON cr.CategoriaRegistroId = COALESCE(sci.CategoriaRegistroId, scs.CategoriaRegistroId)
+            LEFT JOIN TipologieImmersioneOperative tio ON tio.TipologiaImmersioneOperativaId = spi.TipologiaImmersioneOperativaId
+            LEFT JOIN FasceProfondita fp ON fp.FasciaProfonditaId = spi.FasciaProfonditaId
+            WHERE s.DataServizio >= $dataInizio
+              AND s.DataServizio <= $dataFine
+              AND sp.Presente = 1
+              AND p.ProfiloPersonale = 'SMZ operativo'
+            ORDER BY s.DataServizio,
+                     COALESCE(s.NumeroOrdineServizio, ''),
+                     si.NumeroImmersione,
+                     p.Cognome,
+                     p.Nome,
+                     tio.Ordine,
+                     fp.Ordine;
+            """;
+        command.Parameters.AddWithValue("$dataInizio", dataInizio.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue("$dataFine", dataFine.ToString("yyyy-MM-dd"));
+
+        using var reader = command.ExecuteReader();
+        var items = new List<RegistroImmersioneRiga>();
+
+        while (reader.Read())
+        {
+            items.Add(new RegistroImmersioneRiga
+            {
+                ServizioGiornalieroId = reader.GetInt64(0),
+                ServizioImmersioneId = reader.GetInt64(1),
+                DataServizio = DateOnly.Parse(reader.GetString(2)),
+                NumeroOrdineServizio = reader.GetString(3),
+                NumeroImmersione = reader.GetInt32(4),
+                Localita = reader.GetString(5),
+                ScopoImmersione = reader.GetString(6),
+                CategoriaRegistro = reader.GetString(7),
+                PerId = reader.GetInt32(8),
+                Cognome = reader.GetString(9),
+                Nome = reader.GetString(10),
+                Qualifica = reader.GetString(11),
+                Apparato = reader.GetString(12),
+                ProfonditaMetri = reader.IsDBNull(13) ? null : reader.GetInt32(13),
+                FasciaProfondita = reader.GetString(14),
+                OreImmersione = Convert.ToDecimal(reader.GetValue(15)),
+                OrarioInizio = ParseDbTime(reader, 16),
+                OrarioFine = ParseDbTime(reader, 17),
             });
         }
 

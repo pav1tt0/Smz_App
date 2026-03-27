@@ -2891,6 +2891,8 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="18" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
@@ -2901,55 +2903,283 @@
                                            FontWeight="SemiBold"
                                            Foreground="#17313E" />
                                 <TextBlock Margin="0,10,0,0"
-                                           Text="Area dedicata ai prospetti finali del programma. Archivio e tariffe restano nei rispettivi moduli per non mischiare funzioni diverse."
+                                           Text="Prima area report realmente operativa: registro immersioni mensile derivato dai servizi salvati, con riepilogo per categoria di registro."
                                            Foreground="#53646A"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
-                        <UniformGrid Grid.Row="2"
-                                     Columns="3">
-                            <Border Margin="0,0,16,0"
-                                    Style="{StaticResource CardStyle}">
-                                <StackPanel>
-                                    <TextBlock Text="Foglio di servizio"
-                                               FontSize="18"
-                                               FontWeight="SemiBold"
-                                               Foreground="#17313E" />
-                                    <TextBlock Margin="0,10,0,0"
-                                               Text="Generazione del foglio giornaliero aderente al modello operativo."
-                                               Foreground="#53646A"
-                                               TextWrapping="Wrap" />
-                                </StackPanel>
-                            </Border>
+                        <Border Grid.Row="2"
+                                Style="{StaticResource CardStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.4*" />
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                            <Border Margin="0,0,16,0"
-                                    Style="{StaticResource CardStyle}">
                                 <StackPanel>
-                                    <TextBlock Text="Contabilita mensile"
-                                               FontSize="18"
+                                    <TextBlock Text="{Binding RegistroImmersioniPeriodoTitolo}"
+                                               FontSize="20"
                                                FontWeight="SemiBold"
                                                Foreground="#17313E" />
-                                    <TextBlock Margin="0,10,0,0"
-                                               Text="Esportazione del prospetto SMZ, sanitari e supporto nel formato finale."
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="{Binding RegistroImmersioniStato}"
                                                Foreground="#53646A"
                                                TextWrapping="Wrap" />
+                                    <TextBlock Margin="0,6,0,0"
+                                               Text="Il registro usa solo immersioni realmente salvate e partecipazioni SMZ presenti nel servizio."
+                                               Foreground="#6A7B80"
+                                               FontSize="12"
+                                               TextWrapping="Wrap" />
                                 </StackPanel>
-                            </Border>
+
+                                <StackPanel Grid.Column="2"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center">
+                                    <StackPanel Width="170">
+                                        <TextBlock Text="Mese"
+                                                   Foreground="#50626A" />
+                                        <ComboBox ItemsSource="{Binding ContabilitaMesiDisponibili}"
+                                                  SelectedItem="{Binding ContabilitaMeseSelezionato}"
+                                                  DisplayMemberPath="Descrizione" />
+                                    </StackPanel>
+
+                                    <StackPanel Width="110"
+                                                Margin="12,0,0,0">
+                                        <TextBlock Text="Anno"
+                                                   Foreground="#50626A" />
+                                        <ComboBox ItemsSource="{Binding ContabilitaAnniDisponibili}"
+                                                  SelectedItem="{Binding ContabilitaAnnoSelezionato}" />
+                                    </StackPanel>
+
+                                    <Button Margin="12,20,0,0"
+                                            Content="Aggiorna registro"
+                                            Command="{Binding ReloadRegistroImmersioniCommand}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="4">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="18" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
                             <Border Style="{StaticResource CardStyle}">
-                                <StackPanel>
-                                    <TextBlock Text="Riepiloghi"
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Righe del registro"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E" />
+                                        <TextBlock Margin="0,8,0,0"
+                                                   Text="Dettaglio per immersione e per operatore, con localita, scopo, categoria e dati tecnici realmente registrati."
+                                                   Foreground="#53646A"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <UniformGrid Grid.Row="1"
+                                                 Margin="0,16,0,0"
+                                                 Columns="4">
+                                        <Border Margin="0,0,12,0"
+                                                Background="#F4F8FB"
+                                                CornerRadius="16"
+                                                Padding="14">
+                                            <StackPanel>
+                                                <TextBlock Text="Immersioni"
+                                                           Foreground="#6A7B80" />
+                                                <TextBlock Margin="0,6,0,0"
+                                                           Text="{Binding RegistroImmersioniTotaleImmersioni}"
+                                                           FontSize="24"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="#17313E" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Margin="0,0,12,0"
+                                                Background="#F4F8FB"
+                                                CornerRadius="16"
+                                                Padding="14">
+                                            <StackPanel>
+                                                <TextBlock Text="Righe operatore"
+                                                           Foreground="#6A7B80" />
+                                                <TextBlock Margin="0,6,0,0"
+                                                           Text="{Binding RegistroImmersioniTotaleRighe}"
+                                                           FontSize="24"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="#17313E" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Margin="0,0,12,0"
+                                                Background="#F4F8FB"
+                                                CornerRadius="16"
+                                                Padding="14">
+                                            <StackPanel>
+                                                <TextBlock Text="Operatori distinti"
+                                                           Foreground="#6A7B80" />
+                                                <TextBlock Margin="0,6,0,0"
+                                                           Text="{Binding RegistroImmersioniTotaleOperatori}"
+                                                           FontSize="24"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="#17313E" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Background="#F4F8FB"
+                                                CornerRadius="16"
+                                                Padding="14">
+                                            <StackPanel>
+                                                <TextBlock Text="Ore totali"
+                                                           Foreground="#6A7B80" />
+                                                <TextBlock Margin="0,6,0,0"
+                                                           Text="{Binding RegistroImmersioniTotaleOreDisplay}"
+                                                           FontSize="24"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="#17313E" />
+                                            </StackPanel>
+                                        </Border>
+                                    </UniformGrid>
+
+                                    <DataGrid Grid.Row="2"
+                                              Margin="0,18,0,0"
+                                              ItemsSource="{Binding RegistroImmersioniItems}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              IsReadOnly="True"
+                                              HeadersVisibility="Column"
+                                              RowHeaderWidth="0"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Data"
+                                                                Width="75"
+                                                                Binding="{Binding DataServizioDescrizione}" />
+                                            <DataGridTextColumn Header="Ordine"
+                                                                Width="85"
+                                                                Binding="{Binding NumeroOrdineServizio}" />
+                                            <DataGridTextColumn Header="Imm."
+                                                                Width="50"
+                                                                Binding="{Binding NumeroImmersione}" />
+                                            <DataGridTextColumn Header="Orario"
+                                                                Width="85"
+                                                                Binding="{Binding OrarioDisplay}" />
+                                            <DataGridTextColumn Header="Localita"
+                                                                Width="0.9*"
+                                                                Binding="{Binding Localita}">
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="TextWrapping" Value="Wrap" />
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Header="Scopo"
+                                                                Width="1.2*"
+                                                                Binding="{Binding ScopoImmersione}">
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="TextWrapping" Value="Wrap" />
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Header="Categoria"
+                                                                Width="1.1*"
+                                                                Binding="{Binding CategoriaRegistro}">
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="TextWrapping" Value="Wrap" />
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Header="PerID"
+                                                                Width="60"
+                                                                Binding="{Binding PerId}" />
+                                            <DataGridTextColumn Header="Qual."
+                                                                Width="85"
+                                                                Binding="{Binding Qualifica}" />
+                                            <DataGridTextColumn Header="Nominativo"
+                                                                Width="1*"
+                                                                Binding="{Binding Nominativo}">
+                                                <DataGridTextColumn.ElementStyle>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="TextWrapping" Value="Wrap" />
+                                                    </Style>
+                                                </DataGridTextColumn.ElementStyle>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Header="App."
+                                                                Width="75"
+                                                                Binding="{Binding Apparato}" />
+                                            <DataGridTextColumn Header="Prof."
+                                                                Width="70"
+                                                                Binding="{Binding ProfonditaDisplay}" />
+                                            <DataGridTextColumn Header="Fasc."
+                                                                Width="55"
+                                                                Binding="{Binding FasciaProfondita}" />
+                                            <DataGridTextColumn Header="Ore"
+                                                                Width="55"
+                                                                Binding="{Binding OreImmersioneDisplay}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Row="2"
+                                    Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="Riepilogo per categoria"
                                                FontSize="18"
                                                FontWeight="SemiBold"
                                                Foreground="#17313E" />
-                                    <TextBlock Margin="0,10,0,0"
-                                               Text="Report per mese, persona e anno. Qui andranno anche le stampe di controllo."
+
+                                    <TextBlock Grid.Row="1"
+                                               Margin="0,10,0,0"
+                                               Text="{Binding RegistroImmersioniCategorieStato}"
                                                Foreground="#53646A"
                                                TextWrapping="Wrap" />
-                                </StackPanel>
+
+                                    <DataGrid Grid.Row="2"
+                                              Margin="0,16,0,0"
+                                              ItemsSource="{Binding RegistroImmersioniCategorieItems}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              IsReadOnly="True"
+                                              HeadersVisibility="Column"
+                                              RowHeaderWidth="0"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                              MaxHeight="220">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Categoria"
+                                                                Width="*"
+                                                                Binding="{Binding CategoriaRegistro}" />
+                                            <DataGridTextColumn Header="Immersioni"
+                                                                Width="90"
+                                                                Binding="{Binding ImmersioniTotali}" />
+                                            <DataGridTextColumn Header="Righe"
+                                                                Width="80"
+                                                                Binding="{Binding RigheOperatoreTotali}" />
+                                            <DataGridTextColumn Header="Ore"
+                                                                Width="75"
+                                                                Binding="{Binding OreTotaliDisplay}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
                             </Border>
-                        </UniformGrid>
+                        </Grid>
                     </Grid>
                 </TabItem>
             </TabControl>
