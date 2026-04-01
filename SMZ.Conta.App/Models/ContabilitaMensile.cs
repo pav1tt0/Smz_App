@@ -70,6 +70,27 @@ public sealed class ContabilitaGiornateImpiegoSnapshot
     public List<ContabilitaSupportoSummary> SupportiOccasionali { get; init; } = [];
 }
 
+public sealed class ElaborazioneMensileInfo
+{
+    public long ElaborazioneMensileId { get; set; }
+
+    public int Anno { get; set; }
+
+    public int Mese { get; set; }
+
+    public DateTime CreataIl { get; set; }
+
+    public DateTime AggiornataIl { get; set; }
+
+    public int RigheSmz { get; set; }
+
+    public int RigheSanitari { get; set; }
+
+    public int RigheSupporti { get; set; }
+
+    public string AggiornataIlDescrizione => AggiornataIl.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+}
+
 public sealed class ContabilitaSmzSummary
 {
     public int PerId { get; set; }

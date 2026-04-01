@@ -278,7 +278,7 @@ public static class CataloghiServizio
 
     public static IReadOnlyList<GruppoOperativo> GruppiOperativi { get; } =
     [
-        new GruppoOperativo { GruppoOperativoId = 1, Codice = "OSSP", Descrizione = "Personale O.S.S.P.", Ordine = 1 },
+        new GruppoOperativo { GruppoOperativoId = 1, Codice = "SMZ", Descrizione = "SMZ", Ordine = 1 },
         new GruppoOperativo { GruppoOperativoId = 2, Codice = "OSSALC", Descrizione = "Personale O.S.S.A.L.C.", Ordine = 2 },
         new GruppoOperativo { GruppoOperativoId = 3, Codice = "SANITARIA", Descrizione = "Personale assistenza sanitaria", Ordine = 3 },
         new GruppoOperativo { GruppoOperativoId = 4, Codice = "SUPPORTO", Descrizione = "Supporto", Ordine = 4 },

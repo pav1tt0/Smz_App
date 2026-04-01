@@ -4,10 +4,13 @@ public static class CatalogoAbilitazioni
 {
     public static IReadOnlyList<TipoAbilitazione> Tutte { get; } =
     [
-        new TipoAbilitazione { TipoAbilitazioneId = 1, Codice = "ARA", Descrizione = "Sommozzatore abilitato ARA", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = true, ProfonditaSuggerite = ["39", "60"] },
-        new TipoAbilitazione { TipoAbilitazioneId = 2, Codice = "ARO", Descrizione = "Sommozzatore abilitato ARO", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },
-        new TipoAbilitazione { TipoAbilitazioneId = 3, Codice = "ARM", Descrizione = "Sommozzatore abilitato ARM", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = true, ProfonditaSuggerite = ["24", "54"] },
-        new TipoAbilitazione { TipoAbilitazioneId = 4, Codice = "ASAS", Descrizione = "Sommozzatore abilitato ASAS", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = true, ProfonditaSuggerite = ["15", "30"] },
+        new TipoAbilitazione { TipoAbilitazioneId = 23, Codice = "SMZ_ARA60_ARO12", Descrizione = "SMZ ARA 60 - ARO 12", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },
+        new TipoAbilitazione { TipoAbilitazioneId = 24, Codice = "SMZ_ARA60_ARO12_ARM24", Descrizione = "SMZ ARA 60 - ARO 12 - ARM 24", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },
+        new TipoAbilitazione { TipoAbilitazioneId = 26, Codice = "SMZ_ARA60_ARO12_ARM54", Descrizione = "SMZ ARA 60 - ARO 12 - ARM 54", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },
+        new TipoAbilitazione { TipoAbilitazioneId = 27, Codice = "SMZ_ARA39_ARO12", Descrizione = "SMZ ARA 39 - ARO 12", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },
+        new TipoAbilitazione { TipoAbilitazioneId = 28, Codice = "SMZ_ASAS_15", Descrizione = "SMZ ASAS 15", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },
+        new TipoAbilitazione { TipoAbilitazioneId = 29, Codice = "SMZ_ASAS_60", Descrizione = "SMZ ASAS 60", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },
+        new TipoAbilitazione { TipoAbilitazioneId = 30, Codice = "OSSALC_ARA_15", Descrizione = "OSSALC ARA 15", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },
         new TipoAbilitazione { TipoAbilitazioneId = 5, Codice = "EOR", Descrizione = "EOR", Categoria = "Subacquea", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },
         new TipoAbilitazione { TipoAbilitazioneId = 6, Codice = "TECNICO_IPERBARICO", Descrizione = "Tecnico iperbarico", Categoria = "Tecnica", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },
         new TipoAbilitazione { TipoAbilitazioneId = 7, Codice = "CINE_FOTO", Descrizione = "Cine-foto operatore", Categoria = "Tecnica", RichiedeLivello = false, RichiedeScadenza = false, RichiedeProfondita = false },

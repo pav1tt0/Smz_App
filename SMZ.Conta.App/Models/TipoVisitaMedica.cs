@@ -14,6 +14,7 @@ public sealed class TipoVisitaMedica
         {
             return MesiValidita switch
             {
+                12 => "Scadenza automatica a 12 mesi",
                 24 => "Scadenza automatica a 24 mesi",
                 2 => "Scadenza automatica a 2 mesi",
                 _ => "Scadenza libera",

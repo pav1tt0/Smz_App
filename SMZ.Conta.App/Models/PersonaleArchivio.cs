@@ -16,7 +16,7 @@ public sealed class PersonaleArchivio
 
     public string Qualifica { get; set; } = string.Empty;
 
-    public string ProfiloPersonale { get; set; } = "SMZ operativo";
+    public string ProfiloPersonale { get; set; } = ProfiliPersonaleCatalogo.OperatoreSubacqueo;
 
     public string RuoloSanitario { get; set; } = string.Empty;
 
@@ -48,7 +48,9 @@ public sealed class PersonaleArchivio
 
     public List<VisitaMedica> VisiteMediche { get; set; } = [];
 
-    public bool IsProfiloSanitario => string.Equals(ProfiloPersonale, "Sanitario", StringComparison.OrdinalIgnoreCase);
+    public List<PersonaleAttagliamento> Attagliamento { get; set; } = [];
+
+    public bool IsProfiloSanitario => ProfiliPersonaleCatalogo.IsSanitario(ProfiloPersonale);
 
     public string NominativoCompleto => $"{Cognome} {Nome}".Trim();
 

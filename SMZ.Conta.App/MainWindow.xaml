@@ -1329,7 +1329,7 @@
                                                 <TextBlock Text="Fuori sede" Foreground="#50626A" />
                                                 <CheckBox Margin="0,10,0,0"
                                                           IsChecked="{Binding ServizioFuoriSede}"
-                                                          Content="Applica indennita fuori sede" />
+                                                          Content="Indennita fuori sede" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="3" Margin="0,10,0,0">
@@ -1369,6 +1369,7 @@
                                               CanUserAddRows="False"
                                               HeadersVisibility="Column"
                                               RowHeaderWidth="0"
+                                              Sorting="ServizioPartecipantiDataGrid_Sorting"
                                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                                               ScrollViewer.VerticalScrollBarVisibility="Auto">
                                         <DataGrid.Columns>
@@ -1604,10 +1605,27 @@
                                                             </StackPanel>
                                                         </Grid>
 
-                                                        <TextBlock Margin="0,12,0,0"
-                                                                   Text="Dettaglio contabile SMZ"
-                                                                   Foreground="#17313E"
-                                                                   FontWeight="SemiBold" />
+                                                        <DockPanel Margin="0,12,0,0" LastChildFill="False">
+                                                            <TextBlock DockPanel.Dock="Left"
+                                                                       Text="Dettaglio contabile SMZ"
+                                                                       Foreground="#17313E"
+                                                                       FontWeight="SemiBold"
+                                                                       VerticalAlignment="Center" />
+                                                            <StackPanel DockPanel.Dock="Right"
+                                                                        Orientation="Horizontal">
+                                                                <Button Content="Flagga tutti"
+                                                                        Margin="0,0,8,0"
+                                                                        Padding="10,5"
+                                                                        Command="{Binding DataContext.FlaggaTuttiImmersioneCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                        CommandParameter="{Binding}"
+                                                                        Style="{StaticResource SecondaryButtonStyle}" />
+                                                                <Button Content="Copia profondita"
+                                                                        Padding="10,5"
+                                                                        Command="{Binding DataContext.CopiaProfonditaPrimaRigaCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                        CommandParameter="{Binding}"
+                                                                        Style="{StaticResource SecondaryButtonStyle}" />
+                                                            </StackPanel>
+                                                        </DockPanel>
                                                         <TextBlock Margin="0,4,0,0"
                                                                    Text="Compila solo gli operatori SMZ effettivamente entrati in immersione. Fascia, tariffa e importo vengono proposti in automatico."
                                                                    Foreground="#53646A"
@@ -1627,7 +1645,7 @@
                                                                                         Width="42"
                                                                                         Binding="{Binding InImmersione, UpdateSourceTrigger=PropertyChanged}" />
                                                                 <DataGridTextColumn Header="Operatore"
-                                                                                    Width="170"
+                                                                                    Width="250"
                                                                                     Binding="{Binding NominativoConQualifica}" />
                                                                 <DataGridTemplateColumn Header="Apparato"
                                                                                         Width="120">
@@ -1681,14 +1699,6 @@
                                                                 <DataGridTextColumn Header="Importo"
                                                                                     Width="78"
                                                                                     Binding="{Binding ImportoStimatoDisplay}" />
-                                                                <DataGridTemplateColumn Header="Note"
-                                                                                        Width="150">
-                                                                    <DataGridTemplateColumn.CellTemplate>
-                                                                        <DataTemplate>
-                                                                            <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}" />
-                                                                        </DataTemplate>
-                                                                    </DataGridTemplateColumn.CellTemplate>
-                                                                </DataGridTemplateColumn>
                                                             </DataGrid.Columns>
                                                         </DataGrid>
 
@@ -1894,12 +1904,15 @@
                                                Foreground="#17313E" />
                                     <Grid Margin="0,16,0,0">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="110" />
                                             <ColumnDefinition Width="18" />
-                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="220" />
+                                            <ColumnDefinition Width="18" />
+                                            <ColumnDefinition Width="190" />
+                                            <ColumnDefinition Width="18" />
+                                            <ColumnDefinition Width="170" />
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
@@ -1911,12 +1924,6 @@
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="2">
-                                            <TextBlock Text="Profilo personale" Foreground="#50626A" />
-                                            <ComboBox ItemsSource="{Binding ProfiliPersonaleDisponibili}"
-                                                      SelectedItem="{Binding ProfiloPersonale}" />
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Row="1">
                                             <TextBlock Text="Qualifica" Foreground="#50626A" />
                                             <ComboBox ItemsSource="{Binding QualificheDisponibili}"
                                                       Text="{Binding Qualifica, UpdateSourceTrigger=PropertyChanged}"
@@ -1924,7 +1931,18 @@
                                                       IsTextSearchEnabled="True" />
                                         </StackPanel>
 
-                                        <StackPanel Grid.Row="1" Grid.Column="2">
+                                        <StackPanel Grid.Column="4">
+                                            <TextBlock Text="Profilo personale" Foreground="#50626A" />
+                                            <ComboBox ItemsSource="{Binding ProfiliPersonaleDisponibili}"
+                                                      SelectedItem="{Binding ProfiloPersonale}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="6">
+                                            <TextBlock Text="N. brevetto" Foreground="#50626A" />
+                                            <TextBox Text="{Binding NumeroBrevettoSmz, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="3" Margin="0,10,0,0">
                                             <TextBlock Text="Ruolo sanitario" Foreground="#50626A" />
                                             <ComboBox ItemsSource="{Binding RuoliSanitariDisponibili}"
                                                       SelectedItem="{Binding RuoloSanitario}"
@@ -1940,20 +1958,10 @@
                                                 </Style>
                                             </StackPanel.Style>
                                         </StackPanel>
-
-                                        <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                            <TextBlock Text="Matricola personale" Foreground="#50626A" />
-                                            <TextBox Text="{Binding MatricolaPersonale, UpdateSourceTrigger=PropertyChanged}" />
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,10,0,0">
-                                            <TextBlock Text="Numero brevetto SMZ" Foreground="#50626A" />
-                                            <TextBox Text="{Binding NumeroBrevettoSmz, UpdateSourceTrigger=PropertyChanged}" />
-                                        </StackPanel>
                                     </Grid>
 
                                     <TextBlock Margin="0,8,0,0"
-                                               Text="Per il profilo sanitario il ruolo sanitario e obbligatorio; visite e dati SMZ restano facoltativi."
+                                               Text="Per il profilo sanitario il ruolo sanitario e obbligatorio; brevetto subacqueo e attagliamento restano facoltativi."
                                                Foreground="#6A7B80"
                                                FontSize="12"
                                                TextWrapping="Wrap" />
@@ -2142,14 +2150,6 @@
                                                                   IsEditable="True"
                                                                   IsTextSearchEnabled="False"
                                                                   ToolTip="Per la patente di guida seleziona un certificato da 1 a 5" />
-
-                                                        <TextBlock Margin="0,10,0,0" Text="Profondita metri" Foreground="#50626A" />
-                                                        <ComboBox ItemsSource="{Binding AbilitazioneProfonditaSuggerite}"
-                                                                  Text="{Binding AbilitazioneProfondita, UpdateSourceTrigger=PropertyChanged}"
-                                                                  IsEnabled="{Binding AbilitazioneRichiedeProfondita}"
-                                                                  IsEditable="True"
-                                                                  IsTextSearchEnabled="False"
-                                                                  ToolTip="Seleziona una profondita suggerita oppure digita un valore personalizzato" />
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="2">
@@ -2219,9 +2219,6 @@
                                                 <DataGridTextColumn Header="Livello"
                                                                     Width="120"
                                                                     Binding="{Binding Livello}" />
-                                                <DataGridTextColumn Header="Profondita"
-                                                                    Width="95"
-                                                                    Binding="{Binding ProfonditaMetri}" />
                                                 <DataGridTextColumn Header="Conseguimento"
                                                                     Width="120"
                                                                     Binding="{Binding DataConseguimento}" />
@@ -2354,6 +2351,141 @@
                                             </DataGrid.Columns>
                                         </DataGrid>
                                     </Grid>
+                                </TabItem>
+
+                                <TabItem Header="Attagliamento">
+                                    <ScrollViewer Margin="8"
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled">
+                                        <StackPanel>
+                                            <Border Background="#F7F9FB"
+                                                    BorderBrush="#D6E0E7"
+                                                    BorderThickness="1"
+                                                    CornerRadius="18"
+                                                    Padding="22">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="1.35*" />
+                                                        <ColumnDefinition Width="28" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel>
+                                                        <TextBlock Text="Scheda misure"
+                                                                   FontSize="20"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#17313E" />
+                                                        <TextBlock Margin="0,6,0,0"
+                                                                   Text="{Binding AttagliamentoIndicazioni}"
+                                                                   Foreground="#5B6C72"
+                                                                   TextWrapping="Wrap" />
+
+                                                        <ItemsControl Margin="0,24,0,0"
+                                                                      ItemsSource="{Binding AttagliamentoSchedaItems}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Grid Margin="0,0,0,18">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="260" />
+                                                                            <ColumnDefinition Width="56" />
+                                                                            <ColumnDefinition Width="130" />
+                                                                        </Grid.ColumnDefinitions>
+
+                                                                        <TextBlock Grid.Column="0"
+                                                                                   VerticalAlignment="Center"
+                                                                                   FontSize="17"
+                                                                                   Foreground="#0F2430"
+                                                                                   TextWrapping="Wrap">
+                                                                            <TextBlock.Text>
+                                                                                <MultiBinding StringFormat="{}{0} - {1}">
+                                                                                    <Binding Path="NumeroScheda" />
+                                                                                    <Binding Path="EtichettaScheda" />
+                                                                                </MultiBinding>
+                                                                            </TextBlock.Text>
+                                                                        </TextBlock>
+
+                                                                        <TextBlock Grid.Column="1"
+                                                                                   VerticalAlignment="Center"
+                                                                                   HorizontalAlignment="Right"
+                                                                                   FontSize="17"
+                                                                                   Foreground="#0F2430"
+                                                                                   Text="{Binding UnitaScheda}" />
+
+                                                                        <TextBox Grid.Column="2"
+                                                                                 Margin="10,0,0,0"
+                                                                                 Padding="10,6"
+                                                                                 FontSize="16"
+                                                                                 Background="White"
+                                                                                 BorderBrush="#B7C7D1"
+                                                                                 BorderThickness="1"
+                                                                                 HorizontalContentAlignment="Left"
+                                                                                 VerticalContentAlignment="Center"
+                                                                                 Text="{Binding TagliaMisura, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                    </Grid>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
+
+                                                    <Border Grid.Column="2"
+                                                            Background="White"
+                                                            BorderBrush="#D6E0E7"
+                                                            BorderThickness="1"
+                                                            CornerRadius="16"
+                                                            Padding="12"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Top">
+                                                        <Image Source="/Assets/Figura_taglie.png"
+                                                               MaxWidth="300"
+                                                               Stretch="Uniform"
+                                                               SnapsToDevicePixels="True" />
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+
+                                            <Border Margin="0,16,0,0"
+                                                    Padding="16"
+                                                    Background="#F3F6FA"
+                                                    CornerRadius="16"
+                                                    Visibility="{Binding HasAttagliamentoAggiuntivo, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <StackPanel>
+                                                    <TextBlock Text="Misure aggiuntive gia presenti"
+                                                               FontSize="17"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#17313E" />
+                                                    <TextBlock Margin="0,6,0,0"
+                                                               Text="Le voci non comprese nella scheda principale restano salvate e visibili qui."
+                                                               Foreground="#5B6C72"
+                                                               TextWrapping="Wrap" />
+
+                                                    <DataGrid Margin="0,12,0,0"
+                                                              ItemsSource="{Binding AttagliamentoAggiuntivoItems}"
+                                                              AutoGenerateColumns="False"
+                                                              CanUserAddRows="False"
+                                                              IsReadOnly="False"
+                                                              MinHeight="120"
+                                                              HeadersVisibility="Column"
+                                                              RowHeaderWidth="0">
+                                                        <DataGrid.Columns>
+                                                            <DataGridTextColumn Header="Voce"
+                                                                                Width="220"
+                                                                                Binding="{Binding Voce, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                            <DataGridTextColumn Header="Misura"
+                                                                                Width="140"
+                                                                                Binding="{Binding TagliaMisura, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                            <DataGridTextColumn Header="Note"
+                                                                                Width="*"
+                                                                                Binding="{Binding Note, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                        </DataGrid.Columns>
+                                                    </DataGrid>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </ScrollViewer>
                                 </TabItem>
                             </TabControl>
                         </Border>
@@ -2679,6 +2811,11 @@
                                                Text="Modulo contabile operativo: riepilogo SMZ immersioni, piu giornate utili e trentesimi per sanitari e supporto occasionale."
                                                Foreground="#53646A"
                                                TextWrapping="Wrap" />
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="{Binding ElaborazioneMensileStato}"
+                                               Foreground="#4F6C84"
+                                               FontWeight="SemiBold"
+                                               TextWrapping="Wrap" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2"
@@ -2703,6 +2840,16 @@
                                     <Button Margin="12,20,0,0"
                                             Content="Aggiorna"
                                             Command="{Binding ReloadContabilitaCommand}" />
+
+                                    <Button Margin="12,20,0,0"
+                                            Content="{Binding SalvaElaborazioneMensileLabel}"
+                                            Command="{Binding SaveElaborazioneMensileCommand}"
+                                            Style="{StaticResource AccentButtonStyle}" />
+
+                                    <Button Margin="12,20,0,0"
+                                            Content="Esporta CSV"
+                                            Command="{Binding ExportContabilitaCsvCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" />
                                 </StackPanel>
                             </Grid>
                         </Border>

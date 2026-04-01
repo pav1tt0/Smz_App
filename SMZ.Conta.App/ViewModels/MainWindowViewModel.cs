@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Windows;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Infrastructure;
@@ -18,6 +20,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private const int ArchiveSectionIndex = 4;
     private const int AccountingSectionIndex = 5;
     private const int ReportsSectionIndex = 6;
+    private static readonly PersonaleListItemViewModel OperatoreVuoto = new();
 
     private readonly PersonaleRepository _repository = new();
     private readonly RelayCommand _deleteCommand;
@@ -32,18 +35,26 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _reloadServizioPersonaleCommand;
     private readonly RelayCommand _reloadContabilitaCommand;
     private readonly RelayCommand _reloadRegistroImmersioniCommand;
+    private readonly RelayCommand _saveElaborazioneMensileCommand;
+    private readonly RelayCommand _exportContabilitaCsvCommand;
     private readonly RelayCommand _saveTariffeContabiliCommand;
     private readonly RelayCommand _toggleTariffeContabiliCommand;
     private readonly RelayCommand _restoreArchivioCommand;
     private readonly RelayCommand _deleteArchivioDefinitivoCommand;
+    private readonly RelayCommand _saveAttagliamentoCommand;
+    private readonly RelayCommand _clearAttagliamentoEditorCommand;
+    private readonly RelayCommand _removeAttagliamentoCommand;
     private readonly RelayCommand _enterAppCommand;
     private readonly RelayCommand _toggleWelcomeAudioCommand;
+    private readonly RelayCommand _flaggaTuttiImmersioneCommand;
+    private readonly RelayCommand _copiaProfonditaPrimaRigaCommand;
     private readonly List<string> _allSearchSuggestions;
     private PersonaleListItemViewModel? _selectedPersonale;
     private ScadenzaItemViewModel? _selectedScadenza;
     private PersonaleArchivioListItemViewModel? _selectedArchivio;
     private PersonaleAbilitazioneRowViewModel? _selectedAbilitazione;
     private VisitaMedicaRowViewModel? _selectedVisita;
+    private PersonaleAttagliamentoRowViewModel? _selectedAttagliamento;
     private PersonaleArchivio? _archivioDettaglio;
     private string? _selectedSearchSuggestion;
     private string _filtroCognome = string.Empty;
@@ -58,7 +69,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _cognome = string.Empty;
     private string _nome = string.Empty;
     private string _qualifica = string.Empty;
-    private string _profiloPersonale = "SMZ operativo";
+    private string _profiloPersonale = ProfiliPersonaleCatalogo.OperatoreSubacqueo;
     private string _ruoloSanitario = string.Empty;
     private string _codiceFiscale = string.Empty;
     private string _matricolaPersonale = string.Empty;
@@ -86,6 +97,9 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _visitaDataUltimaVisita = string.Empty;
     private string _visitaEsito = string.Empty;
     private string _visitaNote = string.Empty;
+    private string _attagliamentoVoce = string.Empty;
+    private string _attagliamentoTagliaMisura = string.Empty;
+    private string _attagliamentoNote = string.Empty;
     private long _servizioGiornalieroId;
     private string _servizioData = DateTime.Today.ToString("dd/MM/yyyy");
     private string _servizioNumeroOrdine = string.Empty;
@@ -103,6 +117,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _mostraTariffeContabili;
     private bool _isWelcomeVisible = true;
     private bool _isWelcomeAudioEnabled = true;
+    private ElaborazioneMensileInfo? _elaborazioneMensileInfo;
     private ServizioGiornalieroSummary? _selectedServizioSalvato;
     private ServizioSupportoOccasionaleDraftViewModel? _selectedSupportoOccasionale;
 
@@ -115,6 +130,8 @@ public sealed class MainWindowViewModel : ObservableObject
         ClearFiltersCommand = new RelayCommand(PulisciFiltri);
         _enterAppCommand = new RelayCommand(EntraNellApp);
         _toggleWelcomeAudioCommand = new RelayCommand(ToggleWelcomeAudio);
+        _flaggaTuttiImmersioneCommand = new RelayCommand(FlaggaTuttiImmersione);
+        _copiaProfonditaPrimaRigaCommand = new RelayCommand(CopiaProfonditaPrimaRigaSuTutti);
         _navigateSectionCommand = new RelayCommand(NavigaAllaSezione);
         _newServizioCommand = new RelayCommand(NuovoServizioGiornaliero);
         _saveServizioCommand = new RelayCommand(SalvaServizioGiornaliero);
@@ -139,14 +156,21 @@ public sealed class MainWindowViewModel : ObservableObject
         ClearVisitaEditorCommand = new RelayCommand(PulisciEditorVisita);
         AddVisitaCommand = new RelayCommand(PulisciEditorVisita);
         RemoveVisitaCommand = new RelayCommand(RimuoviVisitaRiga);
+        _saveAttagliamentoCommand = new RelayCommand(SalvaAttagliamentoInEditor);
+        _clearAttagliamentoEditorCommand = new RelayCommand(PulisciEditorAttagliamento);
+        _removeAttagliamentoCommand = new RelayCommand(RimuoviAttagliamentoRiga);
         _reloadServizioPersonaleCommand = new RelayCommand(() => InizializzaBozzaServizio(preserveSelections: true));
         _reloadContabilitaCommand = new RelayCommand(CaricaContabilitaMensile);
         _reloadRegistroImmersioniCommand = new RelayCommand(CaricaRegistroImmersioniMensile);
+        _saveElaborazioneMensileCommand = new RelayCommand(SalvaElaborazioneMensile);
+        _exportContabilitaCsvCommand = new RelayCommand(EsportaContabilitaCsv);
         _saveTariffeContabiliCommand = new RelayCommand(SalvaTariffeContabili);
         _toggleTariffeContabiliCommand = new RelayCommand(ToggleTariffeContabili);
 
         Abilitazioni = new ObservableCollection<PersonaleAbilitazioneRowViewModel>();
         VisiteMediche = new ObservableCollection<VisitaMedicaRowViewModel>();
+        Attagliamento = new ObservableCollection<PersonaleAttagliamentoRowViewModel>();
+        Attagliamento.CollectionChanged += (_, _) => AggiornaStatoAttagliamento();
         OperatoriServizioDisponibili = new ObservableCollection<PersonaleListItemViewModel>();
         ServizioPartecipantiBozza = new ObservableCollection<ServizioPartecipanteDraftViewModel>();
         ServizioImmersioniBozza = new ObservableCollection<ServizioImmersioneDraftViewModel>();
@@ -301,6 +325,10 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public RelayCommand ToggleWelcomeAudioCommand => _toggleWelcomeAudioCommand;
 
+    public RelayCommand FlaggaTuttiImmersioneCommand => _flaggaTuttiImmersioneCommand;
+
+    public RelayCommand CopiaProfonditaPrimaRigaCommand => _copiaProfonditaPrimaRigaCommand;
+
     public bool IsWelcomeVisible
     {
         get => _isWelcomeVisible;
@@ -392,6 +420,23 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<PersonaleAbilitazioneRowViewModel> Abilitazioni { get; }
 
     public ObservableCollection<VisitaMedicaRowViewModel> VisiteMediche { get; }
+
+    public ObservableCollection<PersonaleAttagliamentoRowViewModel> Attagliamento { get; }
+
+    public IReadOnlyList<PersonaleAttagliamentoRowViewModel> AttagliamentoSchedaItems =>
+        Attagliamento
+            .Where(item => item.IsPredefinita)
+            .OrderBy(item => item.OrdineScheda)
+            .ToList();
+
+    public IReadOnlyList<PersonaleAttagliamentoRowViewModel> AttagliamentoAggiuntivoItems =>
+        Attagliamento
+            .Where(item => !item.IsPredefinita)
+            .OrderBy(item => item.OrdineScheda)
+            .ThenBy(item => item.Voce)
+            .ToList();
+
+    public bool HasAttagliamentoAggiuntivo => AttagliamentoAggiuntivoItems.Count > 0;
 
     public ObservableCollection<PersonaleListItemViewModel> OperatoriServizioDisponibili { get; }
 
@@ -658,6 +703,14 @@ public sealed class MainWindowViewModel : ObservableObject
             ? "Contabilita giornate di impiego"
             : $"{ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoSelezionato}";
 
+    public string ElaborazioneMensileStato =>
+        _elaborazioneMensileInfo is null
+            ? "Periodo non ancora chiuso: le tabelle mostrano il calcolo live corrente."
+            : $"Chiusura mensile registrata il {_elaborazioneMensileInfo.AggiornataIlDescrizione}. Le tabelle mostrano lo snapshot congelato da consegnare ai pagamenti.";
+
+    public string SalvaElaborazioneMensileLabel =>
+        _elaborazioneMensileInfo is null ? "Chiudi mese" : "Rigenera chiusura";
+
     public string ContabilitaStato =>
         ContabilitaSmzItems.Count == 0 && ContabilitaSanitariItems.Count == 0 && ContabilitaSupportiItems.Count == 0
             ? "Nessuna giornata utile registrata nel periodo selezionato."
@@ -770,7 +823,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ]);
 
     public ObservableCollection<string> ProfiliPersonaleDisponibili { get; } =
-        new(["SMZ operativo", "Sanitario"]);
+        new(ProfiliPersonaleCatalogo.Tutti);
 
     public ObservableCollection<string> RuoliSanitariDisponibili { get; } =
         new(["Infermiere", "Medico"]);
@@ -819,11 +872,21 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public RelayCommand RemoveVisitaCommand { get; }
 
+    public RelayCommand SaveAttagliamentoCommand => _saveAttagliamentoCommand;
+
+    public RelayCommand ClearAttagliamentoEditorCommand => _clearAttagliamentoEditorCommand;
+
+    public RelayCommand RemoveAttagliamentoCommand => _removeAttagliamentoCommand;
+
     public RelayCommand ReloadServizioPersonaleCommand => _reloadServizioPersonaleCommand;
 
     public RelayCommand ReloadContabilitaCommand => _reloadContabilitaCommand;
 
     public RelayCommand ReloadRegistroImmersioniCommand => _reloadRegistroImmersioniCommand;
+
+    public RelayCommand SaveElaborazioneMensileCommand => _saveElaborazioneMensileCommand;
+
+    public RelayCommand ExportContabilitaCsvCommand => _exportContabilitaCsvCommand;
 
     public RelayCommand SaveTariffeContabiliCommand => _saveTariffeContabiliCommand;
 
@@ -868,6 +931,19 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 CaricaEditorVisitaDaSelezione();
                 OnPropertyChanged(nameof(AzioneVisitaLabel));
+            }
+        }
+    }
+
+    public PersonaleAttagliamentoRowViewModel? SelectedAttagliamento
+    {
+        get => _selectedAttagliamento;
+        set
+        {
+            if (SetProperty(ref _selectedAttagliamento, value))
+            {
+                CaricaEditorAttagliamentoDaSelezione();
+                OnPropertyChanged(nameof(AzioneAttagliamentoLabel));
             }
         }
     }
@@ -1011,7 +1087,8 @@ public sealed class MainWindowViewModel : ObservableObject
         get => _profiloPersonale;
         set
         {
-            if (SetProperty(ref _profiloPersonale, value))
+            var valoreNormalizzato = ProfiliPersonaleCatalogo.Normalizza(value);
+            if (SetProperty(ref _profiloPersonale, valoreNormalizzato))
             {
                 if (!IsProfiloSanitario)
                 {
@@ -1037,9 +1114,9 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    public bool IsProfiloSanitario => string.Equals(ProfiloPersonale, "Sanitario", StringComparison.Ordinal);
+    public bool IsProfiloSanitario => ProfiliPersonaleCatalogo.IsSanitario(ProfiloPersonale);
 
-    public bool IsProfiloSmzOperativo => !IsProfiloSanitario;
+    public bool IsProfiloSmzOperativo => ProfiliPersonaleCatalogo.IsOperatoreSubacqueo(ProfiloPersonale);
 
     public string ProfiloPersonaleSintesi =>
         IsProfiloSanitario && !string.IsNullOrWhiteSpace(RuoloSanitario)
@@ -1062,6 +1139,24 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         get => _numeroBrevettoSmz;
         set => SetProperty(ref _numeroBrevettoSmz, value);
+    }
+
+    public string AttagliamentoVoce
+    {
+        get => _attagliamentoVoce;
+        set => SetProperty(ref _attagliamentoVoce, value);
+    }
+
+    public string AttagliamentoTagliaMisura
+    {
+        get => _attagliamentoTagliaMisura;
+        set => SetProperty(ref _attagliamentoTagliaMisura, value);
+    }
+
+    public string AttagliamentoNote
+    {
+        get => _attagliamentoNote;
+        set => SetProperty(ref _attagliamentoNote, value);
     }
 
     public string DataNascita
@@ -1253,6 +1348,8 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string AzioneVisitaLabel => "Aggiorna visita";
 
+    public string AzioneAttagliamentoLabel => SelectedAttagliamento is null ? "Aggiungi riga" : "Aggiorna riga";
+
     public string AbilitazioneIndicazioni
     {
         get
@@ -1294,8 +1391,11 @@ public sealed class MainWindowViewModel : ObservableObject
     public string RegoleVisiteTitolo => "Regole visite mediche";
 
     public string RegoleVisiteDescrizione =>
-        "Mantenimento brevetto M.M. e D.Lgs. 81/08: scadenza automatica a 24 mesi dalla data visita. "
+        "Mantenimento brevetto M.M.: scadenza automatica a 24 mesi dalla data visita. D.Lgs. 81/08: scadenza automatica a 12 mesi. "
         + "Visita bimestrale: scadenza automatica a 2 mesi.";
+
+    public string AttagliamentoIndicazioni =>
+        "Compila le 7 misure principali della scheda taglie. La struttura resta estendibile se in futuro dovrai aggiungere altre misure.";
 
     public string VisitaScadenzaCalcolata
     {
@@ -1590,14 +1690,9 @@ public sealed class MainWindowViewModel : ObservableObject
                     : _archivioDettaglio.ProfiloPersonale);
             }
 
-            if (!string.IsNullOrWhiteSpace(_archivioDettaglio.MatricolaPersonale))
-            {
-                parti.Add($"Matricola {_archivioDettaglio.MatricolaPersonale}");
-            }
-
             if (!string.IsNullOrWhiteSpace(_archivioDettaglio.NumeroBrevettoSmz))
             {
-                parti.Add($"Brevetto SMZ {_archivioDettaglio.NumeroBrevettoSmz}");
+                parti.Add($"Brevetto subacqueo {_archivioDettaglio.NumeroBrevettoSmz}");
             }
 
             if (!string.IsNullOrWhiteSpace(_archivioDettaglio.IndirizzoResidenzaCompleto))
@@ -1779,7 +1874,12 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var snapshot = _repository.GetContabilitaGiornateImpiego(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese);
+        _elaborazioneMensileInfo = _repository.GetElaborazioneMensileInfo(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese);
+
+        var snapshot = _elaborazioneMensileInfo is null
+            ? _repository.GetContabilitaGiornateImpiego(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese)
+            : _repository.GetElaborazioneMensileSnapshot(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese)
+                ?? _repository.GetContabilitaGiornateImpiego(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese);
 
         ContabilitaSmzItems.Clear();
         foreach (var item in snapshot.SmzImmersioni)
@@ -1858,6 +1958,8 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ContabilitaSanitariStato));
         OnPropertyChanged(nameof(ContabilitaSupportoStato));
         OnPropertyChanged(nameof(TariffeContabiliStato));
+        OnPropertyChanged(nameof(ElaborazioneMensileStato));
+        OnPropertyChanged(nameof(SalvaElaborazioneMensileLabel));
     }
 
     private void AggiornaRiepilogoRegistroImmersioni()
@@ -1885,6 +1987,118 @@ public sealed class MainWindowViewModel : ObservableObject
         Stato = IsWelcomeAudioEnabled
             ? "Audio welcome attivato."
             : "Audio welcome disattivato.";
+    }
+
+    private void SalvaElaborazioneMensile()
+    {
+        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            if (_elaborazioneMensileInfo is not null)
+            {
+                var result = MessageBox.Show(
+                    $"Esiste gia una chiusura per {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoSelezionato}. Vuoi rigenerarla con i dati correnti?",
+                    "Elaborazione mensile",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result != MessageBoxResult.Yes)
+                {
+                    Stato = "Rigenerazione elaborazione mensile annullata.";
+                    return;
+                }
+            }
+
+            var snapshot = _repository.GetContabilitaGiornateImpiego(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese);
+            _repository.SaveElaborazioneMensile(
+                ContabilitaAnnoSelezionato,
+                ContabilitaMeseSelezionato.NumeroMese,
+                snapshot,
+                $"Snapshot amministrativo {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoSelezionato}");
+
+            CaricaContabilitaMensile();
+            Stato = $"Elaborazione mensile registrata per {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoSelezionato}.";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Elaborazione mensile", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Salvataggio elaborazione mensile non riuscito.";
+        }
+    }
+
+    private void EsportaContabilitaCsv()
+    {
+        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        {
+            return;
+        }
+
+        if (_elaborazioneMensileInfo is null)
+        {
+            MessageBox.Show(
+                "Chiudi prima il mese con \"Chiudi mese\". L'export CSV deve partire da uno snapshot congelato da inviare ai pagamenti.",
+                "Export contabilita CSV",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            Stato = "Export CSV non eseguito: manca la chiusura mensile.";
+            return;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(DatabasePaths.ExportDirectory);
+
+            var fileName = $"contabilita-smz-{ContabilitaAnnoSelezionato:D4}-{ContabilitaMeseSelezionato.NumeroMese:D2}.csv";
+            var filePath = Path.Combine(DatabasePaths.ExportDirectory, fileName);
+            var builder = new StringBuilder();
+
+            builder.AppendLine("Periodo;Data;Ordine;PerID;Qual;Cognome e Nome;Appar.;Prof.;Tariffa;ORE ORD;ORE ADD;ORE SPER;ORE C.I.;Importo;Med. Rag.;TOTALE");
+
+            var periodo = $"{ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoSelezionato}";
+            foreach (var item in ContabilitaSmzItems
+                         .OrderBy(x => x.Cognome)
+                         .ThenBy(x => x.Nome)
+                         .ThenBy(x => x.DataServizio)
+                         .ThenBy(x => x.NumeroOrdineServizio)
+                         .ThenBy(x => x.Apparato)
+                         .ThenBy(x => x.FasciaProfondita))
+            {
+                builder.AppendLine(string.Join(";",
+                    Csv(periodo),
+                    Csv(item.DataServizioDescrizione),
+                    Csv(item.NumeroOrdineServizio),
+                    Csv(item.PerId),
+                    Csv(item.Qualifica),
+                    Csv(item.Nominativo),
+                    Csv(item.Apparato),
+                    Csv(item.FasciaProfondita),
+                    Csv(item.TariffaDisplay),
+                    Csv(item.OreOrdDisplay),
+                    Csv(item.OreAddDisplay),
+                    Csv(item.OreSperDisplay),
+                    Csv(item.OreCiDisplay),
+                    Csv(item.ImportoDisplay),
+                    Csv(string.Empty),
+                    Csv(item.ImportoDisplay)));
+            }
+
+            File.WriteAllText(filePath, builder.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+            Stato = $"Export CSV creato: {filePath}";
+            MessageBox.Show(
+                $"Export contabilita creato in:\n{filePath}",
+                "Export contabilita CSV",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Export contabilita CSV", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Export contabilita CSV non riuscito.";
+        }
     }
 
     private void SalvaTariffeContabili()
@@ -2273,6 +2487,7 @@ public sealed class MainWindowViewModel : ObservableObject
         Abilitazioni.Clear();
         VisiteMediche.Clear();
         AllineaVisitePredefinite();
+        AllineaAttagliamentoPredefinito([]);
         PulisciEditorAbilitazione();
         PulisciEditorVisita();
         AggiornaRiepilogoScheda();
@@ -2293,7 +2508,7 @@ public sealed class MainWindowViewModel : ObservableObject
         Cognome = personale.Cognome;
         Nome = personale.Nome;
         Qualifica = personale.Qualifica;
-        ProfiloPersonale = string.IsNullOrWhiteSpace(personale.ProfiloPersonale) ? "SMZ operativo" : personale.ProfiloPersonale;
+        ProfiloPersonale = ProfiliPersonaleCatalogo.Normalizza(personale.ProfiloPersonale);
         RuoloSanitario = personale.RuoloSanitario;
         CodiceFiscale = personale.CodiceFiscale;
         MatricolaPersonale = personale.MatricolaPersonale;
@@ -2321,6 +2536,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         AllineaVisitePredefinite();
+        AllineaAttagliamentoPredefinito(personale.Attagliamento);
         PulisciEditorAbilitazione();
         PulisciEditorVisita();
         AggiornaRiepilogoScheda();
@@ -2691,6 +2907,132 @@ public sealed class MainWindowViewModel : ObservableObject
         AggiornaRiepilogoScheda();
     }
 
+    private void AllineaAttagliamentoPredefinito(IEnumerable<PersonaleAttagliamento> attagliamentoEsistente)
+    {
+        var righeEsistenti = attagliamentoEsistente
+            .Select(PersonaleAttagliamentoRowViewModel.FromModel)
+            .ToList();
+
+        var perVoce = righeEsistenti.ToDictionary(
+            item => item.Voce.Trim(),
+            item => item,
+            StringComparer.OrdinalIgnoreCase);
+
+        Attagliamento.Clear();
+
+        foreach (var definizione in CatalogoAttagliamento.MisurePredefinite)
+        {
+            perVoce.TryGetValue(definizione.Voce, out var esistente);
+            Attagliamento.Add(PersonaleAttagliamentoRowViewModel.FromDefinition(definizione, esistente));
+        }
+
+        var extras = righeEsistenti
+            .Where(item => !CatalogoAttagliamento.IsPredefinita(item.Voce))
+            .OrderBy(item => item.Voce)
+            .ToList();
+
+        for (var index = 0; index < extras.Count; index++)
+        {
+            var extra = extras[index];
+            extra.OrdineScheda = 100 + index;
+            extra.NumeroScheda = string.Empty;
+            extra.EtichettaScheda = extra.Voce;
+            extra.UnitaScheda = string.Empty;
+            extra.IsPredefinita = false;
+            Attagliamento.Add(extra);
+        }
+
+        AggiornaStatoAttagliamento();
+    }
+
+    private void AggiornaStatoAttagliamento()
+    {
+        OnPropertyChanged(nameof(AttagliamentoSchedaItems));
+        OnPropertyChanged(nameof(AttagliamentoAggiuntivoItems));
+        OnPropertyChanged(nameof(HasAttagliamentoAggiuntivo));
+    }
+
+    private void SalvaAttagliamentoInEditor()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(AttagliamentoVoce))
+            {
+                throw new InvalidOperationException("La voce attagliamento e obbligatoria.");
+            }
+
+            if (string.IsNullOrWhiteSpace(AttagliamentoTagliaMisura) && string.IsNullOrWhiteSpace(AttagliamentoNote))
+            {
+                throw new InvalidOperationException("Indica almeno una taglia/misura oppure una nota.");
+            }
+
+            var nuovaRiga = PersonaleAttagliamentoRowViewModel.FromDraft(
+                SelectedAttagliamento?.PersonaleAttagliamentoId,
+                AttagliamentoVoce.Trim(),
+                AttagliamentoTagliaMisura.Trim(),
+                AttagliamentoNote.Trim());
+
+            if (SelectedAttagliamento is null)
+            {
+                Attagliamento.Add(nuovaRiga);
+            }
+            else
+            {
+                var index = Attagliamento.IndexOf(SelectedAttagliamento);
+                if (index >= 0)
+                {
+                    Attagliamento[index] = nuovaRiga;
+                    SelectedAttagliamento = Attagliamento[index];
+                }
+            }
+
+            PulisciEditorAttagliamento();
+            Stato = "Attagliamento pronto in scheda. Salvare il personale per registrarlo nel database.";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Attagliamento", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Attagliamento non aggiunto";
+        }
+    }
+
+    private void PulisciEditorAttagliamento()
+    {
+        _selectedAttagliamento = null;
+        OnPropertyChanged(nameof(SelectedAttagliamento));
+        OnPropertyChanged(nameof(AzioneAttagliamentoLabel));
+
+        AttagliamentoVoce = string.Empty;
+        AttagliamentoTagliaMisura = string.Empty;
+        AttagliamentoNote = string.Empty;
+    }
+
+    private void CaricaEditorAttagliamentoDaSelezione()
+    {
+        if (SelectedAttagliamento is null)
+        {
+            AttagliamentoVoce = string.Empty;
+            AttagliamentoTagliaMisura = string.Empty;
+            AttagliamentoNote = string.Empty;
+            return;
+        }
+
+        AttagliamentoVoce = SelectedAttagliamento.Voce;
+        AttagliamentoTagliaMisura = SelectedAttagliamento.TagliaMisura;
+        AttagliamentoNote = SelectedAttagliamento.Note;
+    }
+
+    private void RimuoviAttagliamentoRiga()
+    {
+        if (SelectedAttagliamento is null)
+        {
+            return;
+        }
+
+        Attagliamento.Remove(SelectedAttagliamento);
+        PulisciEditorAttagliamento();
+    }
+
     private ServizioGiornaliero BuildServizioGiornalieroModel()
     {
         var dataServizio = ParseDate(ServizioData, "Data servizio")
@@ -2834,10 +3176,10 @@ public sealed class MainWindowViewModel : ObservableObject
                 NumeroImmersione = row.NumeroImmersione,
                 OrarioInizio = orarioInizio,
                 OrarioFine = orarioFine,
-                DirettoreImmersionePerId = row.DirettoreImmersione?.PerId,
-                OperatoreSoccorsoPerId = row.OperatoreSoccorso?.PerId,
-                AssistenteBlsdPerId = row.AssistenteBlsd?.PerId,
-                AssistenteSanitarioPerId = row.AssistenteSanitario?.PerId,
+                DirettoreImmersionePerId = GetPerIdOperatoreSelezionato(row.DirettoreImmersione),
+                OperatoreSoccorsoPerId = GetPerIdOperatoreSelezionato(row.OperatoreSoccorso),
+                AssistenteBlsdPerId = GetPerIdOperatoreSelezionato(row.AssistenteBlsd),
+                AssistenteSanitarioPerId = GetPerIdOperatoreSelezionato(row.AssistenteSanitario),
                 LocalitaOperativaId = ServizioLocalitaSelezionata?.LocalitaOperativaId,
                 ScopoImmersioneId = ServizioScopoSelezionato?.ScopoImmersioneId,
                 Note = row.Note.Trim(),
@@ -2943,7 +3285,7 @@ public sealed class MainWindowViewModel : ObservableObject
             Cognome = Cognome.Trim(),
             Nome = Nome.Trim(),
             Qualifica = Qualifica.Trim(),
-            ProfiloPersonale = ProfiloPersonale.Trim(),
+            ProfiloPersonale = ProfiliPersonaleCatalogo.Normalizza(ProfiloPersonale),
             RuoloSanitario = IsProfiloSanitario ? RuoloSanitario.Trim() : string.Empty,
             CodiceFiscale = CodiceFiscale.Trim().ToUpperInvariant(),
             MatricolaPersonale = MatricolaPersonale.Trim(),
@@ -2959,6 +3301,7 @@ public sealed class MainWindowViewModel : ObservableObject
             Mail2Utente = Mail2Utente.Trim(),
             Abilitazioni = BuildAbilitazioni(),
             VisiteMediche = BuildVisite(),
+            Attagliamento = BuildAttagliamento(),
         };
     }
 
@@ -3062,6 +3405,21 @@ public sealed class MainWindowViewModel : ObservableObject
         return items;
     }
 
+    private List<PersonaleAttagliamento> BuildAttagliamento()
+    {
+        return Attagliamento
+            .Where(row => !string.IsNullOrWhiteSpace(row.Voce))
+            .Select(row => new PersonaleAttagliamento
+            {
+                PersonaleAttagliamentoId = row.PersonaleAttagliamentoId ?? 0,
+                PerId = PerId,
+                Voce = row.Voce.Trim(),
+                TagliaMisura = row.TagliaMisura.Trim(),
+                Note = row.Note.Trim(),
+            })
+            .ToList();
+    }
+
     private static DateOnly? CalcolaScadenzaVisita(string tipoVisita, DateOnly? dataUltimaVisita)
     {
         if (dataUltimaVisita is null)
@@ -3084,7 +3442,7 @@ public sealed class MainWindowViewModel : ObservableObject
         IReadOnlySet<int> presentiPerId,
         int numeroImmersione)
     {
-        if (operatore is null)
+        if (operatore is null || operatore.PerId <= 0)
         {
             return;
         }
@@ -3307,6 +3665,7 @@ public sealed class MainWindowViewModel : ObservableObject
             : new Dictionary<int, ServizioPartecipanteDraftViewModel>();
 
         OperatoriServizioDisponibili.Clear();
+        OperatoriServizioDisponibili.Add(OperatoreVuoto);
         foreach (var personale in personaleAttivo)
         {
             OperatoriServizioDisponibili.Add(PersonaleListItemViewModel.FromModel(personale));
@@ -3369,7 +3728,7 @@ public sealed class MainWindowViewModel : ObservableObject
         var operatoriSmzPresenti = ServizioPartecipantiBozza
             .Where(item => item.Presente)
             .Select(item => TrovaOperatoreServizio(item.PerId))
-            .Where(item => item is not null && !string.Equals(item.ProfiloPersonale, "Sanitario", StringComparison.OrdinalIgnoreCase))
+            .Where(item => item is not null && !ProfiliPersonaleCatalogo.IsSanitario(item.ProfiloPersonale))
             .Cast<PersonaleListItemViewModel>()
             .OrderBy(item => item.Cognome)
             .ThenBy(item => item.Nome)
@@ -3427,6 +3786,38 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             AggiornaOreAutomatichePerPartecipazione(partecipazione);
             AggiornaCalcoliPartecipazioneImmersione(partecipazione);
+        }
+    }
+
+    private void FlaggaTuttiImmersione(object? parameter)
+    {
+        if (parameter is not ServizioImmersioneDraftViewModel immersione)
+        {
+            return;
+        }
+
+        foreach (var partecipazione in immersione.Partecipazioni)
+        {
+            partecipazione.InImmersione = true;
+        }
+    }
+
+    private void CopiaProfonditaPrimaRigaSuTutti(object? parameter)
+    {
+        if (parameter is not ServizioImmersioneDraftViewModel immersione || immersione.Partecipazioni.Count == 0)
+        {
+            return;
+        }
+
+        var profondita = immersione.Partecipazioni[0].ProfonditaMetri.Trim();
+        if (string.IsNullOrWhiteSpace(profondita))
+        {
+            return;
+        }
+
+        foreach (var partecipazione in immersione.Partecipazioni)
+        {
+            partecipazione.ProfonditaMetri = profondita;
         }
     }
 
@@ -3591,7 +3982,10 @@ public sealed class MainWindowViewModel : ObservableObject
         ruoloOperativoId is null ? null : RuoliOperativiCatalogo.FirstOrDefault(item => item.RuoloOperativoId == ruoloOperativoId.Value);
 
     private PersonaleListItemViewModel? TrovaOperatoreServizio(int? perId) =>
-        perId is null ? null : OperatoriServizioDisponibili.FirstOrDefault(item => item.PerId == perId.Value);
+        perId is not > 0 ? null : OperatoriServizioDisponibili.FirstOrDefault(item => item.PerId == perId.Value);
+
+    private static int? GetPerIdOperatoreSelezionato(PersonaleListItemViewModel? operatore) =>
+        operatore is { PerId: > 0 } ? operatore.PerId : null;
 
     private int ContaPartecipantiInterniBozza() =>
         ServizioPartecipantiBozza.Count(IsPartecipanteInternoCompilato);
@@ -3718,11 +4112,6 @@ public sealed class MainWindowViewModel : ObservableObject
                     dettagli.Add(item.Livello);
                 }
 
-                if (!string.IsNullOrWhiteSpace(item.ProfonditaMetri))
-                {
-                    dettagli.Add($"{item.ProfonditaMetri} m");
-                }
-
                 return dettagli.Count == 0
                     ? item.TipoDescrizione
                     : $"{item.TipoDescrizione} ({string.Join(", ", dettagli)})";
@@ -3845,6 +4234,19 @@ public sealed class MainWindowViewModel : ObservableObject
     private static DateOnly? TryParseDate(string value)
     {
         return DateOnly.TryParse(value, out var parsed) ? parsed : null;
+    }
+
+    private static string Csv(object? value)
+    {
+        var text = value?.ToString() ?? string.Empty;
+        if (text.Contains('"'))
+        {
+            text = text.Replace("\"", "\"\"");
+        }
+
+        return text.Contains(';') || text.Contains('"') || text.Contains('\n') || text.Contains('\r')
+            ? $"\"{text}\""
+            : text;
     }
 
     private static string GetApplicationVersion()

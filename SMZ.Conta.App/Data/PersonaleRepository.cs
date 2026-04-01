@@ -90,6 +90,10 @@ public sealed class PersonaleRepository
 
     public List<TipoAbilitazione> GetTipiAbilitazione()
     {
+        var tipiAttivi = CatalogoAbilitazioni.Tutte
+            .Select(item => item.TipoAbilitazioneId)
+            .ToHashSet();
+
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
         command.CommandText =
@@ -104,9 +108,15 @@ public sealed class PersonaleRepository
 
         while (reader.Read())
         {
+            var tipoAbilitazioneId = reader.GetInt32(0);
+            if (!tipiAttivi.Contains(tipoAbilitazioneId))
+            {
+                continue;
+            }
+
             items.Add(CatalogoAbilitazioni.ApplicaSuggerimenti(new TipoAbilitazione
             {
-                TipoAbilitazioneId = reader.GetInt32(0),
+                TipoAbilitazioneId = tipoAbilitazioneId,
                 Codice = reader.GetString(1),
                 Descrizione = reader.GetString(2),
                 Categoria = reader.GetString(3),
@@ -261,6 +271,206 @@ public sealed class PersonaleRepository
         var dataInizio = new DateOnly(anno, mese, 1);
         var dataFine = dataInizio.AddMonths(1).AddDays(-1);
         return GetRegistroImmersioniMensile(connection, dataInizio, dataFine);
+    }
+
+    public ElaborazioneMensileInfo? GetElaborazioneMensileInfo(int anno, int mese)
+    {
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT em.ElaborazioneMensileId,
+                   em.Anno,
+                   em.Mese,
+                   em.CreataIl,
+                   em.AggiornataIl,
+                   COALESCE(SUM(CASE WHEN emr.TipoRiga = 'SMZ' THEN 1 ELSE 0 END), 0) AS RigheSmz,
+                   COALESCE(SUM(CASE WHEN emr.TipoRiga = 'SANITARIO' THEN 1 ELSE 0 END), 0) AS RigheSanitari,
+                   COALESCE(SUM(CASE WHEN emr.TipoRiga = 'SUPPORTO' THEN 1 ELSE 0 END), 0) AS RigheSupporti
+            FROM ElaborazioniMensili em
+            LEFT JOIN ElaborazioneMensileRighe emr ON emr.ElaborazioneMensileId = em.ElaborazioneMensileId
+            WHERE em.Anno = $anno
+              AND em.Mese = $mese
+            GROUP BY em.ElaborazioneMensileId, em.Anno, em.Mese, em.CreataIl, em.AggiornataIl;
+            """;
+        command.Parameters.AddWithValue("$anno", anno);
+        command.Parameters.AddWithValue("$mese", mese);
+
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return new ElaborazioneMensileInfo
+        {
+            ElaborazioneMensileId = reader.GetInt64(0),
+            Anno = reader.GetInt32(1),
+            Mese = reader.GetInt32(2),
+            CreataIl = DateTime.Parse(reader.GetString(3)),
+            AggiornataIl = DateTime.Parse(reader.GetString(4)),
+            RigheSmz = reader.GetInt32(5),
+            RigheSanitari = reader.GetInt32(6),
+            RigheSupporti = reader.GetInt32(7),
+        };
+    }
+
+    public ContabilitaGiornateImpiegoSnapshot? GetElaborazioneMensileSnapshot(int anno, int mese)
+    {
+        using var connection = OpenConnection();
+        var elaborazioneId = GetElaborazioneMensileId(connection, anno, mese);
+        if (elaborazioneId is null)
+        {
+            return null;
+        }
+
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT TipoRiga,
+                   PerId,
+                   DataServizio,
+                   NumeroOrdineServizio,
+                   Cognome,
+                   Nome,
+                   Nominativo,
+                   Qualifica,
+                   Ruolo,
+                   Apparato,
+                   FasciaProfondita,
+                   Tariffa,
+                   OreOrd,
+                   OreAdd,
+                   OreSper,
+                   OreCi,
+                   Importo,
+                   GiornateImpiego,
+                   UltimaDataServizio
+            FROM ElaborazioneMensileRighe
+            WHERE ElaborazioneMensileId = $elaborazioneMensileId
+            ORDER BY TipoRiga, OrdineRiga, ElaborazioneMensileRigaId;
+            """;
+        command.Parameters.AddWithValue("$elaborazioneMensileId", elaborazioneId.Value);
+
+        using var reader = command.ExecuteReader();
+        var snapshot = new ContabilitaGiornateImpiegoSnapshot();
+
+        while (reader.Read())
+        {
+            var tipoRiga = reader.GetString(0);
+            switch (tipoRiga)
+            {
+                case "SMZ":
+                    snapshot.SmzImmersioni.Add(new ContabilitaSmzSummary
+                    {
+                        PerId = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                        DataServizio = DateOnly.Parse(reader.GetString(2)),
+                        NumeroOrdineServizio = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                        Cognome = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                        Nome = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        Qualifica = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+                        Apparato = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+                        FasciaProfondita = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+                        Tariffa = reader.IsDBNull(11) ? 0m : Convert.ToDecimal(reader.GetDouble(11)),
+                        OreOrd = reader.IsDBNull(12) ? 0m : Convert.ToDecimal(reader.GetDouble(12)),
+                        OreAdd = reader.IsDBNull(13) ? 0m : Convert.ToDecimal(reader.GetDouble(13)),
+                        OreSper = reader.IsDBNull(14) ? 0m : Convert.ToDecimal(reader.GetDouble(14)),
+                        OreCi = reader.IsDBNull(15) ? 0m : Convert.ToDecimal(reader.GetDouble(15)),
+                        Importo = reader.IsDBNull(16) ? 0m : Convert.ToDecimal(reader.GetDouble(16)),
+                    });
+                    break;
+
+                case "SANITARIO":
+                    snapshot.Sanitari.Add(new ContabilitaSanitarioSummary
+                    {
+                        PerId = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                        Cognome = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                        Nome = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                        Qualifica = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+                        RuoloSanitario = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+                        GiornateImpiego = reader.IsDBNull(17) ? 0 : reader.GetInt32(17),
+                        UltimaDataServizio = ParseDbDate(reader, 18),
+                    });
+                    break;
+
+                case "SUPPORTO":
+                    snapshot.SupportiOccasionali.Add(new ContabilitaSupportoSummary
+                    {
+                        Nominativo = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+                        Qualifica = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+                        Ruolo = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+                        GiornateImpiego = reader.IsDBNull(17) ? 0 : reader.GetInt32(17),
+                        UltimaDataServizio = ParseDbDate(reader, 18),
+                    });
+                    break;
+            }
+        }
+
+        return snapshot;
+    }
+
+    public void SaveElaborazioneMensile(int anno, int mese, ContabilitaGiornateImpiegoSnapshot snapshot, string? note = null)
+    {
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        var elaborazioneId = GetElaborazioneMensileId(connection, anno, mese, transaction);
+        if (elaborazioneId is null)
+        {
+            using var insert = connection.CreateCommand();
+            insert.Transaction = transaction;
+            insert.CommandText =
+                """
+                INSERT INTO ElaborazioniMensili (Anno, Mese, Note)
+                VALUES ($anno, $mese, $note);
+                SELECT last_insert_rowid();
+                """;
+            insert.Parameters.AddWithValue("$anno", anno);
+            insert.Parameters.AddWithValue("$mese", mese);
+            insert.Parameters.AddWithValue("$note", string.IsNullOrWhiteSpace(note) ? DBNull.Value : note.Trim());
+            elaborazioneId = Convert.ToInt64(insert.ExecuteScalar());
+        }
+        else
+        {
+            using var update = connection.CreateCommand();
+            update.Transaction = transaction;
+            update.CommandText =
+                """
+                UPDATE ElaborazioniMensili
+                SET Note = $note,
+                    AggiornataIl = CURRENT_TIMESTAMP
+                WHERE ElaborazioneMensileId = $elaborazioneMensileId;
+                """;
+            update.Parameters.AddWithValue("$elaborazioneMensileId", elaborazioneId.Value);
+            update.Parameters.AddWithValue("$note", string.IsNullOrWhiteSpace(note) ? DBNull.Value : note.Trim());
+            update.ExecuteNonQuery();
+
+            using var deleteRows = connection.CreateCommand();
+            deleteRows.Transaction = transaction;
+            deleteRows.CommandText = "DELETE FROM ElaborazioneMensileRighe WHERE ElaborazioneMensileId = $elaborazioneMensileId;";
+            deleteRows.Parameters.AddWithValue("$elaborazioneMensileId", elaborazioneId.Value);
+            deleteRows.ExecuteNonQuery();
+        }
+
+        var ordine = 0;
+        foreach (var item in snapshot.SmzImmersioni)
+        {
+            InsertElaborazioneMensileRiga(connection, transaction, elaborazioneId.Value, "SMZ", ordine++, item);
+        }
+
+        ordine = 0;
+        foreach (var item in snapshot.Sanitari)
+        {
+            InsertElaborazioneMensileRiga(connection, transaction, elaborazioneId.Value, "SANITARIO", ordine++, item);
+        }
+
+        ordine = 0;
+        foreach (var item in snapshot.SupportiOccasionali)
+        {
+            InsertElaborazioneMensileRiga(connection, transaction, elaborazioneId.Value, "SUPPORTO", ordine++, item);
+        }
+
+        transaction.Commit();
     }
 
     public void UpdateRegoleContabiliImmersione(IEnumerable<RegolaContabileImmersione> regole)
@@ -654,6 +864,7 @@ public sealed class PersonaleRepository
 
         personale.Abilitazioni = GetAbilitazioni(connection, perId);
         personale.VisiteMediche = GetVisite(connection, perId);
+        personale.Attagliamento = GetAttagliamento(connection, perId);
         return personale;
     }
 
@@ -701,7 +912,7 @@ public sealed class PersonaleRepository
             Cognome = reader.GetString(2),
             Nome = reader.GetString(3),
             Qualifica = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
-            ProfiloPersonale = reader.IsDBNull(5) ? "SMZ operativo" : reader.GetString(5),
+            ProfiloPersonale = ProfiliPersonaleCatalogo.Normalizza(reader.IsDBNull(5) ? null : reader.GetString(5)),
             RuoloSanitario = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
             CodiceFiscale = reader.GetString(7),
             MatricolaPersonale = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
@@ -721,6 +932,7 @@ public sealed class PersonaleRepository
 
         personale.Abilitazioni = GetAbilitazioniArchivio(connection, archiveId);
         personale.VisiteMediche = GetVisiteArchivio(connection, archiveId);
+        personale.Attagliamento = GetAttagliamentoArchivio(connection, archiveId);
         return personale;
     }
 
@@ -813,10 +1025,12 @@ public sealed class PersonaleRepository
 
             DeleteChildRows(connection, transaction, "PersonaleAbilitazioni", perId);
             DeleteChildRows(connection, transaction, "VisiteMediche", perId);
+            DeleteChildRows(connection, transaction, "PersonaleAttagliamento", perId);
         }
 
         InsertAbilitazioni(connection, transaction, perId, personale.Abilitazioni);
         InsertVisite(connection, transaction, perId, personale.VisiteMediche);
+        InsertAttagliamento(connection, transaction, perId, personale.Attagliamento);
         transaction.Commit();
 
         return perId;
@@ -831,6 +1045,7 @@ public sealed class PersonaleRepository
         var archiveId = ArchivePersonale(connection, transaction, perId, archivedAt);
         ArchiveAbilitazioni(connection, transaction, archiveId, perId);
         ArchiveVisite(connection, transaction, archiveId, perId);
+        ArchiveAttagliamento(connection, transaction, archiveId, perId);
 
         using var command = connection.CreateCommand();
         command.Transaction = transaction;
@@ -916,7 +1131,7 @@ public sealed class PersonaleRepository
         insert.Parameters.AddWithValue("$cognome", archived.Cognome);
         insert.Parameters.AddWithValue("$nome", archived.Nome);
         insert.Parameters.AddWithValue("$qualifica", DbText(archived.Qualifica));
-        insert.Parameters.AddWithValue("$profiloPersonale", archived.ProfiloPersonale.Trim());
+        insert.Parameters.AddWithValue("$profiloPersonale", ProfiliPersonaleCatalogo.Normalizza(archived.ProfiloPersonale));
         insert.Parameters.AddWithValue("$ruoloSanitario", DbText(archived.RuoloSanitario));
         insert.Parameters.AddWithValue("$codiceFiscale", archived.CodiceFiscale);
         insert.Parameters.AddWithValue("$matricolaPersonale", DbText(archived.MatricolaPersonale));
@@ -934,6 +1149,7 @@ public sealed class PersonaleRepository
 
         RestoreAbilitazioniArchivio(connection, transaction, archiveId, perIdDaRipristinare);
         RestoreVisiteArchivio(connection, transaction, archiveId, perIdDaRipristinare);
+        RestoreAttagliamentoArchivio(connection, transaction, archiveId, perIdDaRipristinare);
 
         DeleteArchivio(connection, transaction, archiveId);
         transaction.Commit();
@@ -954,7 +1170,7 @@ public sealed class PersonaleRepository
         command.Parameters.AddWithValue("$cognome", personale.Cognome.Trim());
         command.Parameters.AddWithValue("$nome", personale.Nome.Trim());
         command.Parameters.AddWithValue("$qualifica", DbText(personale.Qualifica));
-        command.Parameters.AddWithValue("$profiloPersonale", personale.ProfiloPersonale.Trim());
+        command.Parameters.AddWithValue("$profiloPersonale", ProfiliPersonaleCatalogo.Normalizza(personale.ProfiloPersonale));
         command.Parameters.AddWithValue("$ruoloSanitario", DbText(personale.RuoloSanitario));
         command.Parameters.AddWithValue("$codiceFiscale", personale.CodiceFiscale.Trim().ToUpperInvariant());
         command.Parameters.AddWithValue("$matricolaPersonale", DbText(personale.MatricolaPersonale));
@@ -1140,6 +1356,32 @@ public sealed class PersonaleRepository
         command.ExecuteNonQuery();
     }
 
+    private static void ArchiveAttagliamento(SqliteConnection connection, SqliteTransaction transaction, long archiveId, int perId)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            INSERT INTO PersonaleAttagliamentoArchivio (
+                PersonaleArchivioId,
+                PerIdOriginale,
+                Voce,
+                TagliaMisura,
+                Note
+            )
+            SELECT $personaleArchivioId,
+                   PerId,
+                   Voce,
+                   TagliaMisura,
+                   Note
+            FROM PersonaleAttagliamento
+            WHERE PerId = $perId;
+            """;
+        command.Parameters.AddWithValue("$personaleArchivioId", archiveId);
+        command.Parameters.AddWithValue("$perId", perId);
+        command.ExecuteNonQuery();
+    }
+
     private static void InsertVisite(SqliteConnection connection, SqliteTransaction transaction, int perId, IEnumerable<VisitaMedica> visite)
     {
         foreach (var visita in visite)
@@ -1161,8 +1403,35 @@ public sealed class PersonaleRepository
         }
     }
 
+    private static void InsertAttagliamento(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        int perId,
+        IEnumerable<PersonaleAttagliamento> attagliamento)
+    {
+        foreach (var riga in attagliamento)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO PersonaleAttagliamento (PerId, Voce, TagliaMisura, Note)
+                VALUES ($perId, $voce, $tagliaMisura, $note);
+                """;
+            command.Parameters.AddWithValue("$perId", perId);
+            command.Parameters.AddWithValue("$voce", riga.Voce.Trim());
+            command.Parameters.AddWithValue("$tagliaMisura", DbText(riga.TagliaMisura));
+            command.Parameters.AddWithValue("$note", DbText(riga.Note));
+            command.ExecuteNonQuery();
+        }
+    }
+
     private static List<PersonaleAbilitazione> GetAbilitazioniArchivio(SqliteConnection connection, long archiveId)
     {
+        var tipiAttivi = CatalogoAbilitazioni.Tutte
+            .Select(item => item.TipoAbilitazioneId)
+            .ToHashSet();
+
         using var command = connection.CreateCommand();
         command.CommandText =
             """
@@ -1190,6 +1459,11 @@ public sealed class PersonaleRepository
 
         while (reader.Read())
         {
+            if (!tipiAttivi.Contains(reader.GetInt32(0)))
+            {
+                continue;
+            }
+
             items.Add(new PersonaleAbilitazione
             {
                 TipoAbilitazioneId = reader.GetInt32(0),
@@ -1244,8 +1518,40 @@ public sealed class PersonaleRepository
         return items;
     }
 
+    private static List<PersonaleAttagliamento> GetAttagliamentoArchivio(SqliteConnection connection, long archiveId)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT Voce, TagliaMisura, Note
+            FROM PersonaleAttagliamentoArchivio
+            WHERE PersonaleArchivioId = $archiveId
+            ORDER BY Voce;
+            """;
+        command.Parameters.AddWithValue("$archiveId", archiveId);
+
+        using var reader = command.ExecuteReader();
+        var items = new List<PersonaleAttagliamento>();
+
+        while (reader.Read())
+        {
+            items.Add(new PersonaleAttagliamento
+            {
+                Voce = reader.GetString(0),
+                TagliaMisura = reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
+                Note = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+            });
+        }
+
+        return items;
+    }
+
     private static List<PersonaleAbilitazione> GetAbilitazioni(SqliteConnection connection, int perId)
     {
+        var tipiAttivi = CatalogoAbilitazioni.Tutte
+            .Select(item => item.TipoAbilitazioneId)
+            .ToHashSet();
+
         using var command = connection.CreateCommand();
         command.CommandText =
             """
@@ -1275,6 +1581,11 @@ public sealed class PersonaleRepository
 
         while (reader.Read())
         {
+            if (!tipiAttivi.Contains(reader.GetInt32(2)))
+            {
+                continue;
+            }
+
             items.Add(new PersonaleAbilitazione
             {
                 PersonaleAbilitazioneId = reader.GetInt32(0),
@@ -1295,6 +1606,36 @@ public sealed class PersonaleRepository
                     RichiedeScadenza = reader.GetInt32(12) == 1,
                     RichiedeProfondita = reader.GetInt32(13) == 1,
                 },
+            });
+        }
+
+        return items;
+    }
+
+    private static List<PersonaleAttagliamento> GetAttagliamento(SqliteConnection connection, int perId)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT PersonaleAttagliamentoId, PerId, Voce, TagliaMisura, Note
+            FROM PersonaleAttagliamento
+            WHERE PerId = $perId
+            ORDER BY Voce;
+            """;
+        command.Parameters.AddWithValue("$perId", perId);
+
+        using var reader = command.ExecuteReader();
+        var items = new List<PersonaleAttagliamento>();
+
+        while (reader.Read())
+        {
+            items.Add(new PersonaleAttagliamento
+            {
+                PersonaleAttagliamentoId = reader.GetInt32(0),
+                PerId = reader.GetInt32(1),
+                Voce = reader.GetString(2),
+                TagliaMisura = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                Note = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
             });
         }
 
@@ -1682,7 +2023,7 @@ public sealed class PersonaleRepository
                   AND rci.Attiva = 1
             WHERE s.DataServizio >= $dataInizio
               AND s.DataServizio <= $dataFine
-              AND p.ProfiloPersonale = 'SMZ operativo'
+              AND TRIM(COALESCE(p.ProfiloPersonale, '')) IN ('Operatore Subacqueo', 'SMZ operativo')
             GROUP BY p.PerId, s.DataServizio, s.NumeroOrdineServizio, p.Cognome, p.Nome, p.Qualifica, tio.Descrizione, fp.Descrizione
             ORDER BY s.DataServizio, COALESCE(s.NumeroOrdineServizio, ''), p.Cognome, p.Nome, tio.Ordine, fp.Ordine;
             """;
@@ -1757,7 +2098,7 @@ public sealed class PersonaleRepository
             WHERE s.DataServizio >= $dataInizio
               AND s.DataServizio <= $dataFine
               AND sp.Presente = 1
-              AND p.ProfiloPersonale = 'SMZ operativo'
+              AND TRIM(COALESCE(p.ProfiloPersonale, '')) IN ('Operatore Subacqueo', 'SMZ operativo')
             ORDER BY s.DataServizio,
                      COALESCE(s.NumeroOrdineServizio, ''),
                      si.NumeroImmersione,
@@ -1883,7 +2224,7 @@ public sealed class PersonaleRepository
             Cognome = reader.GetString(1),
             Nome = reader.GetString(2),
             Qualifica = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
-            ProfiloPersonale = reader.IsDBNull(4) ? "SMZ operativo" : reader.GetString(4),
+            ProfiloPersonale = ProfiliPersonaleCatalogo.Normalizza(reader.IsDBNull(4) ? null : reader.GetString(4)),
             RuoloSanitario = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
             CodiceFiscale = reader.GetString(6),
             MatricolaPersonale = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
@@ -1944,7 +2285,7 @@ public sealed class PersonaleRepository
             Cognome = reader.GetString(2),
             Nome = reader.GetString(3),
             Qualifica = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
-            ProfiloPersonale = reader.IsDBNull(5) ? "SMZ operativo" : reader.GetString(5),
+            ProfiloPersonale = ProfiliPersonaleCatalogo.Normalizza(reader.IsDBNull(5) ? null : reader.GetString(5)),
             RuoloSanitario = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
             CodiceFiscale = reader.GetString(7),
             MatricolaPersonale = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
@@ -2039,6 +2380,30 @@ public sealed class PersonaleRepository
                    Esito,
                    Note
             FROM VisiteMedicheArchivio
+            WHERE PersonaleArchivioId = $archiveId;
+            """;
+        command.Parameters.AddWithValue("$perId", perId);
+        command.Parameters.AddWithValue("$archiveId", archiveId);
+        command.ExecuteNonQuery();
+    }
+
+    private static void RestoreAttagliamentoArchivio(SqliteConnection connection, SqliteTransaction transaction, long archiveId, int perId)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            INSERT INTO PersonaleAttagliamento (
+                PerId,
+                Voce,
+                TagliaMisura,
+                Note
+            )
+            SELECT $perId,
+                   Voce,
+                   TagliaMisura,
+                   Note
+            FROM PersonaleAttagliamentoArchivio
             WHERE PersonaleArchivioId = $archiveId;
             """;
         command.Parameters.AddWithValue("$perId", perId);
@@ -2482,6 +2847,193 @@ public sealed class PersonaleRepository
             command.Parameters.AddWithValue("$note", DbText(supporto.Note));
             command.ExecuteNonQuery();
         }
+    }
+
+    private static long? GetElaborazioneMensileId(
+        SqliteConnection connection,
+        int anno,
+        int mese,
+        SqliteTransaction? transaction = null)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            SELECT ElaborazioneMensileId
+            FROM ElaborazioniMensili
+            WHERE Anno = $anno
+              AND Mese = $mese;
+            """;
+        command.Parameters.AddWithValue("$anno", anno);
+        command.Parameters.AddWithValue("$mese", mese);
+
+        var result = command.ExecuteScalar();
+        return result is null || result is DBNull ? null : Convert.ToInt64(result);
+    }
+
+    private static void InsertElaborazioneMensileRiga(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        long elaborazioneMensileId,
+        string tipoRiga,
+        int ordineRiga,
+        ContabilitaSmzSummary item)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            INSERT INTO ElaborazioneMensileRighe (
+                ElaborazioneMensileId,
+                TipoRiga,
+                OrdineRiga,
+                PerId,
+                DataServizio,
+                NumeroOrdineServizio,
+                Cognome,
+                Nome,
+                Qualifica,
+                Apparato,
+                FasciaProfondita,
+                Tariffa,
+                OreOrd,
+                OreAdd,
+                OreSper,
+                OreCi,
+                Importo
+            )
+            VALUES (
+                $elaborazioneMensileId,
+                $tipoRiga,
+                $ordineRiga,
+                $perId,
+                $dataServizio,
+                $numeroOrdineServizio,
+                $cognome,
+                $nome,
+                $qualifica,
+                $apparato,
+                $fasciaProfondita,
+                $tariffa,
+                $oreOrd,
+                $oreAdd,
+                $oreSper,
+                $oreCi,
+                $importo
+            );
+            """;
+        command.Parameters.AddWithValue("$elaborazioneMensileId", elaborazioneMensileId);
+        command.Parameters.AddWithValue("$tipoRiga", tipoRiga);
+        command.Parameters.AddWithValue("$ordineRiga", ordineRiga);
+        command.Parameters.AddWithValue("$perId", item.PerId);
+        command.Parameters.AddWithValue("$dataServizio", item.DataServizio.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue("$numeroOrdineServizio", DbText(item.NumeroOrdineServizio));
+        command.Parameters.AddWithValue("$cognome", DbText(item.Cognome));
+        command.Parameters.AddWithValue("$nome", DbText(item.Nome));
+        command.Parameters.AddWithValue("$qualifica", DbText(item.Qualifica));
+        command.Parameters.AddWithValue("$apparato", DbText(item.Apparato));
+        command.Parameters.AddWithValue("$fasciaProfondita", DbText(item.FasciaProfondita));
+        command.Parameters.AddWithValue("$tariffa", Convert.ToDouble(item.Tariffa));
+        command.Parameters.AddWithValue("$oreOrd", Convert.ToDouble(item.OreOrd));
+        command.Parameters.AddWithValue("$oreAdd", Convert.ToDouble(item.OreAdd));
+        command.Parameters.AddWithValue("$oreSper", Convert.ToDouble(item.OreSper));
+        command.Parameters.AddWithValue("$oreCi", Convert.ToDouble(item.OreCi));
+        command.Parameters.AddWithValue("$importo", Convert.ToDouble(item.Importo));
+        command.ExecuteNonQuery();
+    }
+
+    private static void InsertElaborazioneMensileRiga(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        long elaborazioneMensileId,
+        string tipoRiga,
+        int ordineRiga,
+        ContabilitaSanitarioSummary item)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            INSERT INTO ElaborazioneMensileRighe (
+                ElaborazioneMensileId,
+                TipoRiga,
+                OrdineRiga,
+                PerId,
+                Cognome,
+                Nome,
+                Qualifica,
+                Ruolo,
+                GiornateImpiego,
+                UltimaDataServizio
+            )
+            VALUES (
+                $elaborazioneMensileId,
+                $tipoRiga,
+                $ordineRiga,
+                $perId,
+                $cognome,
+                $nome,
+                $qualifica,
+                $ruolo,
+                $giornateImpiego,
+                $ultimaDataServizio
+            );
+            """;
+        command.Parameters.AddWithValue("$elaborazioneMensileId", elaborazioneMensileId);
+        command.Parameters.AddWithValue("$tipoRiga", tipoRiga);
+        command.Parameters.AddWithValue("$ordineRiga", ordineRiga);
+        command.Parameters.AddWithValue("$perId", item.PerId);
+        command.Parameters.AddWithValue("$cognome", DbText(item.Cognome));
+        command.Parameters.AddWithValue("$nome", DbText(item.Nome));
+        command.Parameters.AddWithValue("$qualifica", DbText(item.Qualifica));
+        command.Parameters.AddWithValue("$ruolo", DbText(item.RuoloSanitario));
+        command.Parameters.AddWithValue("$giornateImpiego", item.GiornateImpiego);
+        command.Parameters.AddWithValue("$ultimaDataServizio", item.UltimaDataServizio?.ToString("yyyy-MM-dd") ?? (object)DBNull.Value);
+        command.ExecuteNonQuery();
+    }
+
+    private static void InsertElaborazioneMensileRiga(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        long elaborazioneMensileId,
+        string tipoRiga,
+        int ordineRiga,
+        ContabilitaSupportoSummary item)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            INSERT INTO ElaborazioneMensileRighe (
+                ElaborazioneMensileId,
+                TipoRiga,
+                OrdineRiga,
+                Nominativo,
+                Qualifica,
+                Ruolo,
+                GiornateImpiego,
+                UltimaDataServizio
+            )
+            VALUES (
+                $elaborazioneMensileId,
+                $tipoRiga,
+                $ordineRiga,
+                $nominativo,
+                $qualifica,
+                $ruolo,
+                $giornateImpiego,
+                $ultimaDataServizio
+            );
+            """;
+        command.Parameters.AddWithValue("$elaborazioneMensileId", elaborazioneMensileId);
+        command.Parameters.AddWithValue("$tipoRiga", tipoRiga);
+        command.Parameters.AddWithValue("$ordineRiga", ordineRiga);
+        command.Parameters.AddWithValue("$nominativo", DbText(item.Nominativo));
+        command.Parameters.AddWithValue("$qualifica", DbText(item.Qualifica));
+        command.Parameters.AddWithValue("$ruolo", DbText(item.Ruolo));
+        command.Parameters.AddWithValue("$giornateImpiego", item.GiornateImpiego);
+        command.Parameters.AddWithValue("$ultimaDataServizio", item.UltimaDataServizio?.ToString("yyyy-MM-dd") ?? (object)DBNull.Value);
+        command.ExecuteNonQuery();
     }
 
     private static TimeOnly? ParseDbTime(SqliteDataReader reader, int ordinal)

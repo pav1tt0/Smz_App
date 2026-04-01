@@ -16,8 +16,8 @@ public static class DatabaseInitializer
         using var transaction = connection.BeginTransaction();
 
         CreateSchema(connection, transaction);
-        EnsureColumnMigrations(connection, transaction);
         SeedTipiAbilitazione(connection, transaction);
+        EnsureColumnMigrations(connection, transaction);
         SeedCataloghiServizio(connection, transaction);
 
         transaction.Commit();
@@ -36,7 +36,7 @@ public static class DatabaseInitializer
                 Cognome TEXT NOT NULL,
                 Nome TEXT NOT NULL,
                 Qualifica TEXT NULL,
-                ProfiloPersonale TEXT NOT NULL DEFAULT 'SMZ operativo',
+                ProfiloPersonale TEXT NOT NULL DEFAULT 'Operatore Subacqueo',
                 RuoloSanitario TEXT NULL,
                 CodiceFiscale TEXT NOT NULL,
                 MatricolaPersonale TEXT NULL,
@@ -93,6 +93,18 @@ public static class DatabaseInitializer
             CREATE INDEX IF NOT EXISTS IX_PersonaleAbilitazioni_TipoAbilitazioneId
                 ON PersonaleAbilitazioni (TipoAbilitazioneId);
 
+            CREATE TABLE IF NOT EXISTS PersonaleAttagliamento (
+                PersonaleAttagliamentoId INTEGER PRIMARY KEY AUTOINCREMENT,
+                PerId INTEGER NOT NULL,
+                Voce TEXT NOT NULL,
+                TagliaMisura TEXT NULL,
+                Note TEXT NULL,
+                FOREIGN KEY (PerId) REFERENCES Personale (PerId) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_PersonaleAttagliamento_PerId
+                ON PersonaleAttagliamento (PerId);
+
             CREATE TABLE IF NOT EXISTS VisiteMediche (
                 VisitaMedicaId INTEGER PRIMARY KEY AUTOINCREMENT,
                 PerId INTEGER NOT NULL,
@@ -116,7 +128,7 @@ public static class DatabaseInitializer
                 Cognome TEXT NOT NULL,
                 Nome TEXT NOT NULL,
                 Qualifica TEXT NULL,
-                ProfiloPersonale TEXT NOT NULL DEFAULT 'SMZ operativo',
+                ProfiloPersonale TEXT NOT NULL DEFAULT 'Operatore Subacqueo',
                 RuoloSanitario TEXT NULL,
                 CodiceFiscale TEXT NOT NULL,
                 MatricolaPersonale TEXT NULL,
@@ -157,6 +169,19 @@ public static class DatabaseInitializer
 
             CREATE INDEX IF NOT EXISTS IX_PersonaleAbilitazioniArchivio_ArchivioId
                 ON PersonaleAbilitazioniArchivio (PersonaleArchivioId);
+
+            CREATE TABLE IF NOT EXISTS PersonaleAttagliamentoArchivio (
+                PersonaleAttagliamentoArchivioId INTEGER PRIMARY KEY AUTOINCREMENT,
+                PersonaleArchivioId INTEGER NOT NULL,
+                PerIdOriginale INTEGER NOT NULL,
+                Voce TEXT NOT NULL,
+                TagliaMisura TEXT NULL,
+                Note TEXT NULL,
+                FOREIGN KEY (PersonaleArchivioId) REFERENCES PersonaleArchivio (PersonaleArchivioId) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_PersonaleAttagliamentoArchivio_ArchivioId
+                ON PersonaleAttagliamentoArchivio (PersonaleArchivioId);
 
             CREATE TABLE IF NOT EXISTS VisiteMedicheArchivio (
                 VisitaMedicaArchivioId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -397,6 +422,47 @@ public static class DatabaseInitializer
 
             CREATE INDEX IF NOT EXISTS IX_ServizioSupportiOccasionali_ServizioGiornalieroId
                 ON ServizioSupportiOccasionali (ServizioGiornalieroId);
+
+            CREATE TABLE IF NOT EXISTS ElaborazioniMensili (
+                ElaborazioneMensileId INTEGER PRIMARY KEY AUTOINCREMENT,
+                Anno INTEGER NOT NULL,
+                Mese INTEGER NOT NULL,
+                Note TEXT NULL,
+                CreataIl TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                AggiornataIl TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS IX_ElaborazioniMensili_Anno_Mese
+                ON ElaborazioniMensili (Anno, Mese);
+
+            CREATE TABLE IF NOT EXISTS ElaborazioneMensileRighe (
+                ElaborazioneMensileRigaId INTEGER PRIMARY KEY AUTOINCREMENT,
+                ElaborazioneMensileId INTEGER NOT NULL,
+                TipoRiga TEXT NOT NULL,
+                OrdineRiga INTEGER NOT NULL DEFAULT 0,
+                PerId INTEGER NULL,
+                DataServizio TEXT NULL,
+                NumeroOrdineServizio TEXT NULL,
+                Cognome TEXT NULL,
+                Nome TEXT NULL,
+                Nominativo TEXT NULL,
+                Qualifica TEXT NULL,
+                Ruolo TEXT NULL,
+                Apparato TEXT NULL,
+                FasciaProfondita TEXT NULL,
+                Tariffa REAL NULL,
+                OreOrd REAL NULL,
+                OreAdd REAL NULL,
+                OreSper REAL NULL,
+                OreCi REAL NULL,
+                Importo REAL NULL,
+                GiornateImpiego INTEGER NULL,
+                UltimaDataServizio TEXT NULL,
+                FOREIGN KEY (ElaborazioneMensileId) REFERENCES ElaborazioniMensili (ElaborazioneMensileId) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_ElaborazioneMensileRighe_ElaborazioneMensileId
+                ON ElaborazioneMensileRighe (ElaborazioneMensileId);
             """;
 
         command.ExecuteNonQuery();
@@ -405,7 +471,7 @@ public static class DatabaseInitializer
     private static void EnsureColumnMigrations(SqliteConnection connection, SqliteTransaction transaction)
     {
         AddColumnIfMissing(connection, transaction, "Personale", "Qualifica", "TEXT NULL");
-        AddColumnIfMissing(connection, transaction, "Personale", "ProfiloPersonale", "TEXT NOT NULL DEFAULT 'SMZ operativo'");
+        AddColumnIfMissing(connection, transaction, "Personale", "ProfiloPersonale", "TEXT NOT NULL DEFAULT 'Operatore Subacqueo'");
         AddColumnIfMissing(connection, transaction, "Personale", "RuoloSanitario", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "MatricolaPersonale", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "NumeroBrevettoSmz", "TEXT NULL");
@@ -418,7 +484,7 @@ public static class DatabaseInitializer
         AddColumnIfMissing(connection, transaction, "Personale", "Mail2Utente", "TEXT NULL");
 
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "Qualifica", "TEXT NULL");
-        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "ProfiloPersonale", "TEXT NOT NULL DEFAULT 'SMZ operativo'");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "ProfiloPersonale", "TEXT NOT NULL DEFAULT 'Operatore Subacqueo'");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "RuoloSanitario", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "MatricolaPersonale", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "NumeroBrevettoSmz", "TEXT NULL");
@@ -432,6 +498,12 @@ public static class DatabaseInitializer
 
         MigrateLegacyAnagraficaData(connection, transaction, "Personale");
         MigrateLegacyAnagraficaData(connection, transaction, "PersonaleArchivio");
+        NormalizzaProfiliPersonale(connection, transaction, "Personale");
+        NormalizzaProfiliPersonale(connection, transaction, "PersonaleArchivio");
+        MigraAttagliamentoPredefinito(connection, transaction, "PersonaleAttagliamento");
+        MigraAttagliamentoPredefinito(connection, transaction, "PersonaleAttagliamentoArchivio");
+        MigraAbilitazioniSubacquee(connection, transaction, "PersonaleAbilitazioni");
+        MigraAbilitazioniSubacquee(connection, transaction, "PersonaleAbilitazioniArchivio");
 
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "NumeroOrdineServizio", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "OrarioServizio", "TEXT NULL");
@@ -508,6 +580,65 @@ public static class DatabaseInitializer
                   AND TRIM(Mail) <> '';
                 """);
         }
+    }
+
+    private static void NormalizzaProfiliPersonale(SqliteConnection connection, SqliteTransaction transaction, string tableName)
+    {
+        ExecuteMigration(
+            connection,
+            transaction,
+            $"""
+            UPDATE {tableName}
+            SET ProfiloPersonale = 'Operatore Subacqueo'
+            WHERE ProfiloPersonale IS NULL
+               OR TRIM(ProfiloPersonale) = ''
+               OR TRIM(ProfiloPersonale) = 'SMZ operativo';
+            """);
+    }
+
+    private static void MigraAbilitazioniSubacquee(SqliteConnection connection, SqliteTransaction transaction, string tableName)
+    {
+        EseguiMigrazioneAbilitazione(connection, transaction, tableName, 1, "ProfonditaMetri = 60", 23);
+        EseguiMigrazioneAbilitazione(connection, transaction, tableName, 1, "ProfonditaMetri = 39", 27);
+        EseguiMigrazioneAbilitazione(connection, transaction, tableName, 3, "ProfonditaMetri = 24", 24);
+        EseguiMigrazioneAbilitazione(connection, transaction, tableName, 3, "ProfonditaMetri = 54", 26);
+        EseguiMigrazioneAbilitazione(connection, transaction, tableName, 4, "ProfonditaMetri = 15", 28);
+        EseguiMigrazioneAbilitazione(connection, transaction, tableName, 4, "ProfonditaMetri IN (30, 60)", 29);
+    }
+
+    private static void MigraAttagliamentoPredefinito(SqliteConnection connection, SqliteTransaction transaction, string tableName)
+    {
+        ExecuteMigration(
+            connection,
+            transaction,
+            $"""
+            UPDATE {tableName}
+            SET Voce = 'Lunghezza piede'
+            WHERE TRIM(COALESCE(Voce, '')) = 'Taglia calzature';
+            """);
+    }
+
+    private static void EseguiMigrazioneAbilitazione(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string tableName,
+        int tipoPrecedente,
+        string? condizioneExtra,
+        int tipoNuovo)
+    {
+        var whereCondizione = condizioneExtra is null
+            ? $"TipoAbilitazioneId = {tipoPrecedente}"
+            : $"TipoAbilitazioneId = {tipoPrecedente} AND {condizioneExtra}";
+
+        ExecuteMigration(
+            connection,
+            transaction,
+            $"""
+            UPDATE {tableName}
+            SET TipoAbilitazioneId = {tipoNuovo},
+                ProfonditaMetri = NULL
+            WHERE {whereCondizione};
+            """);
     }
 
     private static void ExecuteMigration(SqliteConnection connection, SqliteTransaction transaction, string commandText)

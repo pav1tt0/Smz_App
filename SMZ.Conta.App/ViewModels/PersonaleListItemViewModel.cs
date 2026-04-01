@@ -9,7 +9,7 @@ public sealed class PersonaleListItemViewModel : ObservableObject
     private string _cognome = string.Empty;
     private string _nome = string.Empty;
     private string _qualifica = string.Empty;
-    private string _profiloPersonale = "SMZ operativo";
+    private string _profiloPersonale = ProfiliPersonaleCatalogo.OperatoreSubacqueo;
     private string _ruoloSanitario = string.Empty;
     private string _codiceFiscale = string.Empty;
     private string _contatti = string.Empty;
@@ -100,7 +100,7 @@ public sealed class PersonaleListItemViewModel : ObservableObject
         get
         {
             var prefisso = string.IsNullOrWhiteSpace(Qualifica) ? Nominativo : $"{Qualifica} - {Nominativo}";
-            return string.Equals(ProfiloPersonale, "Sanitario", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(RuoloSanitario)
+            return ProfiliPersonaleCatalogo.IsSanitario(ProfiloPersonale) && !string.IsNullOrWhiteSpace(RuoloSanitario)
                 ? $"{prefisso} (Sanitario - {RuoloSanitario})"
                 : prefisso;
         }

@@ -14,7 +14,7 @@ public static class CatalogoVisiteMediche
         {
             Codice = "DLGS_81_08",
             Descrizione = "Visita periodica D.Lgs. 81/08",
-            MesiValidita = 24,
+            MesiValidita = 12,
         },
         new TipoVisitaMedica
         {

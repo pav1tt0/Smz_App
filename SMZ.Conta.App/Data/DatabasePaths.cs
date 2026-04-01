@@ -11,6 +11,8 @@ public static class DatabasePaths
             "SMZ",
             "Conta");
 
+    public static string ExportDirectory => Path.Combine(AppDataDirectory, "Export");
+
     public static string DatabasePath => Path.Combine(AppDataDirectory, "smz-conta.db");
 
     public static string ConnectionString
