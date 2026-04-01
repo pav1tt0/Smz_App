@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.Reflection;
 using System.Windows;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Infrastructure;
@@ -35,6 +36,8 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _toggleTariffeContabiliCommand;
     private readonly RelayCommand _restoreArchivioCommand;
     private readonly RelayCommand _deleteArchivioDefinitivoCommand;
+    private readonly RelayCommand _enterAppCommand;
+    private readonly RelayCommand _toggleWelcomeAudioCommand;
     private readonly List<string> _allSearchSuggestions;
     private PersonaleListItemViewModel? _selectedPersonale;
     private ScadenzaItemViewModel? _selectedScadenza;
@@ -98,6 +101,8 @@ public sealed class MainWindowViewModel : ObservableObject
     private ContabilitaMeseItem? _contabilitaMeseSelezionato;
     private bool _contabilitaSelezionePronta;
     private bool _mostraTariffeContabili;
+    private bool _isWelcomeVisible = true;
+    private bool _isWelcomeAudioEnabled = true;
     private ServizioGiornalieroSummary? _selectedServizioSalvato;
     private ServizioSupportoOccasionaleDraftViewModel? _selectedSupportoOccasionale;
 
@@ -108,6 +113,8 @@ public sealed class MainWindowViewModel : ObservableObject
         SearchCommand = new RelayCommand(CaricaElenco);
         OpenScadenzaCommand = new RelayCommand(ApriScadenzaDaParametro);
         ClearFiltersCommand = new RelayCommand(PulisciFiltri);
+        _enterAppCommand = new RelayCommand(EntraNellApp);
+        _toggleWelcomeAudioCommand = new RelayCommand(ToggleWelcomeAudio);
         _navigateSectionCommand = new RelayCommand(NavigaAllaSezione);
         _newServizioCommand = new RelayCommand(NuovoServizioGiornaliero);
         _saveServizioCommand = new RelayCommand(SalvaServizioGiornaliero);
@@ -221,6 +228,15 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string Sottotitolo => "Gestione integrata di personale, servizi, immersioni e scadenze";
 
+    public string WelcomeTitolo => "CENTRO NAUTICO E SMZ";
+
+    public string WelcomeSottotitolo =>
+        "Accesso al gestionale operativo per personale, servizi giornalieri, immersioni, scadenze e contabilita.";
+
+    public string WelcomeCredits => "Sviluppato da Paolo Vittori";
+
+    public string WelcomeVersione => $"Versione {GetApplicationVersion()}";
+
     public string HomeTitolo => "Centro Nautico e Sommozzatori";
 
     public string HomeSottotitolo =>
@@ -280,6 +296,31 @@ public sealed class MainWindowViewModel : ObservableObject
         .Count();
 
     public RelayCommand NavigateSectionCommand => _navigateSectionCommand;
+
+    public RelayCommand EnterAppCommand => _enterAppCommand;
+
+    public RelayCommand ToggleWelcomeAudioCommand => _toggleWelcomeAudioCommand;
+
+    public bool IsWelcomeVisible
+    {
+        get => _isWelcomeVisible;
+        set => SetProperty(ref _isWelcomeVisible, value);
+    }
+
+    public bool IsWelcomeAudioEnabled
+    {
+        get => _isWelcomeAudioEnabled;
+        set
+        {
+            if (SetProperty(ref _isWelcomeAudioEnabled, value))
+            {
+                OnPropertyChanged(nameof(WelcomeAudioTooltip));
+            }
+        }
+    }
+
+    public string WelcomeAudioTooltip =>
+        IsWelcomeAudioEnabled ? "Disattiva audio welcome" : "Attiva audio welcome";
 
     public int SezioneAttivaIndex
     {
@@ -1829,6 +1870,21 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(RegistroImmersioniTotaleOreDisplay));
         OnPropertyChanged(nameof(RegistroImmersioniStato));
         OnPropertyChanged(nameof(RegistroImmersioniCategorieStato));
+    }
+
+    private void EntraNellApp()
+    {
+        IsWelcomeVisible = false;
+        SezioneAttivaIndex = HomeSectionIndex;
+        Stato = "Home iniziale caricata.";
+    }
+
+    private void ToggleWelcomeAudio()
+    {
+        IsWelcomeAudioEnabled = !IsWelcomeAudioEnabled;
+        Stato = IsWelcomeAudioEnabled
+            ? "Audio welcome attivato."
+            : "Audio welcome disattivato.";
     }
 
     private void SalvaTariffeContabili()
@@ -3789,5 +3845,17 @@ public sealed class MainWindowViewModel : ObservableObject
     private static DateOnly? TryParseDate(string value)
     {
         return DateOnly.TryParse(value, out var parsed) ? parsed : null;
+    }
+
+    private static string GetApplicationVersion()
+    {
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        if (version is null)
+        {
+            return "1.0.0";
+        }
+
+        var build = version.Build >= 0 ? version.Build : 0;
+        return $"{version.Major}.{version.Minor}.{build}";
     }
 }
