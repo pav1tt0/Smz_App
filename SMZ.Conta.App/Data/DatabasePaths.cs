@@ -13,6 +13,12 @@ public static class DatabasePaths
 
     public static string ExportDirectory => Path.Combine(AppDataDirectory, "Export");
 
+    public static string BackupsDirectory => Path.Combine(AppDataDirectory, "Backups");
+
+    public static string LocalBackupDirectory => Path.Combine(BackupsDirectory, "Local");
+
+    public static string BackupSettingsPath => Path.Combine(AppDataDirectory, "backup-settings.json");
+
     public static string DatabasePath => Path.Combine(AppDataDirectory, "smz-conta.db");
 
     public static string ConnectionString

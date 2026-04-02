@@ -37,6 +37,17 @@
             <Setter Property="HorizontalAlignment" Value="Left"/>
         </Style>
 
+        <Style x:Key="ImmersionTimeTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Width" Value="96"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="#9BC2DA"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+        </Style>
+
         <Style TargetType="ComboBox">
             <Setter Property="Margin" Value="0,6,0,0"/>
             <Setter Property="Padding" Value="8,6"/>
@@ -1503,63 +1514,94 @@
                                                                    FontWeight="SemiBold"
                                                                    Foreground="#17313E" />
 
-                                                        <Grid Margin="0,12,0,0">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="14" />
-                                                                <ColumnDefinition Width="*" />
-                                                            </Grid.ColumnDefinitions>
-
+                                                        <Border Margin="0,12,0,0"
+                                                                Background="#EEF6FB"
+                                                                BorderBrush="#C8DDEB"
+                                                                BorderThickness="1"
+                                                                CornerRadius="14"
+                                                                Padding="12,10">
                                                             <StackPanel>
-                                                                <TextBlock Text="Ora inizio" Foreground="#50626A" />
-                                                                <Grid Width="120" Margin="0,6,0,0">
-                                                                    <TextBox Text="{Binding OrarioInizio, UpdateSourceTrigger=PropertyChanged}"
-                                                                             MaxLength="5"
-                                                                             ToolTip="Digita solo cifre, ad esempio 0830"
-                                                                             infra:TimeInputBehavior.AutoFormat="True" />
-                                                                    <TextBlock Text="xx:xx"
-                                                                               Margin="12,9,0,0"
-                                                                               Foreground="#9AAAB5"
-                                                                               IsHitTestVisible="False">
-                                                                        <TextBlock.Style>
-                                                                            <Style TargetType="TextBlock">
-                                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                                <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding OrarioInizio}" Value="">
-                                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                                    </DataTrigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </TextBlock.Style>
-                                                                    </TextBlock>
-                                                                </Grid>
-                                                            </StackPanel>
+                                                                <DockPanel LastChildFill="False">
+                                                                    <TextBlock DockPanel.Dock="Left"
+                                                                               Text="Orario immersione"
+                                                                               FontWeight="SemiBold"
+                                                                               Foreground="#17313E" />
+                                                                    <TextBlock DockPanel.Dock="Right"
+                                                                               Text="Digita 0830 o 1015, il campo formatta da solo"
+                                                                               Foreground="#5B7280"
+                                                                               FontSize="11" />
+                                                                </DockPanel>
 
-                                                            <StackPanel Grid.Column="2">
-                                                                <TextBlock Text="Ora fine" Foreground="#50626A" />
-                                                                <Grid Width="120" Margin="0,6,0,0">
-                                                                    <TextBox Text="{Binding OrarioFine, UpdateSourceTrigger=PropertyChanged}"
-                                                                             MaxLength="5"
-                                                                             ToolTip="Digita solo cifre, ad esempio 1015"
-                                                                             infra:TimeInputBehavior.AutoFormat="True" />
-                                                                    <TextBlock Text="xx:xx"
-                                                                               Margin="12,9,0,0"
-                                                                               Foreground="#9AAAB5"
-                                                                               IsHitTestVisible="False">
-                                                                        <TextBlock.Style>
-                                                                            <Style TargetType="TextBlock">
-                                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                                <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding OrarioFine}" Value="">
-                                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                                    </DataTrigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </TextBlock.Style>
-                                                                    </TextBlock>
-                                                                </Grid>
+                                                                <StackPanel Margin="0,8,0,0"
+                                                                            Orientation="Horizontal"
+                                                                            VerticalAlignment="Center">
+                                                                    <StackPanel>
+                                                                        <TextBlock Text="Inizio"
+                                                                                   Foreground="#50626A"
+                                                                                   FontSize="11" />
+                                                                        <Grid Width="96">
+                                                                            <TextBox Style="{StaticResource ImmersionTimeTextBoxStyle}"
+                                                                                     Text="{Binding OrarioInizio, UpdateSourceTrigger=PropertyChanged}"
+                                                                                     MaxLength="5"
+                                                                                     ToolTip="Digita solo cifre, ad esempio 0830"
+                                                                                     infra:TimeInputBehavior.AutoFormat="True" />
+                                                                            <TextBlock Text="08:30"
+                                                                                       Margin="0,8,0,0"
+                                                                                       HorizontalAlignment="Center"
+                                                                                       Foreground="#9AAAB5"
+                                                                                       IsHitTestVisible="False">
+                                                                                <TextBlock.Style>
+                                                                                    <Style TargetType="TextBlock">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                        <Style.Triggers>
+                                                                                            <DataTrigger Binding="{Binding OrarioInizio}" Value="">
+                                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBlock.Style>
+                                                                            </TextBlock>
+                                                                        </Grid>
+                                                                    </StackPanel>
+
+                                                                    <TextBlock Margin="12,20,12,0"
+                                                                               Text="→"
+                                                                               FontSize="18"
+                                                                               FontWeight="Bold"
+                                                                               Foreground="#4A7087"
+                                                                               VerticalAlignment="Center" />
+
+                                                                    <StackPanel>
+                                                                        <TextBlock Text="Fine"
+                                                                                   Foreground="#50626A"
+                                                                                   FontSize="11" />
+                                                                        <Grid Width="96">
+                                                                            <TextBox Style="{StaticResource ImmersionTimeTextBoxStyle}"
+                                                                                     Text="{Binding OrarioFine, UpdateSourceTrigger=PropertyChanged}"
+                                                                                     MaxLength="5"
+                                                                                     ToolTip="Digita solo cifre, ad esempio 1015"
+                                                                                     infra:TimeInputBehavior.AutoFormat="True" />
+                                                                            <TextBlock Text="10:15"
+                                                                                       Margin="0,8,0,0"
+                                                                                       HorizontalAlignment="Center"
+                                                                                       Foreground="#9AAAB5"
+                                                                                       IsHitTestVisible="False">
+                                                                                <TextBlock.Style>
+                                                                                    <Style TargetType="TextBlock">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                        <Style.Triggers>
+                                                                                            <DataTrigger Binding="{Binding OrarioFine}" Value="">
+                                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </TextBlock.Style>
+                                                                            </TextBlock>
+                                                                        </Grid>
+                                                                    </StackPanel>
+                                                                </StackPanel>
                                                             </StackPanel>
-                                                        </Grid>
+                                                        </Border>
 
                                                         <Grid Margin="0,12,0,0">
                                                             <Grid.ColumnDefinitions>
@@ -1575,7 +1617,7 @@
                                                             <StackPanel>
                                                                 <TextBlock Text="Direttore immersione" Foreground="#50626A" />
                                                                 <ComboBox Margin="0,6,0,0"
-                                                                          ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding DirettoreImmersione}"
                                                                           DisplayMemberPath="NominativoConQualifica" />
                                                             </StackPanel>
@@ -1583,7 +1625,7 @@
                                                             <StackPanel Grid.Column="2">
                                                                 <TextBlock Text="Operatore soccorso" Foreground="#50626A" />
                                                                 <ComboBox Margin="0,6,0,0"
-                                                                          ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding OperatoreSoccorso}"
                                                                           DisplayMemberPath="NominativoConQualifica" />
                                                             </StackPanel>
@@ -1591,7 +1633,7 @@
                                                             <StackPanel Grid.Row="1" Margin="0,10,0,0">
                                                                 <TextBlock Text="Assistenza BLSD" Foreground="#50626A" />
                                                                 <ComboBox Margin="0,6,0,0"
-                                                                          ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding AssistenteBlsd}"
                                                                           DisplayMemberPath="NominativoConQualifica" />
                                                             </StackPanel>
@@ -1599,7 +1641,7 @@
                                                             <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
                                                                 <TextBlock Text="Assistenza sanitaria" Foreground="#50626A" />
                                                                 <ComboBox Margin="0,6,0,0"
-                                                                          ItemsSource="{Binding DataContext.OperatoriServizioDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding AssistenteSanitario}"
                                                                           DisplayMemberPath="NominativoConQualifica" />
                                                             </StackPanel>
@@ -1613,21 +1655,15 @@
                                                                        VerticalAlignment="Center" />
                                                             <StackPanel DockPanel.Dock="Right"
                                                                         Orientation="Horizontal">
-                                                                <Button Content="Flagga tutti"
-                                                                        Margin="0,0,8,0"
+                                                                <Button Content="Flagga / deflagga tutti"
                                                                         Padding="10,5"
                                                                         Command="{Binding DataContext.FlaggaTuttiImmersioneCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                        CommandParameter="{Binding}"
-                                                                        Style="{StaticResource SecondaryButtonStyle}" />
-                                                                <Button Content="Copia profondita"
-                                                                        Padding="10,5"
-                                                                        Command="{Binding DataContext.CopiaProfonditaPrimaRigaCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                         CommandParameter="{Binding}"
                                                                         Style="{StaticResource SecondaryButtonStyle}" />
                                                             </StackPanel>
                                                         </DockPanel>
                                                         <TextBlock Margin="0,4,0,0"
-                                                                   Text="Compila solo gli operatori SMZ effettivamente entrati in immersione. Fascia, tariffa e importo vengono proposti in automatico."
+                                                                   Text="Compila solo gli operatori SMZ effettivamente entrati in immersione. La profondita della prima riga viene copiata automaticamente sugli operatori flaggati e viene controllata in base all'apparato."
                                                                    Foreground="#53646A"
                                                                    TextWrapping="Wrap" />
 
@@ -1661,7 +1697,9 @@
                                                                                         Width="68">
                                                                     <DataGridTemplateColumn.CellTemplate>
                                                                         <DataTemplate>
-                                                                            <TextBox Text="{Binding ProfonditaMetri, UpdateSourceTrigger=PropertyChanged}" />
+                                                                            <TextBox Text="{Binding ProfonditaMetri, UpdateSourceTrigger=PropertyChanged}"
+                                                                                     MaxLength="3"
+                                                                                     ToolTip="{Binding TipologiaImmersioneOperativa.ProfonditaConsentitaDisplay, TargetNullValue='Seleziona prima l''apparato per vedere il range di profondita.'}" />
                                                                         </DataTemplate>
                                                                     </DataGridTemplateColumn.CellTemplate>
                                                                 </DataGridTemplateColumn>
@@ -3145,6 +3183,60 @@
                                            Text="Prima area report realmente operativa: registro immersioni mensile derivato dai servizi salvati, con riepilogo per categoria di registro."
                                            Foreground="#53646A"
                                            TextWrapping="Wrap" />
+                                <Border Margin="0,16,0,0"
+                                        Background="#F4F8FB"
+                                        BorderBrush="#D7E1E8"
+                                        BorderThickness="1"
+                                        CornerRadius="16"
+                                        Padding="16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.35*" />
+                                            <ColumnDefinition Width="18" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
+                                            <TextBlock Text="Backup dati"
+                                                       FontSize="18"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#17313E" />
+                                            <TextBlock Margin="0,8,0,0"
+                                                       Text="{Binding BackupDescrizione}"
+                                                       Foreground="#53646A"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Margin="0,12,0,0"
+                                                       Text="{Binding BackupLocaleStato}"
+                                                       Foreground="#17313E"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="{Binding BackupEsternoStato}"
+                                                       Foreground="#17313E"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="{Binding BackupCartellaEsterna, StringFormat=Cartella esterna: {0}}"
+                                                       Foreground="#53646A"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2"
+                                                    Width="250">
+                                            <Button Content="Crea backup locale"
+                                                    Command="{Binding CreateLocalBackupCommand}" />
+                                            <Button Content="Crea backup esterno"
+                                                    Margin="0,10,0,0"
+                                                    Command="{Binding CreateExternalBackupCommand}" />
+                                            <Button Content="Configura cartella esterna"
+                                                    Margin="0,10,0,0"
+                                                    Command="{Binding ConfigureExternalBackupDirectoryCommand}"
+                                                    Style="{StaticResource SecondaryButtonStyle}" />
+                                            <Button Content="Ripristina da backup"
+                                                    Margin="0,10,0,0"
+                                                    Command="{Binding RestoreBackupCommand}"
+                                                    Style="{StaticResource SecondaryButtonStyle}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
                         </Border>
 

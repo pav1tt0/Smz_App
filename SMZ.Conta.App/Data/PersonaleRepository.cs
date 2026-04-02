@@ -1758,7 +1758,13 @@ public sealed class PersonaleRepository
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            SELECT TipologiaImmersioneOperativaId, Codice, Descrizione, Attiva, Ordine
+            SELECT TipologiaImmersioneOperativaId,
+                   Codice,
+                   Descrizione,
+                   ProfonditaMinimaMetri,
+                   ProfonditaMassimaMetri,
+                   Attiva,
+                   Ordine
             FROM TipologieImmersioneOperative
             ORDER BY Ordine, Descrizione;
             """;
@@ -1773,8 +1779,10 @@ public sealed class PersonaleRepository
                 TipologiaImmersioneOperativaId = reader.GetInt32(0),
                 Codice = reader.GetString(1),
                 Descrizione = reader.GetString(2),
-                Attiva = reader.GetInt32(3) == 1,
-                Ordine = reader.GetInt32(4),
+                ProfonditaMinimaMetri = reader.IsDBNull(3) ? null : reader.GetInt32(3),
+                ProfonditaMassimaMetri = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+                Attiva = reader.GetInt32(5) == 1,
+                Ordine = reader.GetInt32(6),
             });
         }
 

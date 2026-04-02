@@ -58,9 +58,18 @@ public sealed class TipologiaImmersioneOperativa
 
     public string Descrizione { get; set; } = string.Empty;
 
+    public int? ProfonditaMinimaMetri { get; set; }
+
+    public int? ProfonditaMassimaMetri { get; set; }
+
     public bool Attiva { get; set; } = true;
 
     public int Ordine { get; set; }
+
+    public string ProfonditaConsentitaDisplay =>
+        ProfonditaMinimaMetri is null || ProfonditaMassimaMetri is null
+            ? "Nessun range profondita configurato."
+            : $"Profondita consentita: {ProfonditaMinimaMetri:0}-{ProfonditaMassimaMetri:0} m";
 }
 
 public sealed class FasciaProfondita
@@ -253,10 +262,10 @@ public static class CataloghiServizio
 
     public static IReadOnlyList<TipologiaImmersioneOperativa> TipologieImmersione { get; } =
     [
-        new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 1, Codice = "ARA_ASAS", Descrizione = "A.R.A./ASAS", Ordine = 1 },
-        new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 2, Codice = "ARO", Descrizione = "A.R.O.", Ordine = 2 },
-        new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 3, Codice = "ARM", Descrizione = "A.R.M.", Ordine = 3 },
-        new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 4, Codice = "CI", Descrizione = "C.I.", Ordine = 4 },
+        new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 1, Codice = "ARA_ASAS", Descrizione = "A.R.A./ASAS", ProfonditaMinimaMetri = 0, ProfonditaMassimaMetri = 80, Ordine = 1 },
+        new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 2, Codice = "ARO", Descrizione = "A.R.O.", ProfonditaMinimaMetri = 0, ProfonditaMassimaMetri = 12, Ordine = 2 },
+        new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 3, Codice = "ARM", Descrizione = "A.R.M.", ProfonditaMinimaMetri = 0, ProfonditaMassimaMetri = 55, Ordine = 3 },
+        new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 4, Codice = "CI", Descrizione = "C.I.", ProfonditaMinimaMetri = 0, ProfonditaMassimaMetri = 12, Ordine = 4 },
     ];
 
     public static IReadOnlyList<FasciaProfondita> FasceProfondita { get; } =

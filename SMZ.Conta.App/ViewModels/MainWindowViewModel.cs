@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Windows;
+using Microsoft.Win32;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Infrastructure;
 using SMZ.Conta.App.Models;
@@ -22,6 +23,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private const int ReportsSectionIndex = 6;
     private static readonly PersonaleListItemViewModel OperatoreVuoto = new();
 
+    private readonly BackupService _backupService = new();
     private readonly PersonaleRepository _repository = new();
     private readonly RelayCommand _deleteCommand;
     private readonly RelayCommand _navigateSectionCommand;
@@ -47,8 +49,12 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _enterAppCommand;
     private readonly RelayCommand _toggleWelcomeAudioCommand;
     private readonly RelayCommand _flaggaTuttiImmersioneCommand;
-    private readonly RelayCommand _copiaProfonditaPrimaRigaCommand;
+    private readonly RelayCommand _createLocalBackupCommand;
+    private readonly RelayCommand _createExternalBackupCommand;
+    private readonly RelayCommand _configureExternalBackupDirectoryCommand;
+    private readonly RelayCommand _restoreBackupCommand;
     private readonly List<string> _allSearchSuggestions;
+    private readonly BackupSettings _backupSettings;
     private PersonaleListItemViewModel? _selectedPersonale;
     private ScadenzaItemViewModel? _selectedScadenza;
     private PersonaleArchivioListItemViewModel? _selectedArchivio;
@@ -117,12 +123,14 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _mostraTariffeContabili;
     private bool _isWelcomeVisible = true;
     private bool _isWelcomeAudioEnabled = true;
+    private bool _isSyncingProfonditaPrimaRiga;
     private ElaborazioneMensileInfo? _elaborazioneMensileInfo;
     private ServizioGiornalieroSummary? _selectedServizioSalvato;
     private ServizioSupportoOccasionaleDraftViewModel? _selectedSupportoOccasionale;
 
     public MainWindowViewModel()
     {
+        _backupSettings = _backupService.LoadSettings();
         var cataloghiServizio = _repository.GetCataloghiServizio();
 
         SearchCommand = new RelayCommand(CaricaElenco);
@@ -131,7 +139,10 @@ public sealed class MainWindowViewModel : ObservableObject
         _enterAppCommand = new RelayCommand(EntraNellApp);
         _toggleWelcomeAudioCommand = new RelayCommand(ToggleWelcomeAudio);
         _flaggaTuttiImmersioneCommand = new RelayCommand(FlaggaTuttiImmersione);
-        _copiaProfonditaPrimaRigaCommand = new RelayCommand(CopiaProfonditaPrimaRigaSuTutti);
+        _createLocalBackupCommand = new RelayCommand(CreaBackupLocaleManuale);
+        _createExternalBackupCommand = new RelayCommand(CreaBackupEsternoManuale);
+        _configureExternalBackupDirectoryCommand = new RelayCommand(ConfiguraCartellaBackupEsterno);
+        _restoreBackupCommand = new RelayCommand(RipristinaDaBackup);
         _navigateSectionCommand = new RelayCommand(NavigaAllaSezione);
         _newServizioCommand = new RelayCommand(NuovoServizioGiornaliero);
         _saveServizioCommand = new RelayCommand(SalvaServizioGiornaliero);
@@ -172,6 +183,7 @@ public sealed class MainWindowViewModel : ObservableObject
         Attagliamento = new ObservableCollection<PersonaleAttagliamentoRowViewModel>();
         Attagliamento.CollectionChanged += (_, _) => AggiornaStatoAttagliamento();
         OperatoriServizioDisponibili = new ObservableCollection<PersonaleListItemViewModel>();
+        OperatoriServizioPresentiDisponibili = new ObservableCollection<PersonaleListItemViewModel>();
         ServizioPartecipantiBozza = new ObservableCollection<ServizioPartecipanteDraftViewModel>();
         ServizioImmersioniBozza = new ObservableCollection<ServizioImmersioneDraftViewModel>();
         ServizioSupportiOccasionaliBozza = new ObservableCollection<ServizioSupportoOccasionaleDraftViewModel>();
@@ -245,6 +257,8 @@ public sealed class MainWindowViewModel : ObservableObject
         CaricaRegistroImmersioniMensile();
         AggiornaScadenziario();
         NuovoPersonale();
+        AggiornaStatoBackup();
+        EseguiBackupLocaleAutomaticoAvvio();
         SezioneAttivaIndex = HomeSectionIndex;
     }
 
@@ -327,7 +341,13 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public RelayCommand FlaggaTuttiImmersioneCommand => _flaggaTuttiImmersioneCommand;
 
-    public RelayCommand CopiaProfonditaPrimaRigaCommand => _copiaProfonditaPrimaRigaCommand;
+    public RelayCommand CreateLocalBackupCommand => _createLocalBackupCommand;
+
+    public RelayCommand CreateExternalBackupCommand => _createExternalBackupCommand;
+
+    public RelayCommand ConfigureExternalBackupDirectoryCommand => _configureExternalBackupDirectoryCommand;
+
+    public RelayCommand RestoreBackupCommand => _restoreBackupCommand;
 
     public bool IsWelcomeVisible
     {
@@ -439,6 +459,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public bool HasAttagliamentoAggiuntivo => AttagliamentoAggiuntivoItems.Count > 0;
 
     public ObservableCollection<PersonaleListItemViewModel> OperatoriServizioDisponibili { get; }
+
+    public ObservableCollection<PersonaleListItemViewModel> OperatoriServizioPresentiDisponibili { get; }
 
     public ObservableCollection<ServizioPartecipanteDraftViewModel> ServizioPartecipantiBozza { get; }
 
@@ -786,6 +808,26 @@ public sealed class MainWindowViewModel : ObservableObject
         RegistroImmersioniCategorieItems.Count == 0
             ? "Nessuna categoria alimentata nel periodo selezionato."
             : $"{RegistroImmersioniCategorieItems.Count} categorie di registro alimentate dai servizi del mese.";
+
+    public string BackupLocaleStato => FormatBackupInfo(
+        _backupService.GetLatestLocalBackup(),
+        "Nessun backup locale ancora creato.",
+        "Ultimo backup locale");
+
+    public string BackupEsternoStato => FormatBackupInfo(
+        _backupService.GetLatestExternalBackup(_backupSettings.ExternalBackupDirectory),
+        string.IsNullOrWhiteSpace(_backupSettings.ExternalBackupDirectory)
+            ? "Cartella backup esterno non configurata."
+            : "Nessun backup esterno ancora creato.",
+        "Ultimo backup esterno");
+
+    public string BackupCartellaEsterna =>
+        string.IsNullOrWhiteSpace(_backupSettings.ExternalBackupDirectory)
+            ? "Non configurata"
+            : _backupSettings.ExternalBackupDirectory;
+
+    public string BackupDescrizione =>
+        "Il backup locale protegge dalle modifiche accidentali. Il backup esterno serve per guasto o cambio PC.";
 
     public bool IsExistingServizio => _servizioGiornalieroId > 0;
 
@@ -2022,6 +2064,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
             CaricaContabilitaMensile();
             Stato = $"Elaborazione mensile registrata per {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoSelezionato}.";
+            EseguiBackupLocaleSilenzioso("save-monthly-snapshot");
         }
         catch (Exception ex)
         {
@@ -2132,6 +2175,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
             CaricaContabilitaMensile();
             Stato = "Tariffe contabili aggiornate nel database.";
+            EseguiBackupLocaleSilenzioso("save-accounting-rules");
         }
         catch (Exception ex)
         {
@@ -2143,6 +2187,172 @@ public sealed class MainWindowViewModel : ObservableObject
     private void ToggleTariffeContabili()
     {
         MostraTariffeContabili = !MostraTariffeContabili;
+    }
+
+    private void CreaBackupLocaleManuale()
+    {
+        try
+        {
+            var result = _backupService.CreateLocalBackup("manual");
+            AggiornaStatoBackup();
+            Stato = $"Backup locale creato: {Path.GetFileName(result.BackupPath)}";
+            MessageBox.Show(
+                $"Backup locale creato in:\n{result.BackupPath}",
+                "Backup locale",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Backup locale", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Backup locale non riuscito.";
+        }
+    }
+
+    private void CreaBackupEsternoManuale()
+    {
+        if (string.IsNullOrWhiteSpace(_backupSettings.ExternalBackupDirectory))
+        {
+            ConfiguraCartellaBackupEsterno();
+            if (string.IsNullOrWhiteSpace(_backupSettings.ExternalBackupDirectory))
+            {
+                return;
+            }
+        }
+
+        try
+        {
+            var result = _backupService.CreateExternalBackup(_backupSettings.ExternalBackupDirectory, "manual");
+            AggiornaStatoBackup();
+            Stato = $"Backup esterno creato: {Path.GetFileName(result.BackupPath)}";
+            MessageBox.Show(
+                $"Backup esterno creato in:\n{result.BackupPath}",
+                "Backup esterno",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Backup esterno", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Backup esterno non riuscito.";
+        }
+    }
+
+    private void ConfiguraCartellaBackupEsterno()
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Seleziona la cartella per il backup esterno",
+            InitialDirectory = Directory.Exists(_backupSettings.ExternalBackupDirectory)
+                ? _backupSettings.ExternalBackupDirectory
+                : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        _backupSettings.ExternalBackupDirectory = dialog.FolderName;
+        _backupService.SaveSettings(_backupSettings);
+        AggiornaStatoBackup();
+        Stato = $"Cartella backup esterno impostata: {_backupSettings.ExternalBackupDirectory}";
+    }
+
+    private void RipristinaDaBackup()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Seleziona un backup SMZ da ripristinare",
+            Filter = "Backup SMZ (*.smzbak)|*.smzbak|Archivio ZIP (*.zip)|*.zip|Tutti i file|*.*",
+            CheckFileExists = true,
+            Multiselect = false,
+            InitialDirectory = GetBackupRestoreInitialDirectory(),
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        var conferma = MessageBox.Show(
+            $"Ripristinare il backup selezionato?\n\n{dialog.FileName}\n\nPrima del ripristino verra creato un backup di sicurezza locale del database attuale.",
+            "Ripristina backup",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (conferma != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            var result = _backupService.RestoreBackup(dialog.FileName);
+            RicaricaDatiApplicazioneDaDatabase();
+            AggiornaStatoBackup();
+            Stato = $"Backup ripristinato: {Path.GetFileName(result.RestoredBackupPath)}";
+            MessageBox.Show(
+                $"Ripristino completato.\n\nBackup applicato:\n{result.RestoredBackupPath}\n\nBackup di sicurezza creato prima del restore:\n{result.SafetyBackupPath}",
+                "Ripristino backup",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Ripristino backup", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Ripristino backup non riuscito.";
+        }
+    }
+
+    private void EseguiBackupLocaleAutomaticoAvvio()
+    {
+        if (!_backupService.NeedsAutomaticLocalBackup())
+        {
+            return;
+        }
+
+        try
+        {
+            _backupService.CreateLocalBackup("startup-auto");
+            AggiornaStatoBackup();
+            Stato = "Backup locale automatico eseguito all'avvio.";
+        }
+        catch (Exception ex)
+        {
+            AggiornaStatoBackup();
+            Stato = $"Avvio completato, ma il backup locale automatico non e riuscito: {ex.Message}";
+        }
+    }
+
+    private void EseguiBackupLocaleSilenzioso(string reason)
+    {
+        try
+        {
+            _backupService.CreateLocalBackup(reason);
+            AggiornaStatoBackup();
+        }
+        catch (Exception ex)
+        {
+            AggiornaStatoBackup();
+            Stato = $"{Stato} Backup locale non riuscito: {ex.Message}";
+        }
+    }
+
+    private string GetBackupRestoreInitialDirectory()
+    {
+        if (!string.IsNullOrWhiteSpace(_backupSettings.ExternalBackupDirectory)
+            && Directory.Exists(_backupSettings.ExternalBackupDirectory))
+        {
+            return _backupSettings.ExternalBackupDirectory;
+        }
+
+        if (Directory.Exists(DatabasePaths.LocalBackupDirectory))
+        {
+            return DatabasePaths.LocalBackupDirectory;
+        }
+
+        return Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
     }
 
     private void PulisciFiltri()
@@ -2185,6 +2395,7 @@ public sealed class MainWindowViewModel : ObservableObject
             Stato = isNuovoServizio
                 ? $"Servizio giornaliero salvato con ID {servizioGiornalieroId}."
                 : $"Servizio giornaliero #{servizioGiornalieroId} aggiornato.";
+            EseguiBackupLocaleSilenzioso("save-service");
         }
         catch (Exception ex)
         {
@@ -2261,6 +2472,7 @@ public sealed class MainWindowViewModel : ObservableObject
             AggiornaAnniContabilitaDisponibili();
             AggiornaDatiMensili();
             Stato = $"Servizio giornaliero #{servizioGiornalieroId} eliminato.";
+            EseguiBackupLocaleSilenzioso("delete-service");
         }
         catch (Exception ex)
         {
@@ -2576,6 +2788,7 @@ public sealed class MainWindowViewModel : ObservableObject
             }
 
             Stato = $"Scheda salvata con PerID {perId}";
+            EseguiBackupLocaleSilenzioso("save-person");
         }
         catch (Exception ex)
         {
@@ -2612,6 +2825,7 @@ public sealed class MainWindowViewModel : ObservableObject
         SelectedArchivio = ArchivioItems.FirstOrDefault(item => item.PersonaleArchivioId == archiveId);
         SezioneAttivaIndex = ArchiveSectionIndex;
         Stato = "Scheda archiviata. I dati restano conservati nell'archivio interno.";
+        EseguiBackupLocaleSilenzioso("archive-person");
     }
 
     private void RipristinaArchivio()
@@ -2653,6 +2867,7 @@ public sealed class MainWindowViewModel : ObservableObject
             Stato = perIdRipristinato == perIdOriginale
                 ? $"Scheda ripristinata con PerID {perIdRipristinato}."
                 : $"Scheda ripristinata con PerID {perIdRipristinato}. Il PerID originario {perIdOriginale} era gia occupato.";
+            EseguiBackupLocaleSilenzioso("restore-archive-person");
         }
         catch (Exception ex)
         {
@@ -2685,6 +2900,7 @@ public sealed class MainWindowViewModel : ObservableObject
             _repository.DeletePersonaleArchivio(SelectedArchivio.PersonaleArchivioId);
             CaricaArchivio();
             Stato = $"Scheda archiviata eliminata definitivamente: {nominativo}.";
+            EseguiBackupLocaleSilenzioso("delete-archive-person");
         }
         catch (Exception ex)
         {
@@ -3215,6 +3431,10 @@ public sealed class MainWindowViewModel : ObservableObject
             }
 
             var profondita = ParseNullableInt(row.ProfonditaMetri, $"Immersione {immersione.NumeroImmersione} - profondita {row.Nominativo}");
+            ValidaProfonditaPerTipologia(
+                row.TipologiaImmersioneOperativa,
+                profondita,
+                $"Immersione {immersione.NumeroImmersione} - profondita {row.Nominativo}");
             var fascia = row.FasciaProfondita;
             if (fascia is null && profondita is not null)
             {
@@ -3698,6 +3918,8 @@ public sealed class MainWindowViewModel : ObservableObject
             ServizioPartecipantiBozza.Add(item);
         }
 
+        AggiornaOperatoriServizioPresentiDisponibili();
+
         if (ServizioImmersioniBozza.Count == 0)
         {
             ServizioImmersioniBozza.Add(new ServizioImmersioneDraftViewModel { NumeroImmersione = 1 });
@@ -3796,15 +4018,16 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
+        var impostaInImmersione = immersione.Partecipazioni.Any(item => !item.InImmersione);
         foreach (var partecipazione in immersione.Partecipazioni)
         {
-            partecipazione.InImmersione = true;
+            partecipazione.InImmersione = impostaInImmersione;
         }
     }
 
-    private void CopiaProfonditaPrimaRigaSuTutti(object? parameter)
+    private void PropagaProfonditaPrimaRiga(ServizioImmersioneDraftViewModel immersione)
     {
-        if (parameter is not ServizioImmersioneDraftViewModel immersione || immersione.Partecipazioni.Count == 0)
+        if (_isSyncingProfonditaPrimaRiga || immersione.Partecipazioni.Count == 0)
         {
             return;
         }
@@ -3815,9 +4038,17 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
-        foreach (var partecipazione in immersione.Partecipazioni)
+        _isSyncingProfonditaPrimaRiga = true;
+        try
         {
-            partecipazione.ProfonditaMetri = profondita;
+            foreach (var partecipazione in immersione.Partecipazioni.Skip(1).Where(item => item.InImmersione))
+            {
+                partecipazione.ProfonditaMetri = profondita;
+            }
+        }
+        finally
+        {
+            _isSyncingProfonditaPrimaRiga = false;
         }
     }
 
@@ -3849,11 +4080,52 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         if (!int.TryParse(row.ProfonditaMetri, out var profondita))
         {
+            row.FasciaProfondita = null;
+            return;
+        }
+
+        if (!ProfonditaRientraNellIntervallo(row.TipologiaImmersioneOperativa, profondita))
+        {
+            row.FasciaProfondita = null;
             return;
         }
 
         row.FasciaProfondita = FasceProfonditaCatalogo
             .FirstOrDefault(item => profondita >= item.MetriDa && profondita <= item.MetriA);
+    }
+
+    private static bool ProfonditaRientraNellIntervallo(TipologiaImmersioneOperativa? tipologia, int profondita)
+    {
+        if (tipologia is null)
+        {
+            return true;
+        }
+
+        if (tipologia.ProfonditaMinimaMetri is { } min && profondita < min)
+        {
+            return false;
+        }
+
+        if (tipologia.ProfonditaMassimaMetri is { } max && profondita > max)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void ValidaProfonditaPerTipologia(TipologiaImmersioneOperativa? tipologia, int? profondita, string fieldName)
+    {
+        if (tipologia is null || profondita is null || ProfonditaRientraNellIntervallo(tipologia, profondita.Value))
+        {
+            return;
+        }
+
+        var intervallo = tipologia.ProfonditaMinimaMetri is { } min && tipologia.ProfonditaMassimaMetri is { } max
+            ? $"{min:0}-{max:0} m"
+            : "intervallo consentito";
+
+        throw new InvalidOperationException($"{fieldName}: per {tipologia.Descrizione} usare una profondita compresa tra {intervallo}.");
     }
 
     private void AggiornaCalcoliPartecipazioneImmersione(ServizioPartecipanteImmersioneDraftViewModel row)
@@ -3905,6 +4177,7 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         if (e.PropertyName is nameof(ServizioPartecipanteDraftViewModel.Presente))
         {
+            AggiornaOperatoriServizioPresentiDisponibili();
             SincronizzaPartecipazioniImmersioneBozza();
             AggiornaRiepilogoBozzaServizio();
             return;
@@ -3946,6 +4219,11 @@ public sealed class MainWindowViewModel : ObservableObject
 
         if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.InImmersione))
         {
+            if (row.InImmersione)
+            {
+                ApplicaProfonditaPrimaRigaAllaPartecipazione(row);
+            }
+
             if (row.InImmersione && string.IsNullOrWhiteSpace(row.OreImmersione))
             {
                 AggiornaOreAutomatichePerPartecipazione(row);
@@ -3958,6 +4236,14 @@ public sealed class MainWindowViewModel : ObservableObject
 
         if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.ProfonditaMetri))
         {
+            if (!_isSyncingProfonditaPrimaRiga
+                && TrovaImmersioneDiPartecipazione(row) is { } immersione
+                && immersione.Partecipazioni.Count > 0
+                && ReferenceEquals(immersione.Partecipazioni[0], row))
+            {
+                PropagaProfonditaPrimaRiga(immersione);
+            }
+
             AggiornaFasciaDaProfondita(row);
             AggiornaCalcoliPartecipazioneImmersione(row);
             AggiornaRiepilogoBozzaServizio();
@@ -3970,6 +4256,11 @@ public sealed class MainWindowViewModel : ObservableObject
             or nameof(ServizioPartecipanteImmersioneDraftViewModel.CategoriaContabileOre)
             or nameof(ServizioPartecipanteImmersioneDraftViewModel.Note))
         {
+            if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.TipologiaImmersioneOperativa))
+            {
+                AggiornaFasciaDaProfondita(row);
+            }
+
             AggiornaCalcoliPartecipazioneImmersione(row);
             AggiornaRiepilogoBozzaServizio();
         }
@@ -3983,6 +4274,96 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private PersonaleListItemViewModel? TrovaOperatoreServizio(int? perId) =>
         perId is not > 0 ? null : OperatoriServizioDisponibili.FirstOrDefault(item => item.PerId == perId.Value);
+
+    private ServizioImmersioneDraftViewModel? TrovaImmersioneDiPartecipazione(ServizioPartecipanteImmersioneDraftViewModel partecipazione) =>
+        ServizioImmersioniBozza.FirstOrDefault(item => item.Partecipazioni.Contains(partecipazione));
+
+    private void ApplicaProfonditaPrimaRigaAllaPartecipazione(ServizioPartecipanteImmersioneDraftViewModel partecipazione)
+    {
+        if (_isSyncingProfonditaPrimaRiga
+            || !partecipazione.InImmersione
+            || !string.IsNullOrWhiteSpace(partecipazione.ProfonditaMetri))
+        {
+            return;
+        }
+
+        var immersione = TrovaImmersioneDiPartecipazione(partecipazione);
+        if (immersione is null
+            || immersione.Partecipazioni.Count == 0
+            || ReferenceEquals(immersione.Partecipazioni[0], partecipazione))
+        {
+            return;
+        }
+
+        var profondita = immersione.Partecipazioni[0].ProfonditaMetri.Trim();
+        if (string.IsNullOrWhiteSpace(profondita))
+        {
+            return;
+        }
+
+        _isSyncingProfonditaPrimaRiga = true;
+        try
+        {
+            partecipazione.ProfonditaMetri = profondita;
+        }
+        finally
+        {
+            _isSyncingProfonditaPrimaRiga = false;
+        }
+    }
+
+    private void AggiornaOperatoriServizioPresentiDisponibili()
+    {
+        var operatoriPresenti = ServizioPartecipantiBozza
+            .Where(item => item.Presente)
+            .Select(item => TrovaOperatoreServizio(item.PerId))
+            .Where(item => item is not null)
+            .Cast<PersonaleListItemViewModel>()
+            .OrderBy(item => item.Cognome)
+            .ThenBy(item => item.Nome)
+            .ToList();
+
+        OperatoriServizioPresentiDisponibili.Clear();
+        OperatoriServizioPresentiDisponibili.Add(OperatoreVuoto);
+
+        foreach (var operatore in operatoriPresenti)
+        {
+            OperatoriServizioPresentiDisponibili.Add(operatore);
+        }
+
+        SincronizzaRuoliImmersioneConPresenti();
+    }
+
+    private void SincronizzaRuoliImmersioneConPresenti()
+    {
+        var operatoriValidi = OperatoriServizioPresentiDisponibili
+            .Where(item => item.PerId > 0)
+            .Select(item => item.PerId)
+            .ToHashSet();
+
+        foreach (var immersione in ServizioImmersioniBozza)
+        {
+            if (immersione.DirettoreImmersione is { PerId: > 0 } direttore && !operatoriValidi.Contains(direttore.PerId))
+            {
+                immersione.DirettoreImmersione = null;
+            }
+
+            if (immersione.OperatoreSoccorso is { PerId: > 0 } soccorso && !operatoriValidi.Contains(soccorso.PerId))
+            {
+                immersione.OperatoreSoccorso = null;
+            }
+
+            if (immersione.AssistenteBlsd is { PerId: > 0 } blsd && !operatoriValidi.Contains(blsd.PerId))
+            {
+                immersione.AssistenteBlsd = null;
+            }
+
+            if (immersione.AssistenteSanitario is { PerId: > 0 } sanitario && !operatoriValidi.Contains(sanitario.PerId))
+            {
+                immersione.AssistenteSanitario = null;
+            }
+        }
+    }
 
     private static int? GetPerIdOperatoreSelezionato(PersonaleListItemViewModel? operatore) =>
         operatore is { PerId: > 0 } ? operatore.PerId : null;
@@ -4041,6 +4422,71 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ServizioImmersioniCompilate));
         OnPropertyChanged(nameof(ServizioBozzaStato));
         OnPropertyChanged(nameof(DashboardServizioSintesi));
+    }
+
+    private void AggiornaStatoBackup()
+    {
+        OnPropertyChanged(nameof(BackupLocaleStato));
+        OnPropertyChanged(nameof(BackupEsternoStato));
+        OnPropertyChanged(nameof(BackupCartellaEsterna));
+        OnPropertyChanged(nameof(BackupDescrizione));
+    }
+
+    private void RicaricaDatiApplicazioneDaDatabase()
+    {
+        DatabaseInitializer.EnsureDatabase();
+
+        var cataloghiServizio = _repository.GetCataloghiServizio();
+        SostituisciCollection(CategorieRegistroCatalogo, cataloghiServizio.CategorieRegistro);
+        SostituisciCollection(LocalitaOperativeCatalogo, cataloghiServizio.LocalitaOperative);
+        SostituisciCollection(ScopiImmersioneCatalogo, cataloghiServizio.ScopiImmersione);
+        SostituisciCollection(UnitaNavaliCatalogo, cataloghiServizio.UnitaNavali);
+        SostituisciCollection(TipologieImmersioneOperativeCatalogo, cataloghiServizio.TipologieImmersione);
+        SostituisciCollection(FasceProfonditaCatalogo, cataloghiServizio.FasceProfondita);
+        SostituisciCollection(CategorieContabiliOreCatalogo, cataloghiServizio.CategorieContabiliOre);
+        SostituisciCollection(GruppiOperativiCatalogo, cataloghiServizio.GruppiOperativi);
+        SostituisciCollection(RuoliOperativiCatalogo, cataloghiServizio.RuoliOperativi);
+        SostituisciCollection(RegoleContabiliImmersioneCatalogo, cataloghiServizio.RegoleContabiliImmersione);
+
+        _servizioLocalitaSelezionata = LocalitaOperativeCatalogo.FirstOrDefault();
+        _servizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault();
+        _servizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault();
+
+        RicaricaSuggerimentiRicerca();
+        AggiornaSuggerimentiRicerca();
+        CaricaElenco();
+        CaricaArchivio();
+        CaricaServiziSalvati();
+        AggiornaAnniContabilitaDisponibili();
+        CaricaContabilitaMensile();
+        CaricaRegistroImmersioniMensile();
+        AggiornaScadenziario();
+        InizializzaEditorTariffeContabili();
+        InizializzaBozzaServizio(preserveSelections: false);
+        NuovoServizioGiornaliero();
+        NuovoPersonale();
+        MostraTariffeContabili = false;
+        SezioneAttivaIndex = HomeSectionIndex;
+    }
+
+    private static void SostituisciCollection<T>(ObservableCollection<T> collection, IEnumerable<T> source)
+    {
+        collection.Clear();
+        foreach (var item in source)
+        {
+            collection.Add(item);
+        }
+    }
+
+    private static string FormatBackupInfo(BackupInfo? info, string fallback, string prefix)
+    {
+        if (info is null)
+        {
+            return fallback;
+        }
+
+        var sizeMb = info.SizeBytes / 1024d / 1024d;
+        return $"{prefix}: {info.CreatedAtLocal:dd/MM/yyyy HH:mm} - {info.FileName} ({sizeMb:0.##} MB)";
     }
 
     private int ContaScadenzeScheda()

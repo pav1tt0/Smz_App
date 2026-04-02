@@ -249,6 +249,8 @@ public static class DatabaseInitializer
                 TipologiaImmersioneOperativaId INTEGER PRIMARY KEY,
                 Codice TEXT NOT NULL,
                 Descrizione TEXT NOT NULL,
+                ProfonditaMinimaMetri INTEGER NULL,
+                ProfonditaMassimaMetri INTEGER NULL,
                 Attiva INTEGER NOT NULL,
                 Ordine INTEGER NOT NULL
             );
@@ -507,6 +509,8 @@ public static class DatabaseInitializer
 
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "NumeroOrdineServizio", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "OrarioServizio", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "TipologieImmersioneOperative", "ProfonditaMinimaMetri", "INTEGER NULL");
+        AddColumnIfMissing(connection, transaction, "TipologieImmersioneOperative", "ProfonditaMassimaMetri", "INTEGER NULL");
     }
 
     private static void AddColumnIfMissing(
@@ -815,17 +819,29 @@ public static class DatabaseInitializer
             command.Transaction = transaction;
             command.CommandText =
                 """
-                INSERT INTO TipologieImmersioneOperative (TipologiaImmersioneOperativaId, Codice, Descrizione, Attiva, Ordine)
-                VALUES ($id, $codice, $descrizione, $attiva, $ordine)
+                INSERT INTO TipologieImmersioneOperative (
+                    TipologiaImmersioneOperativaId,
+                    Codice,
+                    Descrizione,
+                    ProfonditaMinimaMetri,
+                    ProfonditaMassimaMetri,
+                    Attiva,
+                    Ordine
+                )
+                VALUES ($id, $codice, $descrizione, $profonditaMinimaMetri, $profonditaMassimaMetri, $attiva, $ordine)
                 ON CONFLICT(TipologiaImmersioneOperativaId) DO UPDATE SET
                     Codice = excluded.Codice,
                     Descrizione = excluded.Descrizione,
+                    ProfonditaMinimaMetri = excluded.ProfonditaMinimaMetri,
+                    ProfonditaMassimaMetri = excluded.ProfonditaMassimaMetri,
                     Attiva = excluded.Attiva,
                     Ordine = excluded.Ordine;
                 """;
             command.Parameters.AddWithValue("$id", item.TipologiaImmersioneOperativaId);
             command.Parameters.AddWithValue("$codice", item.Codice);
             command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$profonditaMinimaMetri", item.ProfonditaMinimaMetri ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("$profonditaMassimaMetri", item.ProfonditaMassimaMetri ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
             command.Parameters.AddWithValue("$ordine", item.Ordine);
             command.ExecuteNonQuery();
