@@ -22,6 +22,16 @@ public sealed class MainWindowViewModel : ObservableObject
     private const int AccountingSectionIndex = 5;
     private const int ReportsSectionIndex = 6;
     private static readonly PersonaleListItemViewModel OperatoreVuoto = new();
+    private static readonly UnitaNavale UnitaNavaleVuota = new() { UnitaNavaleId = 0, Descrizione = string.Empty, Ordine = 0 };
+    private static readonly string[] OrariServizioFissi =
+    [
+        "07.00/13.00",
+        "08.00/14.00",
+        "13.00/19.00",
+        "14.00/20.00",
+        "19.00/24.00",
+        "00.00/07.00",
+    ];
 
     private readonly BackupService _backupService = new();
     private readonly PersonaleRepository _repository = new();
@@ -31,6 +41,8 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _saveServizioCommand;
     private readonly RelayCommand _openServizioCommand;
     private readonly RelayCommand _deleteServizioCommand;
+    private readonly RelayCommand _addLocalitaOperativaCommand;
+    private readonly RelayCommand _addUnitaNavaleCommand;
     private readonly RelayCommand _addSupportoOccasionaleCommand;
     private readonly RelayCommand _removeSupportoOccasionaleCommand;
     private readonly RelayCommand _openSelectedPersonaleCommand;
@@ -110,11 +122,20 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _servizioData = DateTime.Today.ToString("dd/MM/yyyy");
     private string _servizioNumeroOrdine = string.Empty;
     private string _servizioOrario = string.Empty;
+    private string _servizioOrarioFissoSelezionato = string.Empty;
+    private bool _servizioOrarioDerogaAttiva;
+    private string _servizioOrarioDerogaInizio = string.Empty;
+    private string _servizioOrarioDerogaFine = string.Empty;
     private string _servizioTipoSelezionato = "InSede";
     private LocalitaOperativa? _servizioLocalitaSelezionata;
     private ScopoImmersioneItem? _servizioScopoSelezionato;
     private UnitaNavale? _servizioUnitaNavaleSelezionata;
     private bool _servizioFuoriSede;
+    private bool _servizioStraordinarioAttivo;
+    private string _servizioStraordinarioInizio = string.Empty;
+    private string _servizioStraordinarioFine = string.Empty;
+    private string _nuovaLocalitaOperativa = string.Empty;
+    private string _nuovaUnitaNavale = string.Empty;
     private string _servizioAttivitaSvolta = string.Empty;
     private string _servizioNote = string.Empty;
     private int _contabilitaAnnoSelezionato;
@@ -123,10 +144,13 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _mostraTariffeContabili;
     private bool _isWelcomeVisible = true;
     private bool _isWelcomeAudioEnabled = true;
-    private bool _isSyncingProfonditaPrimaRiga;
+    private bool _isSyncingValoriCondivisiImmersione;
     private ElaborazioneMensileInfo? _elaborazioneMensileInfo;
     private ServizioGiornalieroSummary? _selectedServizioSalvato;
     private ServizioSupportoOccasionaleDraftViewModel? _selectedSupportoOccasionale;
+    private string _personaleEditorSnapshot = string.Empty;
+    private string _servizioEditorSnapshot = string.Empty;
+    private string _tariffeEditorSnapshot = string.Empty;
 
     public MainWindowViewModel()
     {
@@ -148,6 +172,8 @@ public sealed class MainWindowViewModel : ObservableObject
         _saveServizioCommand = new RelayCommand(SalvaServizioGiornaliero);
         _openServizioCommand = new RelayCommand(ApriServizioSelezionato, () => SelectedServizioSalvato is not null);
         _deleteServizioCommand = new RelayCommand(EliminaServizioSelezionato, () => SelectedServizioSalvato is not null);
+        _addLocalitaOperativaCommand = new RelayCommand(AggiungiLocalitaOperativa);
+        _addUnitaNavaleCommand = new RelayCommand(AggiungiUnitaNavale);
         _addSupportoOccasionaleCommand = new RelayCommand(AggiungiSupportoOccasionale);
         _removeSupportoOccasionaleCommand = new RelayCommand(RimuoviSupportoOccasionale, () => SelectedSupportoOccasionale is not null);
         NewCommand = new RelayCommand(() =>
@@ -217,11 +243,12 @@ public sealed class MainWindowViewModel : ObservableObject
         SearchSuggestions = new ObservableCollection<string>();
         FiltriScadenze = new ObservableCollection<string>(["Tutte", "Solo visite", "Solo abilitazioni"]);
         TipiAbilitazioneCatalogo = new ObservableCollection<TipoAbilitazione>(_repository.GetTipiAbilitazione());
-        TipiServizioDisponibili = new ObservableCollection<string>(["InSede", "FuoriSede", "Misto"]);
+        TipiServizioDisponibili = new ObservableCollection<string>(["InSede", "FuoriSede"]);
+        OrariServizioFissiDisponibili = new ObservableCollection<string>(["", ..OrariServizioFissi]);
         CategorieRegistroCatalogo = new ObservableCollection<CategoriaRegistroItem>(cataloghiServizio.CategorieRegistro);
         LocalitaOperativeCatalogo = new ObservableCollection<LocalitaOperativa>(cataloghiServizio.LocalitaOperative);
         ScopiImmersioneCatalogo = new ObservableCollection<ScopoImmersioneItem>(cataloghiServizio.ScopiImmersione);
-        UnitaNavaliCatalogo = new ObservableCollection<UnitaNavale>(cataloghiServizio.UnitaNavali);
+        UnitaNavaliCatalogo = new ObservableCollection<UnitaNavale>(BuildUnitaNavaliCatalogo(cataloghiServizio.UnitaNavali));
         TipologieImmersioneOperativeCatalogo = new ObservableCollection<TipologiaImmersioneOperativa>(cataloghiServizio.TipologieImmersione);
         FasceProfonditaCatalogo = new ObservableCollection<FasciaProfondita>(cataloghiServizio.FasceProfondita);
         CategorieContabiliOreCatalogo = new ObservableCollection<CategoriaContabileOre>(cataloghiServizio.CategorieContabiliOre);
@@ -287,7 +314,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public int DashboardCataloghiServizioTotali =>
         LocalitaOperativeCatalogo.Count
         + ScopiImmersioneCatalogo.Count
-        + UnitaNavaliCatalogo.Count
+        + UnitaNavaliCatalogo.Count(item => item.UnitaNavaleId > 0)
         + TipologieImmersioneOperativeCatalogo.Count;
 
     public string DashboardScadenzeSintesi =>
@@ -340,6 +367,10 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand ToggleWelcomeAudioCommand => _toggleWelcomeAudioCommand;
 
     public RelayCommand FlaggaTuttiImmersioneCommand => _flaggaTuttiImmersioneCommand;
+
+    public RelayCommand AddLocalitaOperativaCommand => _addLocalitaOperativaCommand;
+
+    public RelayCommand AddUnitaNavaleCommand => _addUnitaNavaleCommand;
 
     public RelayCommand CreateLocalBackupCommand => _createLocalBackupCommand;
 
@@ -410,6 +441,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<TipoAbilitazione> TipiAbilitazioneCatalogo { get; }
 
     public ObservableCollection<string> TipiServizioDisponibili { get; }
+
+    public ObservableCollection<string> OrariServizioFissiDisponibili { get; }
 
     public ObservableCollection<CategoriaRegistroItem> CategorieRegistroCatalogo { get; }
 
@@ -575,6 +608,7 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             if (SetProperty(ref _contabilitaAnnoSelezionato, value))
             {
+                OnPropertyChanged(nameof(ContabilitaAnnoEffettivo));
                 OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
                 OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
 
@@ -601,7 +635,79 @@ public sealed class MainWindowViewModel : ObservableObject
     public string ServizioOrario
     {
         get => _servizioOrario;
-        set => SetProperty(ref _servizioOrario, value);
+        set
+        {
+            var normalized = value?.Trim() ?? string.Empty;
+            if (string.Equals(_servizioOrario, normalized, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _servizioOrario = normalized;
+            ApplicaOrarioServizioSalvato(normalized);
+            OnPropertyChanged(nameof(ServizioOrario));
+            OnPropertyChanged(nameof(ServizioOrarioRiepilogo));
+        }
+    }
+
+    public string ServizioOrarioFissoSelezionato
+    {
+        get => _servizioOrarioFissoSelezionato;
+        set
+        {
+            if (SetProperty(ref _servizioOrarioFissoSelezionato, value))
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    ServizioOrarioDerogaAttiva = false;
+                }
+
+                AggiornaValoreOrarioServizio();
+            }
+        }
+    }
+
+    public bool ServizioOrarioDerogaAttiva
+    {
+        get => _servizioOrarioDerogaAttiva;
+        set
+        {
+            if (SetProperty(ref _servizioOrarioDerogaAttiva, value))
+            {
+                if (value)
+                {
+                    _servizioOrarioFissoSelezionato = string.Empty;
+                    OnPropertyChanged(nameof(ServizioOrarioFissoSelezionato));
+                }
+
+                AggiornaValoreOrarioServizio();
+                OnPropertyChanged(nameof(ServizioOrarioRiepilogo));
+            }
+        }
+    }
+
+    public string ServizioOrarioDerogaInizio
+    {
+        get => _servizioOrarioDerogaInizio;
+        set
+        {
+            if (SetProperty(ref _servizioOrarioDerogaInizio, value))
+            {
+                AggiornaValoreOrarioServizio();
+            }
+        }
+    }
+
+    public string ServizioOrarioDerogaFine
+    {
+        get => _servizioOrarioDerogaFine;
+        set
+        {
+            if (SetProperty(ref _servizioOrarioDerogaFine, value))
+            {
+                AggiornaValoreOrarioServizio();
+            }
+        }
     }
 
     public string ServizioTipoSelezionato
@@ -652,6 +758,55 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    public bool ServizioStraordinarioAttivo
+    {
+        get => _servizioStraordinarioAttivo;
+        set
+        {
+            if (SetProperty(ref _servizioStraordinarioAttivo, value))
+            {
+                OnPropertyChanged(nameof(ServizioStraordinarioOreDisplay));
+                AggiornaRiepilogoBozzaServizio();
+            }
+        }
+    }
+
+    public string ServizioStraordinarioInizio
+    {
+        get => _servizioStraordinarioInizio;
+        set
+        {
+            if (SetProperty(ref _servizioStraordinarioInizio, value))
+            {
+                OnPropertyChanged(nameof(ServizioStraordinarioOreDisplay));
+            }
+        }
+    }
+
+    public string ServizioStraordinarioFine
+    {
+        get => _servizioStraordinarioFine;
+        set
+        {
+            if (SetProperty(ref _servizioStraordinarioFine, value))
+            {
+                OnPropertyChanged(nameof(ServizioStraordinarioOreDisplay));
+            }
+        }
+    }
+
+    public string NuovaLocalitaOperativa
+    {
+        get => _nuovaLocalitaOperativa;
+        set => SetProperty(ref _nuovaLocalitaOperativa, value);
+    }
+
+    public string NuovaUnitaNavale
+    {
+        get => _nuovaUnitaNavale;
+        set => SetProperty(ref _nuovaUnitaNavale, value);
+    }
+
     public string ServizioAttivitaSvolta
     {
         get => _servizioAttivitaSvolta;
@@ -667,11 +822,56 @@ public sealed class MainWindowViewModel : ObservableObject
     public string ServizioTipoDescrizione => ServizioTipoSelezionato switch
     {
         "FuoriSede" => "Servizio operativo fuori sede",
-        "Misto" => "Servizio con componenti in sede e fuori sede",
         _ => "Servizio operativo in sede",
     };
 
     public string ServizioFuoriSedeDescrizione => ServizioFuoriSede ? "Indennita fuori sede: SI" : "Indennita fuori sede: NO";
+
+    public string ServizioOrarioRiepilogo =>
+        string.IsNullOrWhiteSpace(ServizioOrario)
+            ? "Orario servizio non impostato"
+            : $"Orario servizio: {ServizioOrario}";
+
+    public string ServizioStraordinarioOreDisplay
+    {
+        get
+        {
+            if (!ServizioStraordinarioAttivo)
+            {
+                return "Lavoro straordinario non registrato";
+            }
+
+            var durata = CalcolaDurataOre(ServizioStraordinarioInizio, ServizioStraordinarioFine);
+            return durata is null
+                ? "Inserisci inizio e fine straordinario"
+                : $"Totale straordinario: {durata.Value:0.##} ore";
+        }
+    }
+
+    private static string NormalizeTipoServizio(string? tipoServizio, bool fuoriSede)
+    {
+        if (string.Equals(tipoServizio, "FuoriSede", StringComparison.Ordinal))
+        {
+            return "FuoriSede";
+        }
+
+        if (string.Equals(tipoServizio, "InSede", StringComparison.Ordinal))
+        {
+            return "InSede";
+        }
+
+        return fuoriSede ? "FuoriSede" : "InSede";
+    }
+
+    private static IEnumerable<UnitaNavale> BuildUnitaNavaliCatalogo(IEnumerable<UnitaNavale> source)
+    {
+        yield return UnitaNavaleVuota;
+
+        foreach (var item in source)
+        {
+            yield return item;
+        }
+    }
 
     public string ServizioCategoriaRegistroDescrizione
     {
@@ -694,9 +894,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ContaPresentiInterniBozza() + ContaSupportiOccasionaliPresentiBozza();
 
     public int ServizioImmersioniCompilate => ServizioImmersioniBozza.Count(item =>
-        !string.IsNullOrWhiteSpace(item.OrarioInizio)
-        || !string.IsNullOrWhiteSpace(item.OrarioFine)
-        || item.DirettoreImmersione is not null
+        item.DirettoreImmersione is not null
         || item.OperatoreSoccorso is not null
         || item.AssistenteBlsd is not null
         || item.AssistenteSanitario is not null
@@ -722,8 +920,8 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string ContabilitaPeriodoTitolo =>
         ContabilitaMeseSelezionato is null
-            ? "Contabilita giornate di impiego"
-            : $"{ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoSelezionato}";
+            ? $"Contabilita giornate di impiego {ContabilitaAnnoEffettivo}"
+            : $"{ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoEffettivo}";
 
     public string ElaborazioneMensileStato =>
         _elaborazioneMensileInfo is null
@@ -758,7 +956,9 @@ public sealed class MainWindowViewModel : ObservableObject
             ? "Nessuna regola tariffaria disponibile."
             : $"{RegoleContabiliEditorItems.Count} righe tariffarie modificabili dal database.";
 
-    public string ToggleTariffeContabiliLabel => MostraTariffeContabili ? "Nascondi tariffe" : "Mostra tariffe";
+    public int ContabilitaAnnoEffettivo => ContabilitaAnnoSelezionato > 0 ? ContabilitaAnnoSelezionato : DateTime.Today.Year;
+
+    public string ToggleTariffeContabiliLabel => MostraTariffeContabili ? "Chiudi tariffe" : "Gestisci tariffe";
 
     public int ContabilitaSanitariTotalePersone => ContabilitaSanitariItems.Count;
 
@@ -780,8 +980,8 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string RegistroImmersioniPeriodoTitolo =>
         ContabilitaMeseSelezionato is null
-            ? "Registro immersioni mensile"
-            : $"Registro immersioni {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoSelezionato}";
+            ? $"Registro immersioni {ContabilitaAnnoEffettivo}"
+            : $"Registro immersioni {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoEffettivo}";
 
     public int RegistroImmersioniTotaleRighe => RegistroImmersioniItems.Count;
 
@@ -834,34 +1034,34 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<string> QualificheDisponibili { get; } =
         new(
         [
-            "Agente",
-            "Agente Scelto",
-            "Assistente",
-            "Assistente Capo",
-            "Assistente Capo Coordinatore",
-            "Vice Sovrintendente",
-            "Sovrintendente",
-            "Sovrintendente Capo",
-            "Sovrintendente Capo Coordinatore",
-            "Vice Ispettore",
-            "Ispettore",
-            "Ispettore Capo",
-            "Ispettore Superiore",
-            "Sostituto Commissario",
-            "Sostituto Commissario Coordinatore",
-            "Vice Commissario",
-            "Commissario",
-            "Commissario Capo",
             "Vice Questore Aggiunto",
-            "Vice Ispettore Tecnico",
-            "Ispettore Tecnico",
-            "Ispettore Capo Tecnico",
-            "Ispettore Superiore Tecnico",
+            "Commissario Capo",
+            "Commissario",
+            "Vice Commissario",
+            "Sostituto Commissario C. Tecnico",
             "Sostituto Commissario Tecnico",
-            "Sostituto Commissario Coordinatore Tecnico",
-            "Medico",
-            "Medico Principale",
+            "Sostituto Commissario C.",
+            "Sostituto Commissario",
+            "Ispettore Superiore Tecnico",
+            "Ispettore Capo Tecnico",
+            "Ispettore Tecnico",
+            "Vice Ispettore Tecnico",
+            "Ispettore Superiore",
+            "Ispettore Capo",
+            "Ispettore",
+            "Vice Ispettore",
+            "Sovrintendente Capo C.",
+            "Sovrintendente Capo",
+            "Sovrintendente",
+            "Vice Sovrintendente",
+            "Assistente Capo C.",
+            "Assistente Capo",
+            "Assistente",
+            "Agente Scelto",
+            "Agente",
             "Medico Capo",
+            "Medico Principale",
+            "Medico",
         ]);
 
     public ObservableCollection<string> ProfiliPersonaleDisponibili { get; } =
@@ -933,6 +1133,28 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand SaveTariffeContabiliCommand => _saveTariffeContabiliCommand;
 
     public RelayCommand ToggleTariffeContabiliCommand => _toggleTariffeContabiliCommand;
+
+    public IReadOnlyList<string> GetAreeConModificheNonSalvate()
+    {
+        var aree = new List<string>();
+
+        if (HasModifichePersonaleNonSalvate())
+        {
+            aree.Add("scheda personale");
+        }
+
+        if (HasModificheServizioNonSalvate())
+        {
+            aree.Add("servizio giornaliero");
+        }
+
+        if (HasModificheTariffeNonSalvate())
+        {
+            aree.Add("tariffe contabili");
+        }
+
+        return aree;
+    }
 
     public PersonaleListItemViewModel? SelectedPersonale
     {
@@ -1843,6 +2065,11 @@ public sealed class MainWindowViewModel : ObservableObject
         _contabilitaMeseSelezionato = ContabilitaMesiDisponibili.FirstOrDefault(item => item.NumeroMese == oggi.Month)
             ?? ContabilitaMesiDisponibili.FirstOrDefault();
         _contabilitaSelezionePronta = true;
+        OnPropertyChanged(nameof(ContabilitaAnnoSelezionato));
+        OnPropertyChanged(nameof(ContabilitaAnnoEffettivo));
+        OnPropertyChanged(nameof(ContabilitaMeseSelezionato));
+        OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
+        OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
     }
 
     private void InizializzaEditorTariffeContabili()
@@ -1866,12 +2093,14 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(TariffeContabiliStato));
+        RegistraSnapshotTariffeContabili();
     }
 
     private void AggiornaAnniContabilitaDisponibili()
     {
         var anni = _repository.GetAnniServiziDisponibili();
         var annoCorrente = DateTime.Today.Year;
+        var annoDaMantenere = _contabilitaAnnoSelezionato;
 
         if (!anni.Contains(annoCorrente))
         {
@@ -1889,16 +2118,14 @@ public sealed class MainWindowViewModel : ObservableObject
             ContabilitaAnniDisponibili.Add(anno);
         }
 
-        if (_contabilitaAnnoSelezionato > 0 && ContabilitaAnniDisponibili.Contains(_contabilitaAnnoSelezionato))
-        {
-            return;
-        }
-
-        _contabilitaAnnoSelezionato = ContabilitaAnniDisponibili.Contains(annoCorrente)
+        _contabilitaAnnoSelezionato = annoDaMantenere > 0 && ContabilitaAnniDisponibili.Contains(annoDaMantenere)
+            ? annoDaMantenere
+            : ContabilitaAnniDisponibili.Contains(annoCorrente)
             ? annoCorrente
             : ContabilitaAnniDisponibili.FirstOrDefault();
 
         OnPropertyChanged(nameof(ContabilitaAnnoSelezionato));
+        OnPropertyChanged(nameof(ContabilitaAnnoEffettivo));
         OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
         OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
     }
@@ -2174,6 +2401,8 @@ public sealed class MainWindowViewModel : ObservableObject
             }
 
             CaricaContabilitaMensile();
+            MostraTariffeContabili = false;
+            RegistraSnapshotTariffeContabili();
             Stato = "Tariffe contabili aggiornate nel database.";
             EseguiBackupLocaleSilenzioso("save-accounting-rules");
         }
@@ -2392,6 +2621,7 @@ public sealed class MainWindowViewModel : ObservableObject
             CaricaServiziSalvati(servizioGiornalieroId);
             AggiornaAnniContabilitaDisponibili();
             AggiornaDatiMensili();
+            RegistraSnapshotServizio();
             Stato = isNuovoServizio
                 ? $"Servizio giornaliero salvato con ID {servizioGiornalieroId}."
                 : $"Servizio giornaliero #{servizioGiornalieroId} aggiornato.";
@@ -2425,6 +2655,48 @@ public sealed class MainWindowViewModel : ObservableObject
         ServizioSupportiOccasionaliBozza.Add(item);
         SelectedSupportoOccasionale = item;
         AggiornaRiepilogoBozzaServizio();
+    }
+
+    private void AggiungiLocalitaOperativa()
+    {
+        try
+        {
+            var item = _repository.AddLocalitaOperativa(NuovaLocalitaOperativa);
+            if (!LocalitaOperativeCatalogo.Any(existing => existing.LocalitaOperativaId == item.LocalitaOperativaId))
+            {
+                LocalitaOperativeCatalogo.Add(item);
+            }
+
+            ServizioLocalitaSelezionata = LocalitaOperativeCatalogo.First(existing => existing.LocalitaOperativaId == item.LocalitaOperativaId);
+            NuovaLocalitaOperativa = string.Empty;
+            Stato = $"Localita aggiunta: {item.Descrizione}";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Localita operative", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Inserimento localita non riuscito.";
+        }
+    }
+
+    private void AggiungiUnitaNavale()
+    {
+        try
+        {
+            var item = _repository.AddUnitaNavale(NuovaUnitaNavale);
+            if (!UnitaNavaliCatalogo.Any(existing => existing.UnitaNavaleId == item.UnitaNavaleId))
+            {
+                UnitaNavaliCatalogo.Add(item);
+            }
+
+            ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.First(existing => existing.UnitaNavaleId == item.UnitaNavaleId);
+            NuovaUnitaNavale = string.Empty;
+            Stato = $"Mezzo nautico aggiunto: {item.Descrizione}";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Mezzi nautici", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Inserimento mezzo nautico non riuscito.";
+        }
     }
 
     private void RimuoviSupportoOccasionale()
@@ -2495,13 +2767,19 @@ public sealed class MainWindowViewModel : ObservableObject
         ServizioData = FormatDate(servizio.DataServizio);
         ServizioNumeroOrdine = servizio.NumeroOrdineServizio;
         ServizioOrario = servizio.OrarioServizio;
-        ServizioTipoSelezionato = servizio.TipoServizio;
+        ServizioStraordinarioAttivo = servizio.StraordinarioAttivo;
+        ServizioStraordinarioInizio = servizio.StraordinarioInizio;
+        ServizioStraordinarioFine = servizio.StraordinarioFine;
+        ServizioTipoSelezionato = NormalizeTipoServizio(servizio.TipoServizio, servizio.FuoriSede);
         ServizioLocalitaSelezionata = LocalitaOperativeCatalogo.FirstOrDefault(item => item.LocalitaOperativaId == servizio.LocalitaOperativaId);
         ServizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault(item => item.ScopoImmersioneId == servizio.ScopoImmersioneId);
-        ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == servizio.UnitaNavaleId);
+        ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == servizio.UnitaNavaleId)
+            ?? UnitaNavaliCatalogo.FirstOrDefault();
         ServizioFuoriSede = servizio.FuoriSede;
         ServizioAttivitaSvolta = servizio.AttivitaSvolta;
         ServizioNote = servizio.Note;
+        NuovaLocalitaOperativa = string.Empty;
+        NuovaUnitaNavale = string.Empty;
 
         InizializzaBozzaServizio(preserveSelections: false);
 
@@ -2529,8 +2807,6 @@ public sealed class MainWindowViewModel : ObservableObject
             var item = new ServizioImmersioneDraftViewModel
             {
                 NumeroImmersione = immersione.NumeroImmersione,
-                OrarioInizio = FormatTime(immersione.OrarioInizio),
-                OrarioFine = FormatTime(immersione.OrarioFine),
                 DirettoreImmersione = TrovaOperatoreServizio(immersione.DirettoreImmersionePerId),
                 OperatoreSoccorso = TrovaOperatoreServizio(immersione.OperatoreSoccorsoPerId),
                 AssistenteBlsd = TrovaOperatoreServizio(immersione.AssistenteBlsdPerId),
@@ -2586,6 +2862,12 @@ public sealed class MainWindowViewModel : ObservableObject
                 partecipazioneBozza.Note = partecipazione.Note;
                 AggiornaCalcoliPartecipazioneImmersione(partecipazioneBozza);
             }
+
+            if (immersione.Partecipazioni.Count > 0)
+            {
+                immersioneBozza.ProfonditaCondivisaInizializzata = true;
+                immersioneBozza.OreCondiviseInizializzate = true;
+            }
         }
 
         ServizioSupportiOccasionaliBozza.Clear();
@@ -2609,6 +2891,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
         AggiornaContestoServizio();
         AggiornaRiepilogoBozzaServizio();
+        RegistraSnapshotServizio();
         Stato = $"Servizio giornaliero #{servizioGiornalieroId} caricato.";
     }
 
@@ -2619,6 +2902,9 @@ public sealed class MainWindowViewModel : ObservableObject
         ServizioData = DateTime.Today.ToString("dd/MM/yyyy");
         ServizioNumeroOrdine = string.Empty;
         ServizioOrario = string.Empty;
+        ServizioStraordinarioAttivo = false;
+        ServizioStraordinarioInizio = string.Empty;
+        ServizioStraordinarioFine = string.Empty;
         ServizioTipoSelezionato = "InSede";
         ServizioLocalitaSelezionata = LocalitaOperativeCatalogo.FirstOrDefault();
         ServizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault();
@@ -2626,6 +2912,8 @@ public sealed class MainWindowViewModel : ObservableObject
         ServizioFuoriSede = false;
         ServizioAttivitaSvolta = string.Empty;
         ServizioNote = string.Empty;
+        NuovaLocalitaOperativa = string.Empty;
+        NuovaUnitaNavale = string.Empty;
 
         foreach (var partecipante in ServizioPartecipantiBozza)
         {
@@ -2639,6 +2927,8 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             immersione.OrarioInizio = string.Empty;
             immersione.OrarioFine = string.Empty;
+            immersione.ProfonditaCondivisaInizializzata = false;
+            immersione.OreCondiviseInizializzate = false;
             immersione.DirettoreImmersione = null;
             immersione.OperatoreSoccorso = null;
             immersione.AssistenteBlsd = null;
@@ -2671,6 +2961,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
         AggiornaContestoServizio();
         AggiornaRiepilogoBozzaServizio();
+        RegistraSnapshotServizio();
         Stato = "Nuova bozza servizio giornaliero.";
     }
 
@@ -2703,6 +2994,7 @@ public sealed class MainWindowViewModel : ObservableObject
         PulisciEditorAbilitazione();
         PulisciEditorVisita();
         AggiornaRiepilogoScheda();
+        RegistraSnapshotPersonale();
         Stato = "Nuova scheda personale";
     }
 
@@ -2752,6 +3044,7 @@ public sealed class MainWindowViewModel : ObservableObject
         PulisciEditorAbilitazione();
         PulisciEditorVisita();
         AggiornaRiepilogoScheda();
+        RegistraSnapshotPersonale();
         Stato = $"Scheda caricata: {personale.NominativoCompleto}";
     }
 
@@ -2788,6 +3081,7 @@ public sealed class MainWindowViewModel : ObservableObject
             }
 
             Stato = $"Scheda salvata con PerID {perId}";
+            RegistraSnapshotPersonale();
             EseguiBackupLocaleSilenzioso("save-person");
         }
         catch (Exception ex)
@@ -3168,6 +3462,219 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(HasAttagliamentoAggiuntivo));
     }
 
+    private void ApplicaOrarioServizioSalvato(string value)
+    {
+        var valore = value.Trim();
+        _servizioOrarioFissoSelezionato = string.Empty;
+        _servizioOrarioDerogaAttiva = false;
+        _servizioOrarioDerogaInizio = string.Empty;
+        _servizioOrarioDerogaFine = string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(valore))
+        {
+            var orarioFisso = OrariServizioFissiDisponibili
+                .FirstOrDefault(item => !string.IsNullOrWhiteSpace(item) && IsMatchingTimeRange(item, valore));
+
+            if (!string.IsNullOrWhiteSpace(orarioFisso))
+            {
+                _servizioOrarioFissoSelezionato = orarioFisso;
+            }
+            else
+            {
+                _servizioOrarioDerogaAttiva = true;
+                if (TryExtractTimeRange(valore, out var inizio, out var fine))
+                {
+                    _servizioOrarioDerogaInizio = inizio;
+                    _servizioOrarioDerogaFine = fine;
+                }
+            }
+        }
+
+        OnPropertyChanged(nameof(ServizioOrarioFissoSelezionato));
+        OnPropertyChanged(nameof(ServizioOrarioDerogaAttiva));
+        OnPropertyChanged(nameof(ServizioOrarioDerogaInizio));
+        OnPropertyChanged(nameof(ServizioOrarioDerogaFine));
+    }
+
+    private void AggiornaValoreOrarioServizio()
+    {
+        var nuovoValore = BuildServizioOrarioValue();
+        if (!string.Equals(_servizioOrario, nuovoValore, StringComparison.Ordinal))
+        {
+            _servizioOrario = nuovoValore;
+        }
+
+        AggiornaRiepilogoBozzaServizio();
+    }
+
+    private string BuildServizioOrarioValue()
+    {
+        if (ServizioOrarioDerogaAttiva)
+        {
+            return BuildTimeRangeDisplay(ServizioOrarioDerogaInizio, ServizioOrarioDerogaFine);
+        }
+
+        return ServizioOrarioFissoSelezionato?.Trim() ?? string.Empty;
+    }
+
+    private static string BuildTimeRangeDisplay(string start, string end)
+    {
+        var normalizedStart = NormalizeTimeTextForStorage(start);
+        var normalizedEnd = NormalizeTimeTextForStorage(end);
+
+        if (string.IsNullOrWhiteSpace(normalizedStart) && string.IsNullOrWhiteSpace(normalizedEnd))
+        {
+            return string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(normalizedStart) || string.IsNullOrWhiteSpace(normalizedEnd))
+        {
+            return string.Empty;
+        }
+
+        return $"{normalizedStart.Replace(':', '.')}/{normalizedEnd.Replace(':', '.')}";
+    }
+
+    private static string NormalizeTimeTextForStorage(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        return TryNormalizeTimeInput(value, out var normalized) ? normalized : value.Trim();
+    }
+
+    private static bool TryNormalizeTimeInput(string value, out string normalized)
+    {
+        normalized = string.Empty;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        var digits = new string(value.Where(char.IsDigit).Take(4).ToArray());
+        if (digits.Length == 3)
+        {
+            digits = $"0{digits}";
+        }
+
+        if (digits.Length != 4)
+        {
+            var sanitized = value.Trim().Replace('.', ':');
+            if (string.Equals(sanitized, "24:00", StringComparison.Ordinal))
+            {
+                normalized = sanitized;
+                return true;
+            }
+
+            if (TimeOnly.TryParse(sanitized, out var parsedFallback))
+            {
+                normalized = parsedFallback.ToString("HH:mm");
+                return true;
+            }
+
+            return false;
+        }
+
+        var hours = int.Parse(digits[..2], CultureInfo.InvariantCulture);
+        var minutes = int.Parse(digits[2..], CultureInfo.InvariantCulture);
+
+        if (hours == 24 && minutes == 0)
+        {
+            normalized = "24:00";
+            return true;
+        }
+
+        if (hours is < 0 or > 23 || minutes is < 0 or > 59)
+        {
+            return false;
+        }
+
+        normalized = $"{hours:00}:{minutes:00}";
+        return true;
+    }
+
+    private static bool TryExtractTimeRange(string value, out string start, out string end)
+    {
+        start = string.Empty;
+        end = string.Empty;
+
+        var normalized = new string(value
+            .Select(character => char.IsDigit(character) ? character : '|')
+            .ToArray());
+        var parts = normalized
+            .Split('|', StringSplitOptions.RemoveEmptyEntries)
+            .Where(part => part.Length is 3 or 4)
+            .Take(2)
+            .ToList();
+
+        if (parts.Count < 2)
+        {
+            return false;
+        }
+
+        if (!TryNormalizeTimeInput(parts[0], out start) || !TryNormalizeTimeInput(parts[1], out end))
+        {
+            start = string.Empty;
+            end = string.Empty;
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsMatchingTimeRange(string expected, string actual)
+    {
+        return TryExtractTimeRange(expected, out var expectedStart, out var expectedEnd)
+               && TryExtractTimeRange(actual, out var actualStart, out var actualEnd)
+               && string.Equals(expectedStart, actualStart, StringComparison.Ordinal)
+               && string.Equals(expectedEnd, actualEnd, StringComparison.Ordinal);
+    }
+
+    private static decimal? CalcolaDurataOre(string start, string end)
+    {
+        if (!TryNormalizeTimeInput(start, out var normalizedStart) || !TryNormalizeTimeInput(end, out var normalizedEnd))
+        {
+            return null;
+        }
+
+        var startMinutes = ToMinutes(normalizedStart);
+        var endMinutes = ToMinutes(normalizedEnd);
+        if (startMinutes is null || endMinutes is null)
+        {
+            return null;
+        }
+
+        var durationMinutes = endMinutes.Value - startMinutes.Value;
+        if (durationMinutes < 0)
+        {
+            durationMinutes += 24 * 60;
+        }
+
+        return durationMinutes / 60m;
+    }
+
+    private static int? ToMinutes(string normalizedTime)
+    {
+        if (string.IsNullOrWhiteSpace(normalizedTime))
+        {
+            return null;
+        }
+
+        if (string.Equals(normalizedTime, "24:00", StringComparison.Ordinal))
+        {
+            return 24 * 60;
+        }
+
+        if (!TimeOnly.TryParseExact(normalizedTime, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+        {
+            return null;
+        }
+
+        return parsed.Hour * 60 + parsed.Minute;
+    }
+
     private void SalvaAttagliamentoInEditor()
     {
         try
@@ -3253,10 +3760,37 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         var dataServizio = ParseDate(ServizioData, "Data servizio")
             ?? throw new InvalidOperationException("La data servizio e obbligatoria.");
+        var orarioServizio = BuildServizioOrarioValue();
 
         if (!TipiServizioDisponibili.Any(item => string.Equals(item, ServizioTipoSelezionato, StringComparison.Ordinal)))
         {
             throw new InvalidOperationException("Seleziona un tipo servizio valido.");
+        }
+
+        if (ServizioOrarioDerogaAttiva)
+        {
+            if (string.IsNullOrWhiteSpace(ServizioOrarioDerogaInizio) || string.IsNullOrWhiteSpace(ServizioOrarioDerogaFine))
+            {
+                throw new InvalidOperationException("Per l'orario in deroga indica sia l'inizio sia la fine.");
+            }
+
+            if (!TryNormalizeTimeInput(ServizioOrarioDerogaInizio, out _) || !TryNormalizeTimeInput(ServizioOrarioDerogaFine, out _))
+            {
+                throw new InvalidOperationException("Orario in deroga non valido. Usa il formato HH:mm.");
+            }
+        }
+
+        if (ServizioStraordinarioAttivo)
+        {
+            if (string.IsNullOrWhiteSpace(ServizioStraordinarioInizio) || string.IsNullOrWhiteSpace(ServizioStraordinarioFine))
+            {
+                throw new InvalidOperationException("Per il lavoro straordinario indica sia l'inizio sia la fine.");
+            }
+
+            if (CalcolaDurataOre(ServizioStraordinarioInizio, ServizioStraordinarioFine) is null)
+            {
+                throw new InvalidOperationException("Orari straordinario non validi. Usa il formato HH:mm.");
+            }
         }
 
         var partecipanti = BuildServizioPartecipanti();
@@ -3274,11 +3808,14 @@ public sealed class MainWindowViewModel : ObservableObject
             ServizioGiornalieroId = _servizioGiornalieroId,
             DataServizio = dataServizio,
             NumeroOrdineServizio = ServizioNumeroOrdine.Trim(),
-            OrarioServizio = ServizioOrario.Trim(),
+            OrarioServizio = orarioServizio,
+            StraordinarioAttivo = ServizioStraordinarioAttivo,
+            StraordinarioInizio = ServizioStraordinarioAttivo ? NormalizeTimeTextForStorage(ServizioStraordinarioInizio) : string.Empty,
+            StraordinarioFine = ServizioStraordinarioAttivo ? NormalizeTimeTextForStorage(ServizioStraordinarioFine) : string.Empty,
             TipoServizio = ServizioTipoSelezionato,
             LocalitaOperativaId = ServizioLocalitaSelezionata?.LocalitaOperativaId,
             ScopoImmersioneId = ServizioScopoSelezionato?.ScopoImmersioneId,
-            UnitaNavaleId = ServizioUnitaNavaleSelezionata?.UnitaNavaleId,
+            UnitaNavaleId = ServizioUnitaNavaleSelezionata is { UnitaNavaleId: > 0 } unita ? unita.UnitaNavaleId : null,
             FuoriSede = ServizioFuoriSede,
             AttivitaSvolta = ServizioAttivitaSvolta.Trim(),
             Note = ServizioNote.Trim(),
@@ -3361,9 +3898,7 @@ public sealed class MainWindowViewModel : ObservableObject
         foreach (var row in ServizioImmersioniBozza)
         {
             var partecipazioniImmersione = BuildServizioPartecipazioniImmersione(row, presentiPerId);
-            var includeRow = !string.IsNullOrWhiteSpace(row.OrarioInizio)
-                || !string.IsNullOrWhiteSpace(row.OrarioFine)
-                || row.DirettoreImmersione is not null
+            var includeRow = row.DirettoreImmersione is not null
                 || row.OperatoreSoccorso is not null
                 || row.AssistenteBlsd is not null
                 || row.AssistenteSanitario is not null
@@ -3375,13 +3910,6 @@ public sealed class MainWindowViewModel : ObservableObject
                 continue;
             }
 
-            var orarioInizio = ParseTime(row.OrarioInizio, $"Immersione {row.NumeroImmersione} - ora inizio");
-            var orarioFine = ParseTime(row.OrarioFine, $"Immersione {row.NumeroImmersione} - ora fine");
-            if (orarioInizio is not null && orarioFine is not null && orarioFine <= orarioInizio)
-            {
-                throw new InvalidOperationException($"Immersione {row.NumeroImmersione}: l'ora fine deve essere successiva all'ora inizio.");
-            }
-
             ValidaOperatoreImmersione("direttore immersione", row.DirettoreImmersione, presentiPerId, row.NumeroImmersione);
             ValidaOperatoreImmersione("operatore soccorso", row.OperatoreSoccorso, presentiPerId, row.NumeroImmersione);
             ValidaOperatoreImmersione("assistenza BLSD", row.AssistenteBlsd, presentiPerId, row.NumeroImmersione);
@@ -3390,8 +3918,8 @@ public sealed class MainWindowViewModel : ObservableObject
             items.Add(new ServizioImmersione
             {
                 NumeroImmersione = row.NumeroImmersione,
-                OrarioInizio = orarioInizio,
-                OrarioFine = orarioFine,
+                OrarioInizio = null,
+                OrarioFine = null,
                 DirettoreImmersionePerId = GetPerIdOperatoreSelezionato(row.DirettoreImmersione),
                 OperatoreSoccorsoPerId = GetPerIdOperatoreSelezionato(row.OperatoreSoccorso),
                 AssistenteBlsdPerId = GetPerIdOperatoreSelezionato(row.AssistenteBlsd),
@@ -3674,21 +4202,6 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private static TimeOnly? ParseTime(string value, string fieldName)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        if (TimeOnly.TryParse(value, out var parsed))
-        {
-            return parsed;
-        }
-
-        throw new InvalidOperationException($"{fieldName}: usare un orario valido, ad esempio 08:30.");
-    }
-
     private static int? ParseNullableInt(string value, string fieldName)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -3725,8 +4238,6 @@ public sealed class MainWindowViewModel : ObservableObject
         return MailPoliziaHelper.NormalizeUserPart(value, fieldName);
     }
 
-    private static string FormatTime(TimeOnly? value) => value?.ToString("HH:mm") ?? string.Empty;
-
     private static string FormatDecimal(decimal? value) =>
         value?.ToString("0.##", CultureInfo.CurrentCulture) ?? string.Empty;
 
@@ -3746,11 +4257,6 @@ public sealed class MainWindowViewModel : ObservableObject
     }
 
     private static string FormatDate(DateOnly? value) => value?.ToString("dd/MM/yyyy") ?? string.Empty;
-
-    private static TimeOnly? ParseTimeSilenzioso(string value)
-    {
-        return TimeOnly.TryParse(value, out var parsed) ? parsed : null;
-    }
 
     private static decimal? ParseDecimalSilenzioso(string value)
     {
@@ -3876,7 +4382,8 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         var personaleAttivo = _repository
             .SearchPersonale(string.Empty, null, null)
-            .OrderBy(item => item.Cognome)
+            .OrderBy(item => QualificaFormatter.GetGerarchiaOrdine(item.Qualifica, item.IsProfiloSanitario, item.RuoloSanitario))
+            .ThenBy(item => item.Cognome)
             .ThenBy(item => item.Nome)
             .ToList();
 
@@ -3903,6 +4410,8 @@ public sealed class MainWindowViewModel : ObservableObject
                 PerId = personale.PerId,
                 Qualifica = personale.Qualifica,
                 Nominativo = personale.NominativoCompleto,
+                ProfiloPersonale = personale.ProfiloPersonale,
+                RuoloSanitario = personale.RuoloSanitario,
                 Contatti = personale.ContattiSintesi,
                 Presente = esistente?.Presente ?? false,
                 DefaultGruppoOperativoId = defaultGruppoOperativoId,
@@ -3952,7 +4461,8 @@ public sealed class MainWindowViewModel : ObservableObject
             .Select(item => TrovaOperatoreServizio(item.PerId))
             .Where(item => item is not null && !ProfiliPersonaleCatalogo.IsSanitario(item.ProfiloPersonale))
             .Cast<PersonaleListItemViewModel>()
-            .OrderBy(item => item.Cognome)
+            .OrderBy(item => QualificaFormatter.GetGerarchiaOrdine(item.Qualifica, item.IsProfiloSanitario, item.RuoloSanitario))
+            .ThenBy(item => item.Cognome)
             .ThenBy(item => item.Nome)
             .ToList();
 
@@ -3998,16 +4508,7 @@ public sealed class MainWindowViewModel : ObservableObject
                 AggiornaCalcoliPartecipazioneImmersione(row);
             }
 
-            AggiornaOreAutomaticheImmersione(immersione);
-        }
-    }
-
-    private void AggiornaOreAutomaticheImmersione(ServizioImmersioneDraftViewModel immersione)
-    {
-        foreach (var partecipazione in immersione.Partecipazioni)
-        {
-            AggiornaOreAutomatichePerPartecipazione(partecipazione);
-            AggiornaCalcoliPartecipazioneImmersione(partecipazione);
+            AggiornaStatoCondivisioneValoriImmersione(immersione);
         }
     }
 
@@ -4025,55 +4526,101 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void PropagaProfonditaPrimaRiga(ServizioImmersioneDraftViewModel immersione)
+    private void SincronizzaValoriCondivisiImmersione(
+        ServizioImmersioneDraftViewModel immersione,
+        ServizioPartecipanteImmersioneDraftViewModel? origine = null,
+        bool sincronizzaProfondita = true,
+        bool sincronizzaOre = true)
     {
-        if (_isSyncingProfonditaPrimaRiga || immersione.Partecipazioni.Count == 0)
+        if (_isSyncingValoriCondivisiImmersione)
         {
             return;
         }
 
-        var profondita = immersione.Partecipazioni[0].ProfonditaMetri.Trim();
-        if (string.IsNullOrWhiteSpace(profondita))
+        var righeInImmersione = immersione.Partecipazioni
+            .Where(item => item.InImmersione)
+            .ToList();
+
+        if (righeInImmersione.Count <= 1)
         {
             return;
         }
 
-        _isSyncingProfonditaPrimaRiga = true;
+        var profonditaCondivisa = sincronizzaProfondita
+            && !immersione.ProfonditaCondivisaInizializzata
+            ? TrovaValoreCondivisoImmersione(
+                origine?.ProfonditaMetri,
+                righeInImmersione.Select(item => item.ProfonditaMetri))
+            : string.Empty;
+        var oreCondivise = sincronizzaOre
+            && !immersione.OreCondiviseInizializzate
+            ? TrovaValoreCondivisoImmersione(
+                origine?.OreImmersione,
+                righeInImmersione.Select(item => item.OreImmersione))
+            : string.Empty;
+
+        if (string.IsNullOrWhiteSpace(profonditaCondivisa) && string.IsNullOrWhiteSpace(oreCondivise))
+        {
+            return;
+        }
+
+        _isSyncingValoriCondivisiImmersione = true;
         try
         {
-            foreach (var partecipazione in immersione.Partecipazioni.Skip(1).Where(item => item.InImmersione))
+            foreach (var partecipazione in righeInImmersione)
             {
-                partecipazione.ProfonditaMetri = profondita;
+                if (sincronizzaProfondita
+                    && !string.IsNullOrWhiteSpace(profonditaCondivisa)
+                    && !string.Equals(partecipazione.ProfonditaMetri, profonditaCondivisa, StringComparison.Ordinal))
+                {
+                    partecipazione.ProfonditaMetri = profonditaCondivisa;
+                }
+
+                if (sincronizzaOre
+                    && !string.IsNullOrWhiteSpace(oreCondivise)
+                    && !string.Equals(partecipazione.OreImmersione, oreCondivise, StringComparison.Ordinal))
+                {
+                    partecipazione.OreImmersione = oreCondivise;
+                }
             }
         }
         finally
         {
-            _isSyncingProfonditaPrimaRiga = false;
+            _isSyncingValoriCondivisiImmersione = false;
+        }
+
+        if (sincronizzaProfondita && !string.IsNullOrWhiteSpace(profonditaCondivisa))
+        {
+            immersione.ProfonditaCondivisaInizializzata = true;
+        }
+
+        if (sincronizzaOre && !string.IsNullOrWhiteSpace(oreCondivise))
+        {
+            immersione.OreCondiviseInizializzate = true;
         }
     }
 
-    private void AggiornaOreAutomatichePerPartecipazione(ServizioPartecipanteImmersioneDraftViewModel partecipazione)
+    private static string TrovaValoreCondivisoImmersione(string? valoreOrigine, IEnumerable<string> valori)
     {
-        if (!partecipazione.InImmersione || !string.IsNullOrWhiteSpace(partecipazione.OreImmersione))
+        if (!string.IsNullOrWhiteSpace(valoreOrigine))
         {
-            return;
+            return valoreOrigine.Trim();
         }
 
-        var immersione = ServizioImmersioniBozza.FirstOrDefault(item => item.Partecipazioni.Contains(partecipazione));
-        if (immersione is null)
+        return valori.FirstOrDefault(item => !string.IsNullOrWhiteSpace(item))?.Trim() ?? string.Empty;
+    }
+
+    private static void AggiornaStatoCondivisioneValoriImmersione(ServizioImmersioneDraftViewModel immersione)
+    {
+        if (!immersione.Partecipazioni.Any(item => item.InImmersione && !string.IsNullOrWhiteSpace(item.ProfonditaMetri)))
         {
-            return;
+            immersione.ProfonditaCondivisaInizializzata = false;
         }
 
-        var orarioInizio = ParseTimeSilenzioso(immersione.OrarioInizio);
-        var orarioFine = ParseTimeSilenzioso(immersione.OrarioFine);
-        if (orarioInizio is null || orarioFine is null || orarioFine <= orarioInizio)
+        if (!immersione.Partecipazioni.Any(item => item.InImmersione && !string.IsNullOrWhiteSpace(item.OreImmersione)))
         {
-            return;
+            immersione.OreCondiviseInizializzate = false;
         }
-
-        var ore = Math.Round((decimal)(orarioFine.Value - orarioInizio.Value).TotalMinutes / 60m, 2, MidpointRounding.AwayFromZero);
-        partecipazione.OreImmersione = FormatDecimal(ore);
     }
 
     private void AggiornaFasciaDaProfondita(ServizioPartecipanteImmersioneDraftViewModel row)
@@ -4192,20 +4739,11 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private void ServizioImmersioneBozza_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ServizioImmersioneDraftViewModel.OrarioInizio)
-            or nameof(ServizioImmersioneDraftViewModel.OrarioFine)
-            or nameof(ServizioImmersioneDraftViewModel.DirettoreImmersione)
+        if (e.PropertyName is nameof(ServizioImmersioneDraftViewModel.DirettoreImmersione)
             or nameof(ServizioImmersioneDraftViewModel.OperatoreSoccorso)
             or nameof(ServizioImmersioneDraftViewModel.AssistenteBlsd)
             or nameof(ServizioImmersioneDraftViewModel.AssistenteSanitario))
         {
-            if (sender is ServizioImmersioneDraftViewModel immersione
-                && e.PropertyName is nameof(ServizioImmersioneDraftViewModel.OrarioInizio)
-                    or nameof(ServizioImmersioneDraftViewModel.OrarioFine))
-            {
-                AggiornaOreAutomaticheImmersione(immersione);
-            }
-
             AggiornaRiepilogoBozzaServizio();
         }
     }
@@ -4221,12 +4759,11 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             if (row.InImmersione)
             {
-                ApplicaProfonditaPrimaRigaAllaPartecipazione(row);
+                ApplicaValoriCondivisiAllaPartecipazione(row);
             }
-
-            if (row.InImmersione && string.IsNullOrWhiteSpace(row.OreImmersione))
+            else if (TrovaImmersioneDiPartecipazione(row) is { } immersione)
             {
-                AggiornaOreAutomatichePerPartecipazione(row);
+                AggiornaStatoCondivisioneValoriImmersione(immersione);
             }
 
             AggiornaCalcoliPartecipazioneImmersione(row);
@@ -4236,12 +4773,16 @@ public sealed class MainWindowViewModel : ObservableObject
 
         if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.ProfonditaMetri))
         {
-            if (!_isSyncingProfonditaPrimaRiga
+            if (!_isSyncingValoriCondivisiImmersione
                 && TrovaImmersioneDiPartecipazione(row) is { } immersione
-                && immersione.Partecipazioni.Count > 0
-                && ReferenceEquals(immersione.Partecipazioni[0], row))
+                && !immersione.ProfonditaCondivisaInizializzata)
             {
-                PropagaProfonditaPrimaRiga(immersione);
+                SincronizzaValoriCondivisiImmersione(immersione, row, sincronizzaProfondita: true, sincronizzaOre: false);
+            }
+
+            if (TrovaImmersioneDiPartecipazione(row) is { } immersioneProfondita)
+            {
+                AggiornaStatoCondivisioneValoriImmersione(immersioneProfondita);
             }
 
             AggiornaFasciaDaProfondita(row);
@@ -4256,6 +4797,20 @@ public sealed class MainWindowViewModel : ObservableObject
             or nameof(ServizioPartecipanteImmersioneDraftViewModel.CategoriaContabileOre)
             or nameof(ServizioPartecipanteImmersioneDraftViewModel.Note))
         {
+            if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.OreImmersione)
+                && !_isSyncingValoriCondivisiImmersione
+                && TrovaImmersioneDiPartecipazione(row) is { } immersione
+                && !immersione.OreCondiviseInizializzate)
+            {
+                SincronizzaValoriCondivisiImmersione(immersione, row, sincronizzaProfondita: false, sincronizzaOre: true);
+            }
+
+            if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.OreImmersione)
+                && TrovaImmersioneDiPartecipazione(row) is { } immersioneOre)
+            {
+                AggiornaStatoCondivisioneValoriImmersione(immersioneOre);
+            }
+
             if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.TipologiaImmersioneOperativa))
             {
                 AggiornaFasciaDaProfondita(row);
@@ -4278,37 +4833,45 @@ public sealed class MainWindowViewModel : ObservableObject
     private ServizioImmersioneDraftViewModel? TrovaImmersioneDiPartecipazione(ServizioPartecipanteImmersioneDraftViewModel partecipazione) =>
         ServizioImmersioniBozza.FirstOrDefault(item => item.Partecipazioni.Contains(partecipazione));
 
-    private void ApplicaProfonditaPrimaRigaAllaPartecipazione(ServizioPartecipanteImmersioneDraftViewModel partecipazione)
+    private void ApplicaValoriCondivisiAllaPartecipazione(ServizioPartecipanteImmersioneDraftViewModel partecipazione)
     {
-        if (_isSyncingProfonditaPrimaRiga
-            || !partecipazione.InImmersione
-            || !string.IsNullOrWhiteSpace(partecipazione.ProfonditaMetri))
+        if (_isSyncingValoriCondivisiImmersione || !partecipazione.InImmersione)
         {
             return;
         }
 
         var immersione = TrovaImmersioneDiPartecipazione(partecipazione);
-        if (immersione is null
-            || immersione.Partecipazioni.Count == 0
-            || ReferenceEquals(immersione.Partecipazioni[0], partecipazione))
+        if (immersione is null)
         {
             return;
         }
 
-        var profondita = immersione.Partecipazioni[0].ProfonditaMetri.Trim();
-        if (string.IsNullOrWhiteSpace(profondita))
-        {
-            return;
-        }
+        var altreRigheInImmersione = immersione.Partecipazioni
+            .Where(item => item.InImmersione && !ReferenceEquals(item, partecipazione))
+            .ToList();
+        var profonditaCondivisa = immersione.ProfonditaCondivisaInizializzata
+            ? string.Empty
+            : TrovaValoreCondivisoImmersione(null, altreRigheInImmersione.Select(item => item.ProfonditaMetri));
+        var oreCondivise = immersione.OreCondiviseInizializzate
+            ? string.Empty
+            : TrovaValoreCondivisoImmersione(null, altreRigheInImmersione.Select(item => item.OreImmersione));
 
-        _isSyncingProfonditaPrimaRiga = true;
+        _isSyncingValoriCondivisiImmersione = true;
         try
         {
-            partecipazione.ProfonditaMetri = profondita;
+            if (!string.IsNullOrWhiteSpace(profonditaCondivisa))
+            {
+                partecipazione.ProfonditaMetri = profonditaCondivisa;
+            }
+
+            if (!string.IsNullOrWhiteSpace(oreCondivise))
+            {
+                partecipazione.OreImmersione = oreCondivise;
+            }
         }
         finally
         {
-            _isSyncingProfonditaPrimaRiga = false;
+            _isSyncingValoriCondivisiImmersione = false;
         }
     }
 
@@ -4319,7 +4882,8 @@ public sealed class MainWindowViewModel : ObservableObject
             .Select(item => TrovaOperatoreServizio(item.PerId))
             .Where(item => item is not null)
             .Cast<PersonaleListItemViewModel>()
-            .OrderBy(item => item.Cognome)
+            .OrderBy(item => QualificaFormatter.GetGerarchiaOrdine(item.Qualifica, item.IsProfiloSanitario, item.RuoloSanitario))
+            .ThenBy(item => item.Cognome)
             .ThenBy(item => item.Nome)
             .ToList();
 
@@ -4414,8 +4978,11 @@ public sealed class MainWindowViewModel : ObservableObject
     private void AggiornaRiepilogoBozzaServizio()
     {
         OnPropertyChanged(nameof(ServizioBozzaStato));
+        OnPropertyChanged(nameof(ServizioOrario));
+        OnPropertyChanged(nameof(ServizioOrarioRiepilogo));
         OnPropertyChanged(nameof(ServizioTipoDescrizione));
         OnPropertyChanged(nameof(ServizioFuoriSedeDescrizione));
+        OnPropertyChanged(nameof(ServizioStraordinarioOreDisplay));
         OnPropertyChanged(nameof(ServizioCategoriaRegistroDescrizione));
         OnPropertyChanged(nameof(ServizioPartecipantiTotali));
         OnPropertyChanged(nameof(ServizioPresentiTotali));
@@ -4440,7 +5007,7 @@ public sealed class MainWindowViewModel : ObservableObject
         SostituisciCollection(CategorieRegistroCatalogo, cataloghiServizio.CategorieRegistro);
         SostituisciCollection(LocalitaOperativeCatalogo, cataloghiServizio.LocalitaOperative);
         SostituisciCollection(ScopiImmersioneCatalogo, cataloghiServizio.ScopiImmersione);
-        SostituisciCollection(UnitaNavaliCatalogo, cataloghiServizio.UnitaNavali);
+        SostituisciCollection(UnitaNavaliCatalogo, BuildUnitaNavaliCatalogo(cataloghiServizio.UnitaNavali));
         SostituisciCollection(TipologieImmersioneOperativeCatalogo, cataloghiServizio.TipologieImmersione);
         SostituisciCollection(FasceProfonditaCatalogo, cataloghiServizio.FasceProfondita);
         SostituisciCollection(CategorieContabiliOreCatalogo, cataloghiServizio.CategorieContabiliOre);
@@ -4468,6 +5035,316 @@ public sealed class MainWindowViewModel : ObservableObject
         MostraTariffeContabili = false;
         SezioneAttivaIndex = HomeSectionIndex;
     }
+
+    private bool HasModifichePersonaleNonSalvate() => CapturePersonaleEditorSnapshot() != _personaleEditorSnapshot;
+
+    private bool HasModificheServizioNonSalvate() => CaptureServizioEditorSnapshot() != _servizioEditorSnapshot;
+
+    private bool HasModificheTariffeNonSalvate() => CaptureTariffeEditorSnapshot() != _tariffeEditorSnapshot;
+
+    private void RegistraSnapshotPersonale() => _personaleEditorSnapshot = CapturePersonaleEditorSnapshot();
+
+    private void RegistraSnapshotServizio() => _servizioEditorSnapshot = CaptureServizioEditorSnapshot();
+
+    private void RegistraSnapshotTariffeContabili() => _tariffeEditorSnapshot = CaptureTariffeEditorSnapshot();
+
+    private string CapturePersonaleEditorSnapshot()
+    {
+        var builder = new StringBuilder();
+        AppendSnapshot(builder, "PerIdInput", PerIdInput);
+        AppendSnapshot(builder, "Cognome", Cognome);
+        AppendSnapshot(builder, "Nome", Nome);
+        AppendSnapshot(builder, "Qualifica", Qualifica);
+        AppendSnapshot(builder, "Profilo", ProfiloPersonale);
+        AppendSnapshot(builder, "RuoloSanitario", RuoloSanitario);
+        AppendSnapshot(builder, "CodiceFiscale", CodiceFiscale);
+        AppendSnapshot(builder, "Matricola", MatricolaPersonale);
+        AppendSnapshot(builder, "Brevetto", NumeroBrevettoSmz);
+        AppendSnapshot(builder, "DataNascita", DataNascita);
+        AppendSnapshot(builder, "LuogoNascita", LuogoNascita);
+        AppendSnapshot(builder, "ViaResidenza", ViaResidenza);
+        AppendSnapshot(builder, "CapResidenza", CapResidenza);
+        AppendSnapshot(builder, "CittaResidenza", CittaResidenza);
+        AppendSnapshot(builder, "Telefono1", Telefono1);
+        AppendSnapshot(builder, "Telefono2", Telefono2);
+        AppendSnapshot(builder, "Mail1Utente", Mail1Utente);
+        AppendSnapshot(builder, "Mail2Utente", Mail2Utente);
+
+        foreach (var row in Abilitazioni)
+        {
+            AppendSnapshot(
+                builder,
+                "Abilitazione",
+                string.Join("|",
+                    row.PersonaleAbilitazioneId?.ToString() ?? string.Empty,
+                    row.TipoAbilitazioneId?.ToString() ?? string.Empty,
+                    NormalizeSnapshotValue(row.TipoDescrizione),
+                    NormalizeSnapshotValue(row.Livello),
+                    NormalizeSnapshotValue(row.ProfonditaMetri),
+                    NormalizeSnapshotValue(row.DataConseguimento),
+                    NormalizeSnapshotValue(row.DataScadenza),
+                    NormalizeSnapshotValue(row.Note)));
+        }
+
+        foreach (var row in VisiteMediche)
+        {
+            AppendSnapshot(
+                builder,
+                "Visita",
+                string.Join("|",
+                    row.VisitaMedicaId?.ToString() ?? string.Empty,
+                    NormalizeSnapshotValue(row.TipoVisita),
+                    NormalizeSnapshotValue(row.DataUltimaVisita),
+                    NormalizeSnapshotValue(row.DataScadenza),
+                    NormalizeSnapshotValue(row.Esito),
+                    NormalizeSnapshotValue(row.Note)));
+        }
+
+        foreach (var row in Attagliamento)
+        {
+            AppendSnapshot(
+                builder,
+                "Attagliamento",
+                string.Join("|",
+                    row.PersonaleAttagliamentoId?.ToString() ?? string.Empty,
+                    NormalizeSnapshotValue(row.Voce),
+                    NormalizeSnapshotValue(row.TagliaMisura),
+                    NormalizeSnapshotValue(row.Note)));
+        }
+
+        AppendSnapshot(builder, "AbilitazioneEditor", CaptureAbilitazioneEditorSnapshot());
+        AppendSnapshot(builder, "VisitaEditor", CaptureVisitaEditorSnapshot());
+        AppendSnapshot(builder, "AttagliamentoEditor", CaptureAttagliamentoEditorSnapshot());
+        return builder.ToString();
+    }
+
+    private string CaptureServizioEditorSnapshot()
+    {
+        var builder = new StringBuilder();
+        AppendSnapshot(builder, "ServizioId", _servizioGiornalieroId.ToString());
+        AppendSnapshot(builder, "Data", ServizioData);
+        AppendSnapshot(builder, "Ordine", ServizioNumeroOrdine);
+        AppendSnapshot(builder, "Orario", BuildServizioOrarioValue());
+        AppendSnapshot(builder, "OrarioFisso", ServizioOrarioFissoSelezionato);
+        AppendSnapshot(builder, "OrarioDeroga", ServizioOrarioDerogaAttiva ? "1" : "0");
+        AppendSnapshot(builder, "OrarioDerogaInizio", ServizioOrarioDerogaInizio);
+        AppendSnapshot(builder, "OrarioDerogaFine", ServizioOrarioDerogaFine);
+        AppendSnapshot(builder, "Tipo", ServizioTipoSelezionato);
+        AppendSnapshot(builder, "Localita", ServizioLocalitaSelezionata?.LocalitaOperativaId.ToString() ?? string.Empty);
+        AppendSnapshot(builder, "Scopo", ServizioScopoSelezionato?.ScopoImmersioneId.ToString() ?? string.Empty);
+        AppendSnapshot(builder, "UnitaNavale", ServizioUnitaNavaleSelezionata?.UnitaNavaleId.ToString() ?? string.Empty);
+        AppendSnapshot(builder, "FuoriSede", ServizioFuoriSede ? "1" : "0");
+        AppendSnapshot(builder, "StraordinarioAttivo", ServizioStraordinarioAttivo ? "1" : "0");
+        AppendSnapshot(builder, "StraordinarioInizio", ServizioStraordinarioInizio);
+        AppendSnapshot(builder, "StraordinarioFine", ServizioStraordinarioFine);
+        AppendSnapshot(builder, "NuovaLocalita", NuovaLocalitaOperativa);
+        AppendSnapshot(builder, "NuovoMezzo", NuovaUnitaNavale);
+        AppendSnapshot(builder, "Attivita", ServizioAttivitaSvolta);
+        AppendSnapshot(builder, "Note", ServizioNote);
+
+        foreach (var row in ServizioPartecipantiBozza)
+        {
+            AppendSnapshot(
+                builder,
+                "Partecipante",
+                string.Join("|",
+                    row.PerId.ToString(),
+                    row.Presente ? "1" : "0",
+                    row.GruppoOperativo?.GruppoOperativoId.ToString() ?? string.Empty,
+                    row.RuoloOperativo?.RuoloOperativoId.ToString() ?? string.Empty,
+                    NormalizeSnapshotValue(row.Note)));
+        }
+
+        foreach (var immersione in ServizioImmersioniBozza)
+        {
+            AppendSnapshot(
+                builder,
+                "Immersione",
+                string.Join("|",
+                    immersione.NumeroImmersione.ToString(),
+                    immersione.DirettoreImmersione?.PerId.ToString() ?? string.Empty,
+                    immersione.OperatoreSoccorso?.PerId.ToString() ?? string.Empty,
+                    immersione.AssistenteBlsd?.PerId.ToString() ?? string.Empty,
+                    immersione.AssistenteSanitario?.PerId.ToString() ?? string.Empty,
+                    NormalizeSnapshotValue(immersione.Note)));
+
+            foreach (var partecipazione in immersione.Partecipazioni)
+            {
+                AppendSnapshot(
+                    builder,
+                    "PartecipazioneImmersione",
+                    string.Join("|",
+                        immersione.NumeroImmersione.ToString(),
+                        partecipazione.PerId.ToString(),
+                        partecipazione.InImmersione ? "1" : "0",
+                        partecipazione.TipologiaImmersioneOperativa?.TipologiaImmersioneOperativaId.ToString() ?? string.Empty,
+                        NormalizeSnapshotValue(partecipazione.ProfonditaMetri),
+                        partecipazione.FasciaProfondita?.FasciaProfonditaId.ToString() ?? string.Empty,
+                        NormalizeSnapshotValue(partecipazione.OreImmersione),
+                        partecipazione.CategoriaContabileOre?.CategoriaContabileOreId.ToString() ?? string.Empty,
+                        NormalizeSnapshotValue(partecipazione.Note)));
+            }
+        }
+
+        foreach (var supporto in ServizioSupportiOccasionaliBozza)
+        {
+            AppendSnapshot(
+                builder,
+                "SupportoOccasionale",
+                string.Join("|",
+                    NormalizeSnapshotValue(supporto.Nominativo),
+                    NormalizeSnapshotValue(supporto.Qualifica),
+                    NormalizeSnapshotValue(supporto.Ruolo),
+                    supporto.Presente ? "1" : "0",
+                    NormalizeSnapshotValue(supporto.Contatti),
+                    NormalizeSnapshotValue(supporto.Note)));
+        }
+
+        return builder.ToString();
+    }
+
+    private string CaptureTariffeEditorSnapshot()
+    {
+        var builder = new StringBuilder();
+
+        foreach (var row in RegoleContabiliEditorItems)
+        {
+            AppendSnapshot(
+                builder,
+                "Tariffa",
+                string.Join("|",
+                    row.RegolaContabileImmersioneId.ToString(),
+                    NormalizeSnapshotValue(row.Tariffa),
+                    row.Attiva ? "1" : "0"));
+        }
+
+        return builder.ToString();
+    }
+
+    private string CaptureAbilitazioneEditorSnapshot()
+    {
+        if (SelectedAbilitazione is null)
+        {
+            return IsAbilitazioneEditorVuoto()
+                ? string.Empty
+                : string.Join("|",
+                    "NEW",
+                    AbilitazioneTipoSelezionato?.TipoAbilitazioneId.ToString() ?? string.Empty,
+                    NormalizeSnapshotValue(AbilitazioneLivello),
+                    NormalizeSnapshotValue(AbilitazioneProfondita),
+                    NormalizeSnapshotValue(AbilitazioneDataConseguimento),
+                    NormalizeSnapshotValue(AbilitazioneDataScadenza),
+                    NormalizeSnapshotValue(AbilitazioneNote));
+        }
+
+        var tipoSelezionatoId = AbilitazioneTipoSelezionato?.TipoAbilitazioneId;
+        var unchanged =
+            tipoSelezionatoId == SelectedAbilitazione.TipoAbilitazioneId
+            && string.Equals(NormalizeSnapshotValue(AbilitazioneLivello), NormalizeSnapshotValue(SelectedAbilitazione.Livello), StringComparison.Ordinal)
+            && string.Equals(NormalizeSnapshotValue(AbilitazioneProfondita), NormalizeSnapshotValue(SelectedAbilitazione.ProfonditaMetri), StringComparison.Ordinal)
+            && string.Equals(NormalizeSnapshotValue(AbilitazioneDataConseguimento), NormalizeSnapshotValue(SelectedAbilitazione.DataConseguimento), StringComparison.Ordinal)
+            && string.Equals(NormalizeSnapshotValue(AbilitazioneDataScadenza), NormalizeSnapshotValue(SelectedAbilitazione.DataScadenza), StringComparison.Ordinal)
+            && string.Equals(NormalizeSnapshotValue(AbilitazioneNote), NormalizeSnapshotValue(SelectedAbilitazione.Note), StringComparison.Ordinal);
+
+        return unchanged
+            ? string.Empty
+            : string.Join("|",
+                "EDIT",
+                SelectedAbilitazione.PersonaleAbilitazioneId?.ToString() ?? string.Empty,
+                tipoSelezionatoId?.ToString() ?? string.Empty,
+                NormalizeSnapshotValue(AbilitazioneLivello),
+                NormalizeSnapshotValue(AbilitazioneProfondita),
+                NormalizeSnapshotValue(AbilitazioneDataConseguimento),
+                NormalizeSnapshotValue(AbilitazioneDataScadenza),
+                NormalizeSnapshotValue(AbilitazioneNote));
+    }
+
+    private string CaptureVisitaEditorSnapshot()
+    {
+        if (SelectedVisita is null)
+        {
+            return IsVisitaEditorVuoto()
+                ? string.Empty
+                : string.Join("|",
+                    "NEW",
+                    NormalizeSnapshotValue(VisitaTipoSelezionato?.Descrizione),
+                    NormalizeSnapshotValue(VisitaDataUltimaVisita),
+                    NormalizeSnapshotValue(VisitaEsito),
+                    NormalizeSnapshotValue(VisitaNote));
+        }
+
+        var unchanged =
+            string.Equals(NormalizeSnapshotValue(VisitaTipoSelezionato?.Descrizione), NormalizeSnapshotValue(SelectedVisita.TipoVisita), StringComparison.Ordinal)
+            && string.Equals(NormalizeSnapshotValue(VisitaDataUltimaVisita), NormalizeSnapshotValue(SelectedVisita.DataUltimaVisita), StringComparison.Ordinal)
+            && string.Equals(NormalizeSnapshotValue(VisitaEsito), NormalizeSnapshotValue(SelectedVisita.Esito), StringComparison.Ordinal)
+            && string.Equals(NormalizeSnapshotValue(VisitaNote), NormalizeSnapshotValue(SelectedVisita.Note), StringComparison.Ordinal);
+
+        return unchanged
+            ? string.Empty
+            : string.Join("|",
+                "EDIT",
+                SelectedVisita.VisitaMedicaId?.ToString() ?? string.Empty,
+                NormalizeSnapshotValue(VisitaTipoSelezionato?.Descrizione),
+                NormalizeSnapshotValue(VisitaDataUltimaVisita),
+                NormalizeSnapshotValue(VisitaEsito),
+                NormalizeSnapshotValue(VisitaNote));
+    }
+
+    private string CaptureAttagliamentoEditorSnapshot()
+    {
+        if (SelectedAttagliamento is null)
+        {
+            return IsAttagliamentoEditorVuoto()
+                ? string.Empty
+                : string.Join("|",
+                    "NEW",
+                    NormalizeSnapshotValue(AttagliamentoVoce),
+                    NormalizeSnapshotValue(AttagliamentoTagliaMisura),
+                    NormalizeSnapshotValue(AttagliamentoNote));
+        }
+
+        var unchanged =
+            string.Equals(NormalizeSnapshotValue(AttagliamentoVoce), NormalizeSnapshotValue(SelectedAttagliamento.Voce), StringComparison.Ordinal)
+            && string.Equals(NormalizeSnapshotValue(AttagliamentoTagliaMisura), NormalizeSnapshotValue(SelectedAttagliamento.TagliaMisura), StringComparison.Ordinal)
+            && string.Equals(NormalizeSnapshotValue(AttagliamentoNote), NormalizeSnapshotValue(SelectedAttagliamento.Note), StringComparison.Ordinal);
+
+        return unchanged
+            ? string.Empty
+            : string.Join("|",
+                "EDIT",
+                SelectedAttagliamento.PersonaleAttagliamentoId?.ToString() ?? string.Empty,
+                NormalizeSnapshotValue(AttagliamentoVoce),
+                NormalizeSnapshotValue(AttagliamentoTagliaMisura),
+                NormalizeSnapshotValue(AttagliamentoNote));
+    }
+
+    private bool IsAbilitazioneEditorVuoto() =>
+        AbilitazioneTipoSelezionato is null
+        && string.IsNullOrWhiteSpace(AbilitazioneLivello)
+        && string.IsNullOrWhiteSpace(AbilitazioneProfondita)
+        && string.IsNullOrWhiteSpace(AbilitazioneDataConseguimento)
+        && string.IsNullOrWhiteSpace(AbilitazioneDataScadenza)
+        && string.IsNullOrWhiteSpace(AbilitazioneNote);
+
+    private bool IsVisitaEditorVuoto() =>
+        VisitaTipoSelezionato is null
+        && string.IsNullOrWhiteSpace(VisitaDataUltimaVisita)
+        && string.IsNullOrWhiteSpace(VisitaEsito)
+        && string.IsNullOrWhiteSpace(VisitaNote);
+
+    private bool IsAttagliamentoEditorVuoto() =>
+        string.IsNullOrWhiteSpace(AttagliamentoVoce)
+        && string.IsNullOrWhiteSpace(AttagliamentoTagliaMisura)
+        && string.IsNullOrWhiteSpace(AttagliamentoNote);
+
+    private static void AppendSnapshot(StringBuilder builder, string key, string? value)
+    {
+        builder.Append(key);
+        builder.Append('=');
+        builder.AppendLine(NormalizeSnapshotValue(value));
+    }
+
+    private static string NormalizeSnapshotValue(string? value) => value?.Trim() ?? string.Empty;
 
     private static void SostituisciCollection<T>(ObservableCollection<T> collection, IEnumerable<T> source)
     {

@@ -114,8 +114,14 @@ public sealed class ServizioPartecipanteImmersioneDraftViewModel : ObservableObj
         set => SetProperty(ref _note, value);
     }
 
-    public string NominativoConQualifica =>
-        string.IsNullOrWhiteSpace(Qualifica) ? Nominativo : $"{Qualifica} - {Nominativo}";
+    public string NominativoConQualifica
+    {
+        get
+        {
+            var qualifica = QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
+            return string.IsNullOrWhiteSpace(qualifica) ? Nominativo : $"{qualifica} - {Nominativo}";
+        }
+    }
 
     public string TariffaPropostaDisplay => TariffaProposta?.ToString("0.##") ?? string.Empty;
 

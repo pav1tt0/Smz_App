@@ -325,6 +325,9 @@ public static class DatabaseInitializer
                 DataServizio TEXT NOT NULL,
                 NumeroOrdineServizio TEXT NULL,
                 OrarioServizio TEXT NULL,
+                StraordinarioAttivo INTEGER NOT NULL DEFAULT 0,
+                StraordinarioInizio TEXT NULL,
+                StraordinarioFine TEXT NULL,
                 TipoServizio TEXT NOT NULL DEFAULT 'InSede',
                 LocalitaOperativaId INTEGER NULL,
                 ScopoImmersioneId INTEGER NULL,
@@ -509,6 +512,9 @@ public static class DatabaseInitializer
 
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "NumeroOrdineServizio", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "OrarioServizio", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "StraordinarioAttivo", "INTEGER NOT NULL DEFAULT 0");
+        AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "StraordinarioInizio", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "StraordinarioFine", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "TipologieImmersioneOperative", "ProfonditaMinimaMetri", "INTEGER NULL");
         AddColumnIfMissing(connection, transaction, "TipologieImmersioneOperative", "ProfonditaMassimaMetri", "INTEGER NULL");
     }

@@ -8,6 +8,8 @@ public sealed class ServizioPartecipanteDraftViewModel : ObservableObject
     private int _perId;
     private string _qualifica = string.Empty;
     private string _nominativo = string.Empty;
+    private string _profiloPersonale = string.Empty;
+    private string _ruoloSanitario = string.Empty;
     private string _contatti = string.Empty;
     private int? _defaultGruppoOperativoId;
     private int? _defaultRuoloOperativoId;
@@ -25,13 +27,31 @@ public sealed class ServizioPartecipanteDraftViewModel : ObservableObject
     public string Qualifica
     {
         get => _qualifica;
-        set => SetProperty(ref _qualifica, value);
+        set
+        {
+            if (SetProperty(ref _qualifica, value))
+            {
+                OnPropertyChanged(nameof(QualificaDisplay));
+            }
+        }
     }
 
     public string Nominativo
     {
         get => _nominativo;
         set => SetProperty(ref _nominativo, value);
+    }
+
+    public string ProfiloPersonale
+    {
+        get => _profiloPersonale;
+        set => SetProperty(ref _profiloPersonale, value);
+    }
+
+    public string RuoloSanitario
+    {
+        get => _ruoloSanitario;
+        set => SetProperty(ref _ruoloSanitario, value);
     }
 
     public string Contatti
@@ -75,4 +95,8 @@ public sealed class ServizioPartecipanteDraftViewModel : ObservableObject
         get => _note;
         set => SetProperty(ref _note, value);
     }
+
+    public bool IsProfiloSanitario => ProfiliPersonaleCatalogo.IsSanitario(ProfiloPersonale);
+
+    public string QualificaDisplay => QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
 }

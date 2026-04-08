@@ -67,5 +67,9 @@ public sealed class ServizioImmersioneDraftViewModel : ObservableObject
         set => SetProperty(ref _note, value);
     }
 
+    public bool ProfonditaCondivisaInizializzata { get; set; }
+
+    public bool OreCondiviseInizializzate { get; set; }
+
     public ObservableCollection<ServizioPartecipanteImmersioneDraftViewModel> Partecipazioni { get; }
 }

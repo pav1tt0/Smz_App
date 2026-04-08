@@ -29,12 +29,14 @@ public sealed class ContabilitaSanitarioSummary
 
     public string UltimaDataServizioDescrizione => UltimaDataServizio?.ToString("dd/MM/yyyy") ?? string.Empty;
 
+    public string QualificaDisplay => QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
+
     public string QualificaConRuolo =>
         string.IsNullOrWhiteSpace(RuoloSanitario)
-            ? Qualifica
-            : string.IsNullOrWhiteSpace(Qualifica)
+            ? QualificaDisplay
+            : string.IsNullOrWhiteSpace(QualificaDisplay)
                 ? RuoloSanitario
-                : $"{Qualifica} | {RuoloSanitario}";
+                : $"{QualificaDisplay} | {RuoloSanitario}";
 }
 
 public sealed class ContabilitaSupportoSummary
@@ -53,12 +55,14 @@ public sealed class ContabilitaSupportoSummary
 
     public string UltimaDataServizioDescrizione => UltimaDataServizio?.ToString("dd/MM/yyyy") ?? string.Empty;
 
+    public string QualificaDisplay => QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
+
     public string QualificaConRuolo =>
         string.IsNullOrWhiteSpace(Ruolo)
-            ? Qualifica
-            : string.IsNullOrWhiteSpace(Qualifica)
+            ? QualificaDisplay
+            : string.IsNullOrWhiteSpace(QualificaDisplay)
                 ? Ruolo
-                : $"{Qualifica} | {Ruolo}";
+                : $"{QualificaDisplay} | {Ruolo}";
 }
 
 public sealed class ContabilitaGiornateImpiegoSnapshot
@@ -122,6 +126,8 @@ public sealed class ContabilitaSmzSummary
     public decimal Importo { get; set; }
 
     public string Nominativo => $"{Cognome} {Nome}".Trim();
+
+    public string QualificaDisplay => QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
 
     public string DataServizioDescrizione => DataServizio.ToString("dd/MM/yyyy");
 

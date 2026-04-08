@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows;
 using SMZ.Conta.App.Infrastructure;
+using SMZ.Conta.App.Models;
 using SMZ.Conta.App.ViewModels;
 
 namespace SMZ.Conta.App;
@@ -12,18 +13,15 @@ public partial class MainWindow : Window
 {
     private readonly DiveAmbiencePlayer _diveAmbiencePlayer = new();
     private readonly MainWindowViewModel _viewModel;
-    private readonly Dictionary<string, int> _qualificaOrder;
 
     public MainWindow()
     {
         InitializeComponent();
         _viewModel = new MainWindowViewModel();
         DataContext = _viewModel;
-        _qualificaOrder = _viewModel.QualificheDisponibili
-            .Select((qualifica, index) => new { qualifica, index })
-            .ToDictionary(item => item.qualifica, item => item.index, StringComparer.OrdinalIgnoreCase);
 
         Loaded += MainWindow_Loaded;
+        Closing += MainWindow_Closing;
         Closed += MainWindow_Closed;
         _viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
@@ -37,6 +35,28 @@ public partial class MainWindow : Window
     {
         _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
         _diveAmbiencePlayer.Dispose();
+    }
+
+    private void MainWindow_Closing(object? sender, CancelEventArgs e)
+    {
+        var areeConModifiche = _viewModel.GetAreeConModificheNonSalvate();
+        if (areeConModifiche.Count == 0)
+        {
+            return;
+        }
+
+        var elencoAree = string.Join(", ", areeConModifiche);
+        var result = MessageBox.Show(
+            $"Ci sono modifiche non salvate in: {elencoAree}.\n\nVuoi chiudere comunque l'applicazione?",
+            "Modifiche non salvate",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning,
+            MessageBoxResult.No);
+
+        if (result != MessageBoxResult.Yes)
+        {
+            e.Cancel = true;
+        }
     }
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -73,6 +93,7 @@ public partial class MainWindow : Window
         }
 
         if (sortMemberPath is not nameof(ServizioPartecipanteDraftViewModel.Qualifica)
+            and not nameof(ServizioPartecipanteDraftViewModel.QualificaDisplay)
             and not nameof(ServizioPartecipanteDraftViewModel.Nominativo))
         {
             return;
@@ -98,12 +119,11 @@ public partial class MainWindow : Window
         view.SortDescriptions.Clear();
         if (view is ListCollectionView listView)
         {
-            listView.CustomSort = new ServizioPartecipantiComparer(_qualificaOrder, sortMemberPath, direction);
+            listView.CustomSort = new ServizioPartecipantiComparer(sortMemberPath, direction);
         }
     }
 
     private sealed class ServizioPartecipantiComparer(
-        IReadOnlyDictionary<string, int> qualificaOrder,
         string sortMemberPath,
         ListSortDirection direction) : IComparer
     {
@@ -115,14 +135,16 @@ public partial class MainWindow : Window
             }
 
             var result = sortMemberPath == nameof(ServizioPartecipanteDraftViewModel.Qualifica)
-                ? CompareQualifica(left, right, qualificaOrder)
+                || sortMemberPath == nameof(ServizioPartecipanteDraftViewModel.QualificaDisplay)
+                ? CompareQualifica(left, right)
                 : StringComparer.CurrentCultureIgnoreCase.Compare(left.Nominativo, right.Nominativo);
 
             if (result == 0)
             {
                 result = sortMemberPath == nameof(ServizioPartecipanteDraftViewModel.Qualifica)
+                    || sortMemberPath == nameof(ServizioPartecipanteDraftViewModel.QualificaDisplay)
                     ? StringComparer.CurrentCultureIgnoreCase.Compare(left.Nominativo, right.Nominativo)
-                    : CompareQualifica(left, right, qualificaOrder);
+                    : CompareQualifica(left, right);
             }
 
             return direction == ListSortDirection.Ascending ? result : -result;
@@ -130,11 +152,10 @@ public partial class MainWindow : Window
 
         private static int CompareQualifica(
             ServizioPartecipanteDraftViewModel left,
-            ServizioPartecipanteDraftViewModel right,
-            IReadOnlyDictionary<string, int> qualificaOrder)
+            ServizioPartecipanteDraftViewModel right)
         {
-            var leftRank = GetRank(left.Qualifica, qualificaOrder);
-            var rightRank = GetRank(right.Qualifica, qualificaOrder);
+            var leftRank = QualificaFormatter.GetGerarchiaOrdine(left.Qualifica, left.IsProfiloSanitario, left.RuoloSanitario);
+            var rightRank = QualificaFormatter.GetGerarchiaOrdine(right.Qualifica, right.IsProfiloSanitario, right.RuoloSanitario);
             var rankCompare = leftRank.CompareTo(rightRank);
             if (rankCompare != 0)
             {
@@ -143,10 +164,5 @@ public partial class MainWindow : Window
 
             return StringComparer.CurrentCultureIgnoreCase.Compare(left.Qualifica, right.Qualifica);
         }
-
-        private static int GetRank(string? qualifica, IReadOnlyDictionary<string, int> qualificaOrder) =>
-            !string.IsNullOrWhiteSpace(qualifica) && qualificaOrder.TryGetValue(qualifica.Trim(), out var rank)
-                ? rank
-                : int.MaxValue;
     }
 }

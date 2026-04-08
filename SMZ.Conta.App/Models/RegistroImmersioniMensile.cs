@@ -26,6 +26,8 @@ public sealed class RegistroImmersioneRiga
 
     public string Qualifica { get; set; } = string.Empty;
 
+    public string QualificaDisplay => QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
+
     public string Apparato { get; set; } = string.Empty;
 
     public int? ProfonditaMetri { get; set; }

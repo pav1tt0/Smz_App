@@ -151,6 +151,140 @@ public sealed class PersonaleRepository
         };
     }
 
+    public LocalitaOperativa AddLocalitaOperativa(string descrizione)
+    {
+        if (string.IsNullOrWhiteSpace(descrizione))
+        {
+            throw new InvalidOperationException("Inserisci una localita valida.");
+        }
+
+        var descrizionePulita = descrizione.Trim();
+
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        using (var existing = connection.CreateCommand())
+        {
+            existing.Transaction = transaction;
+            existing.CommandText =
+                """
+                SELECT LocalitaOperativaId, Descrizione, Provincia, Attiva, Ordine
+                FROM LocalitaOperative
+                WHERE UPPER(TRIM(Descrizione)) = UPPER($descrizione)
+                LIMIT 1;
+                """;
+            existing.Parameters.AddWithValue("$descrizione", descrizionePulita);
+
+            using var reader = existing.ExecuteReader();
+            if (reader.Read())
+            {
+                return new LocalitaOperativa
+                {
+                    LocalitaOperativaId = reader.GetInt32(0),
+                    Descrizione = reader.GetString(1),
+                    Provincia = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+                    Attiva = reader.GetInt32(3) == 1,
+                    Ordine = reader.GetInt32(4),
+                };
+            }
+        }
+
+        var nextId = GetNextIntegerId(connection, transaction, "LocalitaOperative", "LocalitaOperativaId");
+        var nextOrder = GetNextIntegerId(connection, transaction, "LocalitaOperative", "Ordine");
+
+        using (var insert = connection.CreateCommand())
+        {
+            insert.Transaction = transaction;
+            insert.CommandText =
+                """
+                INSERT INTO LocalitaOperative (LocalitaOperativaId, Descrizione, Provincia, Attiva, Ordine)
+                VALUES ($id, $descrizione, NULL, 1, $ordine);
+                """;
+            insert.Parameters.AddWithValue("$id", nextId);
+            insert.Parameters.AddWithValue("$descrizione", descrizionePulita);
+            insert.Parameters.AddWithValue("$ordine", nextOrder);
+            insert.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+
+        return new LocalitaOperativa
+        {
+            LocalitaOperativaId = nextId,
+            Descrizione = descrizionePulita,
+            Provincia = string.Empty,
+            Attiva = true,
+            Ordine = nextOrder,
+        };
+    }
+
+    public UnitaNavale AddUnitaNavale(string descrizione)
+    {
+        if (string.IsNullOrWhiteSpace(descrizione))
+        {
+            throw new InvalidOperationException("Inserisci una targa o una descrizione valida per il mezzo nautico.");
+        }
+
+        var descrizionePulita = descrizione.Trim();
+
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        using (var existing = connection.CreateCommand())
+        {
+            existing.Transaction = transaction;
+            existing.CommandText =
+                """
+                SELECT UnitaNavaleId, Descrizione, Sigla, Attiva, Ordine
+                FROM UnitaNavali
+                WHERE UPPER(TRIM(Descrizione)) = UPPER($descrizione)
+                LIMIT 1;
+                """;
+            existing.Parameters.AddWithValue("$descrizione", descrizionePulita);
+
+            using var reader = existing.ExecuteReader();
+            if (reader.Read())
+            {
+                return new UnitaNavale
+                {
+                    UnitaNavaleId = reader.GetInt32(0),
+                    Descrizione = reader.GetString(1),
+                    Sigla = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+                    Attiva = reader.GetInt32(3) == 1,
+                    Ordine = reader.GetInt32(4),
+                };
+            }
+        }
+
+        var nextId = GetNextIntegerId(connection, transaction, "UnitaNavali", "UnitaNavaleId");
+        var nextOrder = GetNextIntegerId(connection, transaction, "UnitaNavali", "Ordine");
+
+        using (var insert = connection.CreateCommand())
+        {
+            insert.Transaction = transaction;
+            insert.CommandText =
+                """
+                INSERT INTO UnitaNavali (UnitaNavaleId, Descrizione, Sigla, Attiva, Ordine)
+                VALUES ($id, $descrizione, NULL, 1, $ordine);
+                """;
+            insert.Parameters.AddWithValue("$id", nextId);
+            insert.Parameters.AddWithValue("$descrizione", descrizionePulita);
+            insert.Parameters.AddWithValue("$ordine", nextOrder);
+            insert.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+
+        return new UnitaNavale
+        {
+            UnitaNavaleId = nextId,
+            Descrizione = descrizionePulita,
+            Sigla = string.Empty,
+            Attiva = true,
+            Ordine = nextOrder,
+        };
+    }
+
     public List<ServizioGiornalieroSummary> GetServiziGiornalieriRecenti(int maxItems = 24)
     {
         using var connection = OpenConnection();
@@ -512,6 +646,9 @@ public sealed class PersonaleRepository
                    DataServizio,
                    NumeroOrdineServizio,
                    OrarioServizio,
+                   StraordinarioAttivo,
+                   StraordinarioInizio,
+                   StraordinarioFine,
                    TipoServizio,
                    LocalitaOperativaId,
                    ScopoImmersioneId,
@@ -536,13 +673,16 @@ public sealed class PersonaleRepository
             DataServizio = DateOnly.Parse(reader.GetString(1)),
             NumeroOrdineServizio = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
             OrarioServizio = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
-            TipoServizio = reader.GetString(4),
-            LocalitaOperativaId = reader.IsDBNull(5) ? null : reader.GetInt32(5),
-            ScopoImmersioneId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
-            UnitaNavaleId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
-            FuoriSede = reader.GetInt32(8) == 1,
-            AttivitaSvolta = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
-            Note = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+            StraordinarioAttivo = reader.GetInt32(4) == 1,
+            StraordinarioInizio = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+            StraordinarioFine = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+            TipoServizio = reader.GetString(7),
+            LocalitaOperativaId = reader.IsDBNull(8) ? null : reader.GetInt32(8),
+            ScopoImmersioneId = reader.IsDBNull(9) ? null : reader.GetInt32(9),
+            UnitaNavaleId = reader.IsDBNull(10) ? null : reader.GetInt32(10),
+            FuoriSede = reader.GetInt32(11) == 1,
+            AttivitaSvolta = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+            Note = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
         };
         reader.Close();
 
@@ -585,6 +725,9 @@ public sealed class PersonaleRepository
                     DataServizio,
                     NumeroOrdineServizio,
                     OrarioServizio,
+                    StraordinarioAttivo,
+                    StraordinarioInizio,
+                    StraordinarioFine,
                     TipoServizio,
                     LocalitaOperativaId,
                     ScopoImmersioneId,
@@ -597,6 +740,9 @@ public sealed class PersonaleRepository
                     $dataServizio,
                     $numeroOrdineServizio,
                     $orarioServizio,
+                    $straordinarioAttivo,
+                    $straordinarioInizio,
+                    $straordinarioFine,
                     $tipoServizio,
                     $localitaOperativaId,
                     $scopoImmersioneId,
@@ -620,6 +766,9 @@ public sealed class PersonaleRepository
                 SET DataServizio = $dataServizio,
                     NumeroOrdineServizio = $numeroOrdineServizio,
                     OrarioServizio = $orarioServizio,
+                    StraordinarioAttivo = $straordinarioAttivo,
+                    StraordinarioInizio = $straordinarioInizio,
+                    StraordinarioFine = $straordinarioFine,
                     TipoServizio = $tipoServizio,
                     LocalitaOperativaId = $localitaOperativaId,
                     ScopoImmersioneId = $scopoImmersioneId,
@@ -1191,6 +1340,9 @@ public sealed class PersonaleRepository
         command.Parameters.AddWithValue("$dataServizio", servizio.DataServizio.ToString("yyyy-MM-dd"));
         command.Parameters.AddWithValue("$numeroOrdineServizio", DbText(servizio.NumeroOrdineServizio));
         command.Parameters.AddWithValue("$orarioServizio", DbText(servizio.OrarioServizio));
+        command.Parameters.AddWithValue("$straordinarioAttivo", servizio.StraordinarioAttivo ? 1 : 0);
+        command.Parameters.AddWithValue("$straordinarioInizio", DbText(servizio.StraordinarioInizio));
+        command.Parameters.AddWithValue("$straordinarioFine", DbText(servizio.StraordinarioFine));
         command.Parameters.AddWithValue("$tipoServizio", servizio.TipoServizio.Trim());
         command.Parameters.AddWithValue("$localitaOperativaId", servizio.LocalitaOperativaId is null ? DBNull.Value : servizio.LocalitaOperativaId.Value);
         command.Parameters.AddWithValue("$scopoImmersioneId", servizio.ScopoImmersioneId is null ? DBNull.Value : servizio.ScopoImmersioneId.Value);
@@ -2437,6 +2589,14 @@ public sealed class PersonaleRepository
         var connection = new SqliteConnection(DatabasePaths.ConnectionString);
         connection.Open();
         return connection;
+    }
+
+    private static int GetNextIntegerId(SqliteConnection connection, SqliteTransaction transaction, string tableName, string columnName)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = $"SELECT COALESCE(MAX({columnName}), 0) + 1 FROM {tableName};";
+        return Convert.ToInt32(command.ExecuteScalar());
     }
 
     private static string? ToDbDate(DateOnly? value) => value?.ToString("yyyy-MM-dd");

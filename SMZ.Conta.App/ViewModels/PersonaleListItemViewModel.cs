@@ -93,13 +93,16 @@ public sealed class PersonaleListItemViewModel : ObservableObject
         set => SetProperty(ref _contatti, value);
     }
 
+    public bool IsProfiloSanitario => ProfiliPersonaleCatalogo.IsSanitario(ProfiloPersonale);
+
     public string Nominativo => $"{Cognome} {Nome}".Trim();
 
     public string NominativoConQualifica
     {
         get
         {
-            var prefisso = string.IsNullOrWhiteSpace(Qualifica) ? Nominativo : $"{Qualifica} - {Nominativo}";
+            var qualifica = QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
+            var prefisso = string.IsNullOrWhiteSpace(qualifica) ? Nominativo : $"{qualifica} - {Nominativo}";
             return ProfiliPersonaleCatalogo.IsSanitario(ProfiloPersonale) && !string.IsNullOrWhiteSpace(RuoloSanitario)
                 ? $"{prefisso} (Sanitario - {RuoloSanitario})"
                 : prefisso;

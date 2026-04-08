@@ -10,6 +10,12 @@ public sealed class ServizioGiornaliero
 
     public string OrarioServizio { get; set; } = string.Empty;
 
+    public bool StraordinarioAttivo { get; set; }
+
+    public string StraordinarioInizio { get; set; } = string.Empty;
+
+    public string StraordinarioFine { get; set; } = string.Empty;
+
     public string TipoServizio { get; set; } = "InSede";
 
     public int? LocalitaOperativaId { get; set; }
