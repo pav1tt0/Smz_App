@@ -300,6 +300,7 @@ public sealed class PersonaleRepository
                    COALESCE(sc.Descrizione, '') AS ScopoDescrizione,
                    COALESCE(unv.Descrizione, '') AS UnitaNavaleDescrizione,
                    s.FuoriSede,
+                   s.IndennitaOrdinePubblico,
                    (
                        SELECT COUNT(1)
                        FROM ServizioPartecipanti sp
@@ -351,10 +352,11 @@ public sealed class PersonaleRepository
                 ScopoDescrizione = reader.GetString(6),
                 UnitaNavaleDescrizione = reader.GetString(7),
                 FuoriSede = reader.GetInt32(8) == 1,
-                PartecipantiTotali = reader.GetInt32(9),
-                PresentiTotali = reader.GetInt32(10),
-                ImmersioniTotali = reader.GetInt32(11),
-                AggiornatoIl = DateTime.Parse(reader.GetString(12)),
+                IndennitaOrdinePubblico = reader.GetInt32(9) == 1,
+                PartecipantiTotali = reader.GetInt32(10),
+                PresentiTotali = reader.GetInt32(11),
+                ImmersioniTotali = reader.GetInt32(12),
+                AggiornatoIl = DateTime.Parse(reader.GetString(13)),
             });
         }
 
@@ -654,6 +656,7 @@ public sealed class PersonaleRepository
                    ScopoImmersioneId,
                    UnitaNavaleId,
                    FuoriSede,
+                   IndennitaOrdinePubblico,
                    AttivitaSvolta,
                    Note
             FROM ServiziGiornalieri
@@ -681,8 +684,9 @@ public sealed class PersonaleRepository
             ScopoImmersioneId = reader.IsDBNull(9) ? null : reader.GetInt32(9),
             UnitaNavaleId = reader.IsDBNull(10) ? null : reader.GetInt32(10),
             FuoriSede = reader.GetInt32(11) == 1,
-            AttivitaSvolta = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
-            Note = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            IndennitaOrdinePubblico = reader.GetInt32(12) == 1,
+            AttivitaSvolta = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            Note = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
         };
         reader.Close();
 
@@ -733,6 +737,7 @@ public sealed class PersonaleRepository
                     ScopoImmersioneId,
                     UnitaNavaleId,
                     FuoriSede,
+                    IndennitaOrdinePubblico,
                     AttivitaSvolta,
                     Note
                 )
@@ -748,6 +753,7 @@ public sealed class PersonaleRepository
                     $scopoImmersioneId,
                     $unitaNavaleId,
                     $fuoriSede,
+                    $indennitaOrdinePubblico,
                     $attivitaSvolta,
                     $note
                 );
@@ -774,6 +780,7 @@ public sealed class PersonaleRepository
                     ScopoImmersioneId = $scopoImmersioneId,
                     UnitaNavaleId = $unitaNavaleId,
                     FuoriSede = $fuoriSede,
+                    IndennitaOrdinePubblico = $indennitaOrdinePubblico,
                     AttivitaSvolta = $attivitaSvolta,
                     Note = $note,
                     AggiornatoIl = CURRENT_TIMESTAMP
@@ -1348,6 +1355,7 @@ public sealed class PersonaleRepository
         command.Parameters.AddWithValue("$scopoImmersioneId", servizio.ScopoImmersioneId is null ? DBNull.Value : servizio.ScopoImmersioneId.Value);
         command.Parameters.AddWithValue("$unitaNavaleId", servizio.UnitaNavaleId is null ? DBNull.Value : servizio.UnitaNavaleId.Value);
         command.Parameters.AddWithValue("$fuoriSede", servizio.FuoriSede ? 1 : 0);
+        command.Parameters.AddWithValue("$indennitaOrdinePubblico", servizio.IndennitaOrdinePubblico ? 1 : 0);
         command.Parameters.AddWithValue("$attivitaSvolta", DbText(servizio.AttivitaSvolta));
         command.Parameters.AddWithValue("$note", DbText(servizio.Note));
     }

@@ -265,7 +265,7 @@ public static class CataloghiServizio
         new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 1, Codice = "ARA_ASAS", Descrizione = "A.R.A./ASAS", ProfonditaMinimaMetri = 0, ProfonditaMassimaMetri = 80, Ordine = 1 },
         new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 2, Codice = "ARO", Descrizione = "A.R.O.", ProfonditaMinimaMetri = 0, ProfonditaMassimaMetri = 12, Ordine = 2 },
         new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 3, Codice = "ARM", Descrizione = "A.R.M.", ProfonditaMinimaMetri = 0, ProfonditaMassimaMetri = 55, Ordine = 3 },
-        new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 4, Codice = "CI", Descrizione = "C.I.", ProfonditaMinimaMetri = 0, ProfonditaMassimaMetri = 12, Ordine = 4 },
+        new TipologiaImmersioneOperativa { TipologiaImmersioneOperativaId = 4, Codice = "CI", Descrizione = "C.I.", ProfonditaMinimaMetri = 0, ProfonditaMassimaMetri = 55, Ordine = 4 },
     ];
 
     public static IReadOnlyList<FasciaProfondita> FasceProfondita { get; } =
@@ -337,5 +337,8 @@ public static class CataloghiServizio
         new RegolaContabileImmersione { RegolaContabileImmersioneId = 29, TipologiaImmersioneOperativaId = 3, FasciaProfonditaId = 2, CategoriaContabileOreId = 3, Tariffa = 15m, Attiva = true },
         new RegolaContabileImmersione { RegolaContabileImmersioneId = 30, TipologiaImmersioneOperativaId = 3, FasciaProfonditaId = 3, CategoriaContabileOreId = 3, Tariffa = 18m, Attiva = true },
         new RegolaContabileImmersione { RegolaContabileImmersioneId = 31, TipologiaImmersioneOperativaId = 3, FasciaProfonditaId = 4, CategoriaContabileOreId = 3, Tariffa = 24m, Attiva = true },
+        new RegolaContabileImmersione { RegolaContabileImmersioneId = 32, TipologiaImmersioneOperativaId = 4, FasciaProfonditaId = 2, CategoriaContabileOreId = 4, Tariffa = 2.48m, Attiva = true },
+        new RegolaContabileImmersione { RegolaContabileImmersioneId = 33, TipologiaImmersioneOperativaId = 4, FasciaProfonditaId = 3, CategoriaContabileOreId = 4, Tariffa = 2.48m, Attiva = true },
+        new RegolaContabileImmersione { RegolaContabileImmersioneId = 34, TipologiaImmersioneOperativaId = 4, FasciaProfonditaId = 4, CategoriaContabileOreId = 4, Tariffa = 2.48m, Attiva = true },
     ];
 }

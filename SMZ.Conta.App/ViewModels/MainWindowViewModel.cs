@@ -35,11 +35,15 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private readonly BackupService _backupService = new();
     private readonly PersonaleRepository _repository = new();
+    private readonly ServizioScambioService _servizioScambioService;
     private readonly RelayCommand _deleteCommand;
     private readonly RelayCommand _navigateSectionCommand;
     private readonly RelayCommand _newServizioCommand;
     private readonly RelayCommand _saveServizioCommand;
     private readonly RelayCommand _openServizioCommand;
+    private readonly RelayCommand _openServizioFromListCommand;
+    private readonly RelayCommand _exportServizioPackageCommand;
+    private readonly RelayCommand _importServizioPackageCommand;
     private readonly RelayCommand _deleteServizioCommand;
     private readonly RelayCommand _addLocalitaOperativaCommand;
     private readonly RelayCommand _addUnitaNavaleCommand;
@@ -131,6 +135,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private ScopoImmersioneItem? _servizioScopoSelezionato;
     private UnitaNavale? _servizioUnitaNavaleSelezionata;
     private bool _servizioFuoriSede;
+    private bool _servizioIndennitaOrdinePubblico;
     private bool _servizioStraordinarioAttivo;
     private string _servizioStraordinarioInizio = string.Empty;
     private string _servizioStraordinarioFine = string.Empty;
@@ -155,6 +160,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public MainWindowViewModel()
     {
         _backupSettings = _backupService.LoadSettings();
+        _servizioScambioService = new ServizioScambioService(_repository);
         var cataloghiServizio = _repository.GetCataloghiServizio();
 
         SearchCommand = new RelayCommand(CaricaElenco);
@@ -171,6 +177,9 @@ public sealed class MainWindowViewModel : ObservableObject
         _newServizioCommand = new RelayCommand(NuovoServizioGiornaliero);
         _saveServizioCommand = new RelayCommand(SalvaServizioGiornaliero);
         _openServizioCommand = new RelayCommand(ApriServizioSelezionato, () => SelectedServizioSalvato is not null);
+        _openServizioFromListCommand = new RelayCommand(ApriServizioDaParametro);
+        _exportServizioPackageCommand = new RelayCommand(EsportaPacchettoServizioSelezionato, () => SelectedServizioSalvato is not null);
+        _importServizioPackageCommand = new RelayCommand(ImportaPacchettoServizio);
         _deleteServizioCommand = new RelayCommand(EliminaServizioSelezionato, () => SelectedServizioSalvato is not null);
         _addLocalitaOperativaCommand = new RelayCommand(AggiungiLocalitaOperativa);
         _addUnitaNavaleCommand = new RelayCommand(AggiungiUnitaNavale);
@@ -551,6 +560,7 @@ public sealed class MainWindowViewModel : ObservableObject
             if (SetProperty(ref _selectedServizioSalvato, value))
             {
                 _openServizioCommand.RaiseCanExecuteChanged();
+                _exportServizioPackageCommand.RaiseCanExecuteChanged();
                 _deleteServizioCommand.RaiseCanExecuteChanged();
             }
         }
@@ -753,7 +763,31 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             if (SetProperty(ref _servizioFuoriSede, value))
             {
+                if (value && ServizioIndennitaOrdinePubblico)
+                {
+                    ServizioIndennitaOrdinePubblico = false;
+                }
+
                 OnPropertyChanged(nameof(ServizioFuoriSedeDescrizione));
+                AggiornaRiepilogoBozzaServizio();
+            }
+        }
+    }
+
+    public bool ServizioIndennitaOrdinePubblico
+    {
+        get => _servizioIndennitaOrdinePubblico;
+        set
+        {
+            if (SetProperty(ref _servizioIndennitaOrdinePubblico, value))
+            {
+                if (value && ServizioFuoriSede)
+                {
+                    ServizioFuoriSede = false;
+                }
+
+                OnPropertyChanged(nameof(ServizioOrdinePubblicoDescrizione));
+                AggiornaRiepilogoBozzaServizio();
             }
         }
     }
@@ -826,6 +860,8 @@ public sealed class MainWindowViewModel : ObservableObject
     };
 
     public string ServizioFuoriSedeDescrizione => ServizioFuoriSede ? "Indennita fuori sede: SI" : "Indennita fuori sede: NO";
+
+    public string ServizioOrdinePubblicoDescrizione => ServizioIndennitaOrdinePubblico ? "Indennita ordine pubblico: SI" : "Indennita ordine pubblico: NO";
 
     public string ServizioOrarioRiepilogo =>
         string.IsNullOrWhiteSpace(ServizioOrario)
@@ -1081,6 +1117,12 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand SaveServizioCommand => _saveServizioCommand;
 
     public RelayCommand OpenServizioCommand => _openServizioCommand;
+
+    public RelayCommand OpenServizioFromListCommand => _openServizioFromListCommand;
+
+    public RelayCommand ExportServizioPackageCommand => _exportServizioPackageCommand;
+
+    public RelayCommand ImportServizioPackageCommand => _importServizioPackageCommand;
 
     public RelayCommand DeleteServizioCommand => _deleteServizioCommand;
 
@@ -2644,6 +2686,108 @@ public sealed class MainWindowViewModel : ObservableObject
         CaricaServizioGiornaliero(SelectedServizioSalvato.ServizioGiornalieroId);
     }
 
+    private void ApriServizioDaParametro(object? parameter)
+    {
+        if (parameter is not ServizioGiornalieroSummary servizio)
+        {
+            return;
+        }
+
+        SelectedServizioSalvato = servizio;
+        CaricaServizioGiornaliero(servizio.ServizioGiornalieroId);
+    }
+
+    private void EsportaPacchettoServizioSelezionato()
+    {
+        if (SelectedServizioSalvato is null)
+        {
+            return;
+        }
+
+        Directory.CreateDirectory(DatabasePaths.ExportDirectory);
+
+        var dialog = new SaveFileDialog
+        {
+            Filter = "Pacchetto servizio SMZ (*.smzsvc)|*.smzsvc|JSON (*.json)|*.json|Tutti i file|*.*",
+            DefaultExt = ".smzsvc",
+            AddExtension = true,
+            InitialDirectory = DatabasePaths.ExportDirectory,
+            FileName = BuildServizioPackageFileName(SelectedServizioSalvato),
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            _servizioScambioService.ExportServizio(SelectedServizioSalvato.ServizioGiornalieroId, dialog.FileName);
+            Stato = $"Pacchetto servizio esportato: {dialog.FileName}";
+            MessageBox.Show(
+                $"Pacchetto servizio creato in:\n{dialog.FileName}",
+                "Esporta servizio",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Esporta servizio", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Esportazione servizio non riuscita.";
+        }
+    }
+
+    private void ImportaPacchettoServizio()
+    {
+        Directory.CreateDirectory(DatabasePaths.ExportDirectory);
+
+        var dialog = new OpenFileDialog
+        {
+            Filter = "Pacchetto servizio SMZ (*.smzsvc;*.json)|*.smzsvc;*.json|Tutti i file|*.*",
+            InitialDirectory = DatabasePaths.ExportDirectory,
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            var servizioGiornalieroId = _servizioScambioService.ImportServizio(dialog.FileName);
+            CaricaServiziSalvati(servizioGiornalieroId);
+            AggiornaAnniContabilitaDisponibili();
+            AggiornaDatiMensili();
+            CaricaServizioGiornaliero(servizioGiornalieroId);
+            Stato = $"Pacchetto servizio importato con ID {servizioGiornalieroId}.";
+            EseguiBackupLocaleSilenzioso("import-service-package");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Importa servizio", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Importazione servizio non riuscita.";
+        }
+    }
+
+    private static string BuildServizioPackageFileName(ServizioGiornalieroSummary servizio)
+    {
+        var ordine = string.IsNullOrWhiteSpace(servizio.NumeroOrdineServizio)
+            ? "senza-ordine"
+            : SanitizeFileToken(servizio.NumeroOrdineServizio);
+        return $"servizio_{servizio.DataServizio:yyyyMMdd}_{ordine}.smzsvc";
+    }
+
+    private static string SanitizeFileToken(string value)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var sanitized = new string(value
+            .Trim()
+            .Select(ch => invalidChars.Contains(ch) || char.IsWhiteSpace(ch) ? '_' : ch)
+            .ToArray());
+
+        return string.IsNullOrWhiteSpace(sanitized) ? "file" : sanitized;
+    }
+
     private void AggiungiSupportoOccasionale()
     {
         var item = new ServizioSupportoOccasionaleDraftViewModel
@@ -2776,6 +2920,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == servizio.UnitaNavaleId)
             ?? UnitaNavaliCatalogo.FirstOrDefault();
         ServizioFuoriSede = servizio.FuoriSede;
+        ServizioIndennitaOrdinePubblico = servizio.IndennitaOrdinePubblico;
         ServizioAttivitaSvolta = servizio.AttivitaSvolta;
         ServizioNote = servizio.Note;
         NuovaLocalitaOperativa = string.Empty;
@@ -2910,6 +3055,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ServizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault();
         ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault();
         ServizioFuoriSede = false;
+        ServizioIndennitaOrdinePubblico = false;
         ServizioAttivitaSvolta = string.Empty;
         ServizioNote = string.Empty;
         NuovaLocalitaOperativa = string.Empty;
@@ -3793,6 +3939,11 @@ public sealed class MainWindowViewModel : ObservableObject
             }
         }
 
+        if (ServizioFuoriSede && ServizioIndennitaOrdinePubblico)
+        {
+            throw new InvalidOperationException("Indennita fuori sede e indennita ordine pubblico non sono compatibili tra loro.");
+        }
+
         var partecipanti = BuildServizioPartecipanti();
         var supportiOccasionali = BuildSupportiOccasionali();
 
@@ -3817,6 +3968,7 @@ public sealed class MainWindowViewModel : ObservableObject
             ScopoImmersioneId = ServizioScopoSelezionato?.ScopoImmersioneId,
             UnitaNavaleId = ServizioUnitaNavaleSelezionata is { UnitaNavaleId: > 0 } unita ? unita.UnitaNavaleId : null,
             FuoriSede = ServizioFuoriSede,
+            IndennitaOrdinePubblico = ServizioIndennitaOrdinePubblico,
             AttivitaSvolta = ServizioAttivitaSvolta.Trim(),
             Note = ServizioNote.Trim(),
             Partecipanti = partecipanti,
@@ -4274,16 +4426,8 @@ public sealed class MainWindowViewModel : ObservableObject
         return null;
     }
 
-    private static decimal CalcolaImportoContabile(decimal tariffa, string codiceCategoria, decimal ore)
-    {
-        return codiceCategoria switch
-        {
-            "ADD" => Math.Round(tariffa * (ore / 2m), 2, MidpointRounding.AwayFromZero),
-            "SPER" => Math.Round((tariffa + tariffa * 0.25m) * ore, 2, MidpointRounding.AwayFromZero),
-            "CI" => Math.Round(tariffa * ore * 0.8m, 2, MidpointRounding.AwayFromZero),
-            _ => Math.Round(tariffa * ore, 2, MidpointRounding.AwayFromZero),
-        };
-    }
+    private static decimal CalcolaImportoRiepilogoImmersione(decimal tariffa, decimal ore) =>
+        Math.Round(tariffa * ore, 2, MidpointRounding.AwayFromZero);
 
     private void AggiornaSuggerimentiRicerca()
     {
@@ -4704,7 +4848,7 @@ public sealed class MainWindowViewModel : ObservableObject
         var ore = ParseDecimalSilenzioso(row.OreImmersione);
         row.ImportoStimato = regola is null || ore is null
             ? null
-            : CalcolaImportoContabile(regola.Tariffa, categoria.Codice, ore.Value);
+            : CalcolaImportoRiepilogoImmersione(regola.Tariffa, ore.Value);
     }
 
     private void ServizioSupportoOccasionale_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -4982,6 +5126,7 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ServizioOrarioRiepilogo));
         OnPropertyChanged(nameof(ServizioTipoDescrizione));
         OnPropertyChanged(nameof(ServizioFuoriSedeDescrizione));
+        OnPropertyChanged(nameof(ServizioOrdinePubblicoDescrizione));
         OnPropertyChanged(nameof(ServizioStraordinarioOreDisplay));
         OnPropertyChanged(nameof(ServizioCategoriaRegistroDescrizione));
         OnPropertyChanged(nameof(ServizioPartecipantiTotali));
@@ -5134,6 +5279,7 @@ public sealed class MainWindowViewModel : ObservableObject
         AppendSnapshot(builder, "Scopo", ServizioScopoSelezionato?.ScopoImmersioneId.ToString() ?? string.Empty);
         AppendSnapshot(builder, "UnitaNavale", ServizioUnitaNavaleSelezionata?.UnitaNavaleId.ToString() ?? string.Empty);
         AppendSnapshot(builder, "FuoriSede", ServizioFuoriSede ? "1" : "0");
+        AppendSnapshot(builder, "OrdinePubblico", ServizioIndennitaOrdinePubblico ? "1" : "0");
         AppendSnapshot(builder, "StraordinarioAttivo", ServizioStraordinarioAttivo ? "1" : "0");
         AppendSnapshot(builder, "StraordinarioInizio", ServizioStraordinarioInizio);
         AppendSnapshot(builder, "StraordinarioFine", ServizioStraordinarioFine);

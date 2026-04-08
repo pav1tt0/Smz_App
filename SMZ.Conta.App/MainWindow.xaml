@@ -1096,6 +1096,15 @@
                                     </StackPanel>
 
                                     <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <Button Content="Esporta selezionato"
+                                                Command="{Binding ExportServizioPackageCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                        <Button Content="Importa servizio"
+                                                Command="{Binding ImportServizioPackageCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                         <Button Content="Aggiorna personale"
                                                 Command="{Binding ReloadServizioPersonaleCommand}"
                                                 Style="{StaticResource SecondaryButtonStyle}" />
@@ -1149,10 +1158,10 @@
                                         </Border>
                                     </Grid>
 
-                                    <Border Margin="0,10,0,0"
-                                            Background="#F8FBFD"
-                                            CornerRadius="16"
-                                            Padding="12">
+                                            <Border Margin="0,10,0,0"
+                                                    Background="#F8FBFD"
+                                                    CornerRadius="16"
+                                                    Padding="12">
                                         <StackPanel>
                                             <TextBlock Text="Categoria registro"
                                                        Foreground="#53646A"
@@ -1180,6 +1189,9 @@
                                                        TextWrapping="Wrap" />
                                             <TextBlock Margin="0,6,0,0"
                                                        Text="{Binding ServizioFuoriSedeDescrizione}"
+                                                       Foreground="#53646A" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="{Binding ServizioOrdinePubblicoDescrizione}"
                                                        Foreground="#53646A" />
                                             <TextBlock Margin="0,6,0,0"
                                                        Text="{Binding ServizioOrarioRiepilogo}"
@@ -1259,6 +1271,12 @@
                                                             <Run Text=" | Immersioni: " />
                                                             <Run Text="{Binding ImmersioniTotali}" />
                                                         </TextBlock>
+                                                        <Button Margin="0,10,0,0"
+                                                                Content="Apri servizio"
+                                                                HorizontalAlignment="Left"
+                                                                Command="{Binding DataContext.OpenServizioFromListCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource SecondaryButtonStyle}" />
                                                     </StackPanel>
                                                 </Border>
                                             </DataTemplate>
@@ -1429,10 +1447,17 @@
                                             </StackPanel>
 
                                             <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                                <TextBlock Text="Fuori sede" Foreground="#50626A" />
+                                                <TextBlock Text="Indennita" Foreground="#50626A" />
                                                 <CheckBox Margin="0,10,0,0"
                                                           IsChecked="{Binding ServizioFuoriSede}"
                                                           Content="Indennita fuori sede" />
+                                                <CheckBox Margin="0,8,0,0"
+                                                          IsChecked="{Binding ServizioIndennitaOrdinePubblico}"
+                                                          Content="Indennita ordine pubblico" />
+                                                <TextBlock Margin="0,8,0,0"
+                                                           Text="Le due indennita non sono compatibili tra loro."
+                                                           Foreground="#53646A"
+                                                           TextWrapping="Wrap" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,10,0,0">
@@ -1840,7 +1865,7 @@
                                                                                         Width="68">
                                                                     <DataGridTemplateColumn.CellTemplate>
                                                                         <DataTemplate>
-                                                                            <TextBox Text="{Binding OreImmersione, UpdateSourceTrigger=LostFocus}" />
+                                                                            <TextBox Text="{Binding OreImmersione, UpdateSourceTrigger=PropertyChanged}" />
                                                                         </DataTemplate>
                                                                     </DataGridTemplateColumn.CellTemplate>
                                                                 </DataGridTemplateColumn>

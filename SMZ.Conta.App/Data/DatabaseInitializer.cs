@@ -333,6 +333,7 @@ public static class DatabaseInitializer
                 ScopoImmersioneId INTEGER NULL,
                 UnitaNavaleId INTEGER NULL,
                 FuoriSede INTEGER NOT NULL DEFAULT 0,
+                IndennitaOrdinePubblico INTEGER NOT NULL DEFAULT 0,
                 AttivitaSvolta TEXT NULL,
                 Note TEXT NULL,
                 CreatoIl TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -515,6 +516,7 @@ public static class DatabaseInitializer
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "StraordinarioAttivo", "INTEGER NOT NULL DEFAULT 0");
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "StraordinarioInizio", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "StraordinarioFine", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "IndennitaOrdinePubblico", "INTEGER NOT NULL DEFAULT 0");
         AddColumnIfMissing(connection, transaction, "TipologieImmersioneOperative", "ProfonditaMinimaMetri", "INTEGER NULL");
         AddColumnIfMissing(connection, transaction, "TipologieImmersioneOperative", "ProfonditaMassimaMetri", "INTEGER NULL");
     }

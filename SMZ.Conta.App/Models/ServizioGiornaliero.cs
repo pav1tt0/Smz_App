@@ -26,6 +26,8 @@ public sealed class ServizioGiornaliero
 
     public bool FuoriSede { get; set; }
 
+    public bool IndennitaOrdinePubblico { get; set; }
+
     public string AttivitaSvolta { get; set; } = string.Empty;
 
     public string Note { get; set; } = string.Empty;
@@ -144,6 +146,8 @@ public sealed class ServizioGiornalieroSummary
     public string UnitaNavaleDescrizione { get; set; } = string.Empty;
 
     public bool FuoriSede { get; set; }
+
+    public bool IndennitaOrdinePubblico { get; set; }
 
     public int PartecipantiTotali { get; set; }
 
