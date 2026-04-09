@@ -290,7 +290,7 @@ public static class CataloghiServizio
         new GruppoOperativo { GruppoOperativoId = 1, Codice = "SMZ", Descrizione = "SMZ", Ordine = 1 },
         new GruppoOperativo { GruppoOperativoId = 2, Codice = "OSSALC", Descrizione = "Personale O.S.S.A.L.C.", Ordine = 2 },
         new GruppoOperativo { GruppoOperativoId = 3, Codice = "SANITARIA", Descrizione = "Personale assistenza sanitaria", Ordine = 3 },
-        new GruppoOperativo { GruppoOperativoId = 4, Codice = "SUPPORTO", Descrizione = "Supporto", Ordine = 4 },
+        new GruppoOperativo { GruppoOperativoId = 4, Codice = "SUPPORTO", Descrizione = "Assistenza SMZ", Ordine = 4 },
     ];
 
     public static IReadOnlyList<RuoloOperativo> RuoliOperativi { get; } =
@@ -301,7 +301,7 @@ public static class CataloghiServizio
         new RuoloOperativo { RuoloOperativoId = 4, Codice = "DIRETTORE", Descrizione = "Direttore immersione", Ordine = 4 },
         new RuoloOperativo { RuoloOperativoId = 5, Codice = "SOCCORSO", Descrizione = "Operatore soccorso", Ordine = 5 },
         new RuoloOperativo { RuoloOperativoId = 6, Codice = "BLSD", Descrizione = "Assistenza BLSD", Ordine = 6 },
-        new RuoloOperativo { RuoloOperativoId = 7, Codice = "SUPPORTO", Descrizione = "Supporto", Ordine = 7 },
+        new RuoloOperativo { RuoloOperativoId = 7, Codice = "SUPPORTO", Descrizione = "Assistenza SMZ", Ordine = 7 },
     ];
 
     public static IReadOnlyList<RegolaContabileImmersione> RegoleContabiliImmersione { get; } =

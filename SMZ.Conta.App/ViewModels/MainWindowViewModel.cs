@@ -1011,8 +1011,8 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string ContabilitaSupportoStato =>
         ContabilitaSupportiItems.Count == 0
-            ? "Nessun supporto occasionale presente nel periodo selezionato."
-            : $"{ContabilitaSupportiItems.Count} nominativi di supporto con {ContabilitaSupportoTotaleGiornate} giornate utili.";
+            ? "Nessuna Assistenza SMZ presente nel periodo selezionato."
+            : $"{ContabilitaSupportiItems.Count} nominativi di Assistenza SMZ con {ContabilitaSupportoTotaleGiornate} giornate utili.";
 
     public string RegistroImmersioniPeriodoTitolo =>
         ContabilitaMeseSelezionato is null
@@ -3949,7 +3949,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
         if (partecipanti.Count == 0 && supportiOccasionali.Count == 0)
         {
-            throw new InvalidOperationException("Inserisci almeno un partecipante o un supporto occasionale nel servizio.");
+            throw new InvalidOperationException("Inserisci almeno un partecipante o una Assistenza SMZ nel servizio.");
         }
 
         var immersioni = BuildServizioImmersioni(partecipanti);

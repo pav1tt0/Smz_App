@@ -1,5 +1,6 @@
 <Window x:Class="SMZ.Conta.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:controls="clr-namespace:SMZ.Conta.App.Controls"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:infra="clr-namespace:SMZ.Conta.App.Infrastructure"
@@ -816,11 +817,9 @@
                                               DisplayMemberPath="Descrizione" />
 
                                     <TextBlock Margin="0,12,0,0" Text="Visite in scadenza entro" Foreground="#50626A" />
-                                    <TextBox Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
-                                             Style="{StaticResource DateTextBoxStyle}"
-                                             MaxLength="10"
-                                             ToolTip="Digita 18032026 oppure 18/03/2026"
-                                             infra:DateInputBehavior.AutoFormat="True" />
+                                    <controls:DateInputPicker Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
+                                                              Width="150"
+                                                              ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
                                     <TextBlock Margin="0,4,0,0"
                                                Text="Inserisci una data, ad esempio 18/03/2026"
                                                Foreground="#6A7B80"
@@ -1321,11 +1320,9 @@
 
                                             <StackPanel>
                                                 <TextBlock Text="Data servizio" Foreground="#50626A" />
-                                                <TextBox Text="{Binding ServizioData, UpdateSourceTrigger=PropertyChanged}"
-                                                         Style="{StaticResource DateTextBoxStyle}"
-                                                         MaxLength="10"
-                                                         ToolTip="Digita 25032026 oppure 25/03/2026"
-                                                         infra:DateInputBehavior.AutoFormat="True" />
+                                                <controls:DateInputPicker Text="{Binding ServizioData, UpdateSourceTrigger=PropertyChanged}"
+                                                                          Width="150"
+                                                                          ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
@@ -1432,19 +1429,31 @@
                                                           SelectedItem="{Binding ServizioTipoSelezionato}" />
                                             </StackPanel>
 
-                                            <StackPanel Grid.Row="1" Grid.Column="2">
-                                                <TextBlock Text="Localita" Foreground="#50626A" />
-                                                <ComboBox ItemsSource="{Binding LocalitaOperativeCatalogo}"
-                                                          SelectedItem="{Binding ServizioLocalitaSelezionata}"
-                                                          DisplayMemberPath="Descrizione" />
-                                            </StackPanel>
+                                            <Grid Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="3">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="300" />
+                                                    <ColumnDefinition Width="18" />
+                                                    <ColumnDefinition Width="220" />
+                                                </Grid.ColumnDefinitions>
 
-                                            <StackPanel Grid.Row="1" Grid.Column="4">
-                                                <TextBlock Text="Unita navale" Foreground="#50626A" />
-                                                <ComboBox ItemsSource="{Binding UnitaNavaliCatalogo}"
-                                                          SelectedItem="{Binding ServizioUnitaNavaleSelezionata}"
-                                                          DisplayMemberPath="Descrizione" />
-                                            </StackPanel>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Localita" Foreground="#50626A" />
+                                                    <ComboBox Width="300"
+                                                              HorizontalAlignment="Left"
+                                                              ItemsSource="{Binding LocalitaOperativeCatalogo}"
+                                                              SelectedItem="{Binding ServizioLocalitaSelezionata}"
+                                                              DisplayMemberPath="Descrizione" />
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2">
+                                                    <TextBlock Text="Unita navale" Foreground="#50626A" />
+                                                    <ComboBox Width="220"
+                                                              HorizontalAlignment="Left"
+                                                              ItemsSource="{Binding UnitaNavaliCatalogo}"
+                                                              SelectedItem="{Binding ServizioUnitaNavaleSelezionata}"
+                                                              DisplayMemberPath="Descrizione" />
+                                                </StackPanel>
+                                            </Grid>
 
                                             <StackPanel Grid.Row="2" Margin="0,10,0,0">
                                                 <TextBlock Text="Indennita" Foreground="#50626A" />
@@ -1460,35 +1469,43 @@
                                                            TextWrapping="Wrap" />
                                             </StackPanel>
 
-                                            <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,10,0,0">
-                                                <TextBlock Text="Nuova localita" Foreground="#50626A" />
-                                                <DockPanel Margin="0,6,0,0" LastChildFill="True">
-                                                    <Button DockPanel.Dock="Right"
-                                                            Margin="10,0,0,0"
-                                                            MinWidth="96"
-                                                            Content="Aggiungi"
-                                                            Command="{Binding AddLocalitaOperativaCommand}"
-                                                            Style="{StaticResource SecondaryButtonStyle}" />
-                                                    <TextBox Text="{Binding NuovaLocalitaOperativa, UpdateSourceTrigger=PropertyChanged}"
-                                                             MaxLength="80"
-                                                             ToolTip="Aggiunge una localita permanente nel menu" />
-                                                </DockPanel>
-                                            </StackPanel>
+                                            <Grid Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="3" Margin="0,10,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="300" />
+                                                    <ColumnDefinition Width="18" />
+                                                    <ColumnDefinition Width="220" />
+                                                </Grid.ColumnDefinitions>
 
-                                            <StackPanel Grid.Row="2" Grid.Column="4" Margin="0,10,0,0">
-                                                <TextBlock Text="Nuovo mezzo / targa" Foreground="#50626A" />
-                                                <DockPanel Margin="0,6,0,0" LastChildFill="True">
-                                                    <Button DockPanel.Dock="Right"
-                                                            Margin="10,0,0,0"
-                                                            MinWidth="96"
-                                                            Content="Aggiungi"
-                                                            Command="{Binding AddUnitaNavaleCommand}"
-                                                            Style="{StaticResource SecondaryButtonStyle}" />
-                                                    <TextBox Text="{Binding NuovaUnitaNavale, UpdateSourceTrigger=PropertyChanged}"
-                                                             MaxLength="80"
-                                                             ToolTip="Aggiunge un mezzo nautico permanente nel menu" />
-                                                </DockPanel>
-                                            </StackPanel>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Nuova localita" Foreground="#50626A" />
+                                                    <DockPanel Margin="0,6,0,0" LastChildFill="True">
+                                                        <Button DockPanel.Dock="Right"
+                                                                Margin="10,0,0,0"
+                                                                MinWidth="96"
+                                                                Content="Aggiungi"
+                                                                Command="{Binding AddLocalitaOperativaCommand}"
+                                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                                        <TextBox Text="{Binding NuovaLocalitaOperativa, UpdateSourceTrigger=PropertyChanged}"
+                                                                 MaxLength="80"
+                                                                 ToolTip="Aggiunge una localita permanente nel menu" />
+                                                    </DockPanel>
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2">
+                                                    <TextBlock Text="Nuovo mezzo / targa" Foreground="#50626A" />
+                                                    <DockPanel Margin="0,6,0,0" LastChildFill="True">
+                                                        <Button DockPanel.Dock="Right"
+                                                                Margin="10,0,0,0"
+                                                                MinWidth="96"
+                                                                Content="Aggiungi"
+                                                                Command="{Binding AddUnitaNavaleCommand}"
+                                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                                        <TextBox Text="{Binding NuovaUnitaNavale, UpdateSourceTrigger=PropertyChanged}"
+                                                                 MaxLength="80"
+                                                                 ToolTip="Aggiunge un mezzo nautico permanente nel menu" />
+                                                    </DockPanel>
+                                                </StackPanel>
+                                            </Grid>
 
                                             <StackPanel Grid.Row="3" Grid.ColumnSpan="5" Margin="0,10,0,0">
                                                 <TextBlock Text="Scopo immersione" Foreground="#50626A" />
@@ -1579,14 +1596,14 @@
 
                                     <DockPanel Margin="0,24,0,0" LastChildFill="False">
                                         <TextBlock DockPanel.Dock="Left"
-                                                   Text="Supporto occasionale"
+                                                   Text="Assistenza SMZ"
                                                    FontSize="19"
                                                    FontWeight="SemiBold"
                                                    Foreground="#17313E"
                                                    VerticalAlignment="Center" />
                                         <StackPanel DockPanel.Dock="Right"
                                                     Orientation="Horizontal">
-                                            <Button Content="Aggiungi supporto"
+                                            <Button Content="Aggiungi assistenza SMZ"
                                                     Command="{Binding AddSupportoOccasionaleCommand}"
                                                     Style="{StaticResource SecondaryButtonStyle}" />
                                             <Button Content="Rimuovi selezionato"
@@ -1595,7 +1612,7 @@
                                         </StackPanel>
                                     </DockPanel>
                                     <TextBlock Margin="0,8,0,0"
-                                               Text="Usa questa griglia per personale di supporto sporadico che non deve entrare in anagrafica. Resta legato solo al singolo servizio."
+                                               Text="Usa questa griglia per assistenza SMZ sporadica che non deve entrare in anagrafica. Resta legata solo al singolo servizio."
                                                Foreground="#53646A"
                                                TextWrapping="Wrap" />
 
@@ -2192,11 +2209,9 @@
 
                                             <StackPanel>
                                                 <TextBlock Text="Data di nascita" Foreground="#50626A" />
-                                                <TextBox Text="{Binding DataNascita, UpdateSourceTrigger=PropertyChanged}"
-                                                         Style="{StaticResource DateTextBoxStyle}"
-                                                         MaxLength="10"
-                                                         ToolTip="Digita 18032026 oppure 18/03/2026"
-                                                         infra:DateInputBehavior.AutoFormat="True" />
+                                                <controls:DateInputPicker Text="{Binding DataNascita, UpdateSourceTrigger=PropertyChanged}"
+                                                                          Width="150"
+                                                                          ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
@@ -2340,19 +2355,15 @@
 
                                                     <StackPanel Grid.Column="2">
                                                         <TextBlock Text="Data conseguimento" Foreground="#50626A" />
-                                                        <TextBox Text="{Binding AbilitazioneDataConseguimento, UpdateSourceTrigger=PropertyChanged}"
-                                                                 Style="{StaticResource DateTextBoxStyle}"
-                                                                 MaxLength="10"
-                                                                 ToolTip="Digita 18032026 oppure 18/03/2026"
-                                                                 infra:DateInputBehavior.AutoFormat="True" />
+                                                        <controls:DateInputPicker Text="{Binding AbilitazioneDataConseguimento, UpdateSourceTrigger=PropertyChanged}"
+                                                                                  Width="150"
+                                                                                  ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
 
                                                         <TextBlock Margin="0,10,0,0" Text="Data scadenza" Foreground="#50626A" />
-                                                        <TextBox Text="{Binding AbilitazioneDataScadenza, UpdateSourceTrigger=PropertyChanged}"
-                                                                 Style="{StaticResource DateTextBoxStyle}"
-                                                                 MaxLength="10"
-                                                                 ToolTip="Digita 18032026 oppure 18/03/2026"
-                                                                 infra:DateInputBehavior.AutoFormat="True"
-                                                                 IsEnabled="{Binding AbilitazioneRichiedeScadenza}" />
+                                                        <controls:DateInputPicker Text="{Binding AbilitazioneDataScadenza, UpdateSourceTrigger=PropertyChanged}"
+                                                                                  Width="150"
+                                                                                  ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa"
+                                                                                  IsEnabled="{Binding AbilitazioneRichiedeScadenza}" />
 
                                                         <TextBlock Margin="0,10,0,0" Text="Note" Foreground="#50626A" />
                                                         <TextBox Text="{Binding AbilitazioneNote, UpdateSourceTrigger=PropertyChanged}" />
@@ -2454,11 +2465,9 @@
                                                                   DisplayMemberPath="Descrizione" />
 
                                                         <TextBlock Margin="0,10,0,0" Text="Data ultima visita" Foreground="#50626A" />
-                                                        <TextBox Text="{Binding VisitaDataUltimaVisita, UpdateSourceTrigger=PropertyChanged}"
-                                                                 Style="{StaticResource DateTextBoxStyle}"
-                                                                 MaxLength="10"
-                                                                 ToolTip="Digita 18032026 oppure 18/03/2026"
-                                                                 infra:DateInputBehavior.AutoFormat="True" />
+                                                        <controls:DateInputPicker Text="{Binding VisitaDataUltimaVisita, UpdateSourceTrigger=PropertyChanged}"
+                                                                                  Width="150"
+                                                                                  ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
 
                                                         <TextBlock Margin="0,10,0,0" Text="Esito" Foreground="#50626A" />
                                                         <TextBox Text="{Binding VisitaEsito, UpdateSourceTrigger=PropertyChanged}" />
@@ -2994,7 +3003,7 @@
                                                FontWeight="SemiBold"
                                                Foreground="#17313E" />
                                     <TextBlock Margin="0,8,0,0"
-                                               Text="Modulo contabile operativo: riepilogo SMZ immersioni, piu giornate utili e trentesimi per sanitari e supporto occasionale."
+                                               Text="Modulo contabile operativo: riepilogo SMZ immersioni, piu giornate utili e trentesimi per sanitari e Assistenza SMZ."
                                                Foreground="#53646A"
                                                TextWrapping="Wrap" />
                                     <TextBlock Margin="0,8,0,0"
@@ -3267,7 +3276,7 @@
                                         <RowDefinition Height="*" />
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Text="Supporto occasionale"
+                                    <TextBlock Text="Assistenza SMZ"
                                                FontSize="18"
                                                FontWeight="SemiBold"
                                                Foreground="#17313E" />
