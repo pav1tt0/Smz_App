@@ -13,6 +13,8 @@ public sealed class PersonaleListItemViewModel : ObservableObject
     private string _ruoloSanitario = string.Empty;
     private string _codiceFiscale = string.Empty;
     private string _contatti = string.Empty;
+    private string _statoServizio = StatoServizioPersonaleCatalogo.Attivo;
+    private string _dataFineServizio = string.Empty;
 
     public int PerId
     {
@@ -93,9 +95,40 @@ public sealed class PersonaleListItemViewModel : ObservableObject
         set => SetProperty(ref _contatti, value);
     }
 
+    public string StatoServizio
+    {
+        get => _statoServizio;
+        set
+        {
+            if (SetProperty(ref _statoServizio, StatoServizioPersonaleCatalogo.Normalizza(value)))
+            {
+                OnPropertyChanged(nameof(StatoServizioSintesi));
+            }
+        }
+    }
+
+    public string DataFineServizio
+    {
+        get => _dataFineServizio;
+        set
+        {
+            if (SetProperty(ref _dataFineServizio, value))
+            {
+                OnPropertyChanged(nameof(StatoServizioSintesi));
+            }
+        }
+    }
+
     public bool IsProfiloSanitario => ProfiliPersonaleCatalogo.IsSanitario(ProfiloPersonale);
 
     public string Nominativo => $"{Cognome} {Nome}".Trim();
+
+    public string StatoServizioSintesi =>
+        string.Equals(StatoServizio, StatoServizioPersonaleCatalogo.Attivo, StringComparison.OrdinalIgnoreCase)
+            ? "In servizio"
+            : string.IsNullOrWhiteSpace(DataFineServizio)
+                ? StatoServizio
+                : $"{StatoServizio} dal {DataFineServizio}";
 
     public string NominativoConQualifica
     {
@@ -121,6 +154,8 @@ public sealed class PersonaleListItemViewModel : ObservableObject
             RuoloSanitario = personale.RuoloSanitario,
             CodiceFiscale = personale.CodiceFiscale,
             Contatti = personale.ContattiSintesi,
+            StatoServizio = personale.StatoServizio,
+            DataFineServizio = personale.DataFineServizio?.ToString("dd/MM/yyyy") ?? string.Empty,
         };
     }
 }

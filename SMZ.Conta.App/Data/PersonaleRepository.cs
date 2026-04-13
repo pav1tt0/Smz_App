@@ -955,6 +955,8 @@ public sealed class PersonaleRepository
                    p.CodiceFiscale,
                    p.MatricolaPersonale,
                    p.NumeroBrevettoSmz,
+                   p.StatoServizio,
+                   p.DataFineServizio,
                    p.DataNascita,
                    p.LuogoNascita,
                    p.ViaResidenza,
@@ -995,6 +997,8 @@ public sealed class PersonaleRepository
                    CodiceFiscale,
                    MatricolaPersonale,
                    NumeroBrevettoSmz,
+                   StatoServizio,
+                   DataFineServizio,
                    DataNascita,
                    LuogoNascita,
                    ViaResidenza,
@@ -1040,6 +1044,8 @@ public sealed class PersonaleRepository
                    CodiceFiscale,
                    MatricolaPersonale,
                    NumeroBrevettoSmz,
+                   StatoServizio,
+                   DataFineServizio,
                    DataNascita,
                    LuogoNascita,
                    ViaResidenza,
@@ -1073,16 +1079,18 @@ public sealed class PersonaleRepository
             CodiceFiscale = reader.GetString(7),
             MatricolaPersonale = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
             NumeroBrevettoSmz = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
-            DataNascita = ParseDbDate(reader, 10),
-            LuogoNascita = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-            ViaResidenza = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
-            CapResidenza = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
-            CittaResidenza = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
-            Telefono1 = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
-            Telefono2 = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
-            Mail1Utente = reader.IsDBNull(17) ? string.Empty : reader.GetString(17),
-            Mail2Utente = reader.IsDBNull(18) ? string.Empty : reader.GetString(18),
-            DataArchiviazione = DateTime.Parse(reader.GetString(19)),
+            StatoServizio = StatoServizioPersonaleCatalogo.Normalizza(reader.IsDBNull(10) ? null : reader.GetString(10)),
+            DataFineServizio = ParseDbDate(reader, 11),
+            DataNascita = ParseDbDate(reader, 12),
+            LuogoNascita = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            ViaResidenza = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            CapResidenza = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
+            CittaResidenza = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
+            Telefono1 = reader.IsDBNull(17) ? string.Empty : reader.GetString(17),
+            Telefono2 = reader.IsDBNull(18) ? string.Empty : reader.GetString(18),
+            Mail1Utente = reader.IsDBNull(19) ? string.Empty : reader.GetString(19),
+            Mail2Utente = reader.IsDBNull(20) ? string.Empty : reader.GetString(20),
+            DataArchiviazione = DateTime.Parse(reader.GetString(21)),
         };
         reader.Close();
 
@@ -1114,6 +1122,8 @@ public sealed class PersonaleRepository
                     CodiceFiscale,
                     MatricolaPersonale,
                     NumeroBrevettoSmz,
+                    StatoServizio,
+                    DataFineServizio,
                     DataNascita,
                     LuogoNascita,
                     ViaResidenza,
@@ -1133,6 +1143,8 @@ public sealed class PersonaleRepository
                     $codiceFiscale,
                     $matricolaPersonale,
                     $numeroBrevettoSmz,
+                    $statoServizio,
+                    $dataFineServizio,
                     $dataNascita,
                     $luogoNascita,
                     $viaResidenza,
@@ -1163,6 +1175,8 @@ public sealed class PersonaleRepository
                     CodiceFiscale = $codiceFiscale,
                     MatricolaPersonale = $matricolaPersonale,
                     NumeroBrevettoSmz = $numeroBrevettoSmz,
+                    StatoServizio = $statoServizio,
+                    DataFineServizio = $dataFineServizio,
                     DataNascita = $dataNascita,
                     LuogoNascita = $luogoNascita,
                     ViaResidenza = $viaResidenza,
@@ -1197,6 +1211,15 @@ public sealed class PersonaleRepository
         using var connection = OpenConnection();
         using var transaction = connection.BeginTransaction();
 
+        var usage = GetPersonaleServiceUsage(connection, transaction, perId);
+        if (usage.HasReferences)
+        {
+            throw new InvalidOperationException(
+                $"La scheda con PerID {perId} non puo essere archiviata perche e collegata a servizi o immersioni gia salvati. " +
+                $"Riferimenti trovati: {usage.ServiziComePartecipante} servizi come partecipante, {usage.ImmersioniConRuoli} immersioni con ruoli assegnati. " +
+                "Elimina o modifica prima i servizi collegati, poi riprova.");
+        }
+
         var archivedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
         var archiveId = ArchivePersonale(connection, transaction, perId, archivedAt);
         ArchiveAbilitazioni(connection, transaction, archiveId, perId);
@@ -1215,6 +1238,32 @@ public sealed class PersonaleRepository
 
         transaction.Commit();
         return archiveId;
+    }
+
+    public void DeletePersonaleDefinitivo(int perId)
+    {
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        var usage = GetPersonaleServiceUsage(connection, transaction, perId);
+        if (usage.HasReferences)
+        {
+            throw new InvalidOperationException(
+                $"La scheda con PerID {perId} non puo essere eliminata definitivamente perche e collegata a servizi o immersioni gia salvati. " +
+                $"Riferimenti trovati: {usage.ServiziComePartecipante} servizi come partecipante, {usage.ImmersioniConRuoli} immersioni con ruoli assegnati.");
+        }
+
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "DELETE FROM Personale WHERE PerId = $perId;";
+        command.Parameters.AddWithValue("$perId", perId);
+
+        if (command.ExecuteNonQuery() == 0)
+        {
+            throw new InvalidOperationException($"Scheda con PerID {perId} non trovata.");
+        }
+
+        transaction.Commit();
     }
 
     public int RestorePersonaleArchivio(long archiveId)
@@ -1252,6 +1301,8 @@ public sealed class PersonaleRepository
                 CodiceFiscale,
                 MatricolaPersonale,
                 NumeroBrevettoSmz,
+                StatoServizio,
+                DataFineServizio,
                 DataNascita,
                 LuogoNascita,
                 ViaResidenza,
@@ -1272,6 +1323,8 @@ public sealed class PersonaleRepository
                 $codiceFiscale,
                 $matricolaPersonale,
                 $numeroBrevettoSmz,
+                $statoServizio,
+                $dataFineServizio,
                 $dataNascita,
                 $luogoNascita,
                 $viaResidenza,
@@ -1292,6 +1345,8 @@ public sealed class PersonaleRepository
         insert.Parameters.AddWithValue("$codiceFiscale", archived.CodiceFiscale);
         insert.Parameters.AddWithValue("$matricolaPersonale", DbText(archived.MatricolaPersonale));
         insert.Parameters.AddWithValue("$numeroBrevettoSmz", DbText(archived.NumeroBrevettoSmz));
+        insert.Parameters.AddWithValue("$statoServizio", StatoServizioPersonaleCatalogo.Normalizza(archived.StatoServizio));
+        insert.Parameters.AddWithValue("$dataFineServizio", ToDbValue(archived.DataFineServizio));
         insert.Parameters.AddWithValue("$dataNascita", ToDbValue(archived.DataNascita));
         insert.Parameters.AddWithValue("$luogoNascita", DbText(archived.LuogoNascita));
         insert.Parameters.AddWithValue("$viaResidenza", DbText(archived.ViaResidenza));
@@ -1331,6 +1386,8 @@ public sealed class PersonaleRepository
         command.Parameters.AddWithValue("$codiceFiscale", personale.CodiceFiscale.Trim().ToUpperInvariant());
         command.Parameters.AddWithValue("$matricolaPersonale", DbText(personale.MatricolaPersonale));
         command.Parameters.AddWithValue("$numeroBrevettoSmz", DbText(personale.NumeroBrevettoSmz));
+        command.Parameters.AddWithValue("$statoServizio", StatoServizioPersonaleCatalogo.Normalizza(personale.StatoServizio));
+        command.Parameters.AddWithValue("$dataFineServizio", ToDbValue(personale.DataFineServizio));
         command.Parameters.AddWithValue("$dataNascita", ToDbValue(personale.DataNascita));
         command.Parameters.AddWithValue("$luogoNascita", DbText(personale.LuogoNascita));
         command.Parameters.AddWithValue("$viaResidenza", DbText(personale.ViaResidenza));
@@ -1367,6 +1424,38 @@ public sealed class PersonaleRepository
         command.CommandText = $"DELETE FROM {tableName} WHERE PerId = $perId;";
         command.Parameters.AddWithValue("$perId", perId);
         command.ExecuteNonQuery();
+    }
+
+    private static PersonaleServiceUsage GetPersonaleServiceUsage(SqliteConnection connection, SqliteTransaction transaction, int perId)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            SELECT
+                (
+                    SELECT COUNT(DISTINCT ServizioGiornalieroId)
+                    FROM ServizioPartecipanti
+                    WHERE PerId = $perId
+                ) AS ServiziComePartecipante,
+                (
+                    SELECT COUNT(1)
+                    FROM ServizioImmersioni
+                    WHERE DirettoreImmersionePerId = $perId
+                       OR OperatoreSoccorsoPerId = $perId
+                       OR AssistenteBlsdPerId = $perId
+                       OR AssistenteSanitarioPerId = $perId
+                ) AS ImmersioniConRuoli;
+            """;
+        command.Parameters.AddWithValue("$perId", perId);
+
+        using var reader = command.ExecuteReader();
+        if (!reader.Read())
+        {
+            return new PersonaleServiceUsage(0, 0);
+        }
+
+        return new PersonaleServiceUsage(reader.GetInt32(0), reader.GetInt32(1));
     }
 
     private static void InsertAbilitazioni(SqliteConnection connection, SqliteTransaction transaction, int perId, IEnumerable<PersonaleAbilitazione> abilitazioni)
@@ -1407,6 +1496,8 @@ public sealed class PersonaleRepository
                 CodiceFiscale,
                 MatricolaPersonale,
                 NumeroBrevettoSmz,
+                StatoServizio,
+                DataFineServizio,
                 DataNascita,
                 LuogoNascita,
                 ViaResidenza,
@@ -1427,6 +1518,8 @@ public sealed class PersonaleRepository
                    CodiceFiscale,
                    MatricolaPersonale,
                    NumeroBrevettoSmz,
+                   StatoServizio,
+                   DataFineServizio,
                    DataNascita,
                    LuogoNascita,
                    ViaResidenza,
@@ -2397,15 +2490,17 @@ public sealed class PersonaleRepository
             CodiceFiscale = reader.GetString(6),
             MatricolaPersonale = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
             NumeroBrevettoSmz = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
-            DataNascita = ParseDbDate(reader, 9),
-            LuogoNascita = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
-            ViaResidenza = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-            CapResidenza = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
-            CittaResidenza = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
-            Telefono1 = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
-            Telefono2 = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
-            Mail1Utente = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
-            Mail2Utente = reader.IsDBNull(17) ? string.Empty : reader.GetString(17),
+            StatoServizio = StatoServizioPersonaleCatalogo.Normalizza(reader.IsDBNull(9) ? null : reader.GetString(9)),
+            DataFineServizio = ParseDbDate(reader, 10),
+            DataNascita = ParseDbDate(reader, 11),
+            LuogoNascita = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+            ViaResidenza = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            CapResidenza = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            CittaResidenza = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
+            Telefono1 = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
+            Telefono2 = reader.IsDBNull(17) ? string.Empty : reader.GetString(17),
+            Mail1Utente = reader.IsDBNull(18) ? string.Empty : reader.GetString(18),
+            Mail2Utente = reader.IsDBNull(19) ? string.Empty : reader.GetString(19),
         };
     }
 
@@ -2425,6 +2520,8 @@ public sealed class PersonaleRepository
                    CodiceFiscale,
                    MatricolaPersonale,
                    NumeroBrevettoSmz,
+                   StatoServizio,
+                   DataFineServizio,
                    DataNascita,
                    LuogoNascita,
                    ViaResidenza,
@@ -2458,16 +2555,18 @@ public sealed class PersonaleRepository
             CodiceFiscale = reader.GetString(7),
             MatricolaPersonale = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
             NumeroBrevettoSmz = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
-            DataNascita = ParseDbDate(reader, 10),
-            LuogoNascita = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
-            ViaResidenza = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
-            CapResidenza = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
-            CittaResidenza = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
-            Telefono1 = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
-            Telefono2 = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
-            Mail1Utente = reader.IsDBNull(17) ? string.Empty : reader.GetString(17),
-            Mail2Utente = reader.IsDBNull(18) ? string.Empty : reader.GetString(18),
-            DataArchiviazione = DateTime.Parse(reader.GetString(19)),
+            StatoServizio = StatoServizioPersonaleCatalogo.Normalizza(reader.IsDBNull(10) ? null : reader.GetString(10)),
+            DataFineServizio = ParseDbDate(reader, 11),
+            DataNascita = ParseDbDate(reader, 12),
+            LuogoNascita = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
+            ViaResidenza = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            CapResidenza = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
+            CittaResidenza = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
+            Telefono1 = reader.IsDBNull(17) ? string.Empty : reader.GetString(17),
+            Telefono2 = reader.IsDBNull(18) ? string.Empty : reader.GetString(18),
+            Mail1Utente = reader.IsDBNull(19) ? string.Empty : reader.GetString(19),
+            Mail2Utente = reader.IsDBNull(20) ? string.Empty : reader.GetString(20),
+            DataArchiviazione = DateTime.Parse(reader.GetString(21)),
         };
     }
 
@@ -2597,6 +2696,11 @@ public sealed class PersonaleRepository
         var connection = new SqliteConnection(DatabasePaths.ConnectionString);
         connection.Open();
         return connection;
+    }
+
+    private sealed record PersonaleServiceUsage(int ServiziComePartecipante, int ImmersioniConRuoli)
+    {
+        public bool HasReferences => ServiziComePartecipante > 0 || ImmersioniConRuoli > 0;
     }
 
     private static int GetNextIntegerId(SqliteConnection connection, SqliteTransaction transaction, string tableName, string columnName)

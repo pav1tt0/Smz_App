@@ -26,6 +26,10 @@ public sealed class PersonaleArchivio
 
     public string NumeroBrevettoSmz { get; set; } = string.Empty;
 
+    public string StatoServizio { get; set; } = StatoServizioPersonaleCatalogo.Attivo;
+
+    public DateOnly? DataFineServizio { get; set; }
+
     public DateOnly? DataNascita { get; set; }
 
     public string LuogoNascita { get; set; } = string.Empty;

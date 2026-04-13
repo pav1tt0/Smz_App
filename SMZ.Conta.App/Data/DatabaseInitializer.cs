@@ -41,6 +41,8 @@ public static class DatabaseInitializer
                 CodiceFiscale TEXT NOT NULL,
                 MatricolaPersonale TEXT NULL,
                 NumeroBrevettoSmz TEXT NULL,
+                StatoServizio TEXT NOT NULL DEFAULT 'Attivo',
+                DataFineServizio TEXT NULL,
                 DataNascita TEXT NULL,
                 LuogoNascita TEXT NULL,
                 ViaResidenza TEXT NULL,
@@ -133,6 +135,8 @@ public static class DatabaseInitializer
                 CodiceFiscale TEXT NOT NULL,
                 MatricolaPersonale TEXT NULL,
                 NumeroBrevettoSmz TEXT NULL,
+                StatoServizio TEXT NOT NULL DEFAULT 'Attivo',
+                DataFineServizio TEXT NULL,
                 DataNascita TEXT NULL,
                 LuogoNascita TEXT NULL,
                 ViaResidenza TEXT NULL,
@@ -481,6 +485,8 @@ public static class DatabaseInitializer
         AddColumnIfMissing(connection, transaction, "Personale", "RuoloSanitario", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "MatricolaPersonale", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "NumeroBrevettoSmz", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "StatoServizio", "TEXT NOT NULL DEFAULT 'Attivo'");
+        AddColumnIfMissing(connection, transaction, "Personale", "DataFineServizio", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "ViaResidenza", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "CapResidenza", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "CittaResidenza", "TEXT NULL");
@@ -494,6 +500,8 @@ public static class DatabaseInitializer
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "RuoloSanitario", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "MatricolaPersonale", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "NumeroBrevettoSmz", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "StatoServizio", "TEXT NOT NULL DEFAULT 'Attivo'");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "DataFineServizio", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "ViaResidenza", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "CapResidenza", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "CittaResidenza", "TEXT NULL");

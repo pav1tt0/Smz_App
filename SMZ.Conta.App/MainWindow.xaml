@@ -1047,6 +1047,10 @@
                                                     <TextBlock Margin="0,2,0,0"
                                                                Text="{Binding Contatti}"
                                                                Foreground="#53646A" />
+                                                    <TextBlock Margin="0,6,0,0"
+                                                               Text="{Binding StatoServizioSintesi}"
+                                                               Foreground="#24527B"
+                                                               FontWeight="SemiBold" />
                                                 </StackPanel>
                                             </Border>
                                         </DataTemplate>
@@ -1946,9 +1950,12 @@
                                                 Style="{StaticResource AccentButtonStyle}" />
                                         <Button Content="Salva"
                                                 Command="{Binding SaveCommand}" />
-                                        <Button Content="Sposta tra eliminate"
+                                        <Button Content="Cessa da oggi"
                                                 Command="{Binding DeleteCommand}"
                                                 Style="{StaticResource SecondaryButtonStyle}" />
+                                        <Button Content="Elimina definitivamente"
+                                                Command="{Binding DeleteDefinitivoCommand}"
+                                                Style="{StaticResource DangerButtonStyle}" />
                                     </StackPanel>
                                 </DockPanel>
 
@@ -1978,6 +1985,9 @@
                                                        FontWeight="SemiBold" />
                                             <TextBlock Margin="0,4,0,0"
                                                        Text="{Binding SchedaRiepilogoPerId}"
+                                                       Foreground="#D9E4E7" />
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Text="{Binding StatoServizioSchedaSintesi}"
                                                        Foreground="#D9E4E7" />
                                         </StackPanel>
 
@@ -2093,7 +2103,7 @@
                                                    Foreground="#4A5E64"
                                                    TextWrapping="Wrap" />
                                         <TextBlock Margin="0,8,0,0"
-                                                   Text="Le schede spostate tra le eliminate escono dalla ricerca operativa ma restano recuperabili fino all'eliminazione definitiva."
+                                                   Text="Per trasferimenti o cessazioni imposta lo stato di servizio e la data di fine servizio: lo storico resta valido, mentre i nuovi servizi useranno solo personale disponibile alla data del servizio."
                                                    Foreground="#6A7B80"
                                                    FontSize="12"
                                                    TextWrapping="Wrap" />
@@ -2160,6 +2170,19 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </StackPanel.Style>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                                            <TextBlock Text="Stato servizio" Foreground="#50626A" />
+                                            <ComboBox ItemsSource="{Binding StatiServizioPersonaleDisponibili}"
+                                                      SelectedItem="{Binding StatoServizioPersonale}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
+                                            <TextBlock Text="{Binding DataFineServizioLabel}" Foreground="#50626A" />
+                                            <controls:DateInputPicker Text="{Binding DataFineServizio, UpdateSourceTrigger=PropertyChanged}"
+                                                                      Width="150"
+                                                                      ToolTip="Per trasferiti o cessati indica l'ultimo giorno di servizio" />
                                         </StackPanel>
                                     </Grid>
 

@@ -37,6 +37,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly PersonaleRepository _repository = new();
     private readonly ServizioScambioService _servizioScambioService;
     private readonly RelayCommand _deleteCommand;
+    private readonly RelayCommand _deleteDefinitivoCommand;
     private readonly RelayCommand _navigateSectionCommand;
     private readonly RelayCommand _newServizioCommand;
     private readonly RelayCommand _saveServizioCommand;
@@ -96,6 +97,8 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _codiceFiscale = string.Empty;
     private string _matricolaPersonale = string.Empty;
     private string _numeroBrevettoSmz = string.Empty;
+    private string _statoServizioPersonale = StatoServizioPersonaleCatalogo.Attivo;
+    private string _dataFineServizio = string.Empty;
     private string _dataNascita = string.Empty;
     private string _luogoNascita = string.Empty;
     private string _viaResidenza = string.Empty;
@@ -191,7 +194,8 @@ public sealed class MainWindowViewModel : ObservableObject
             SezioneAttivaIndex = PersonalSectionIndex;
         });
         SaveCommand = new RelayCommand(SalvaPersonale);
-        _deleteCommand = new RelayCommand(EliminaPersonale, () => PerId > 0);
+        _deleteCommand = new RelayCommand(DisattivaPersonaleDaOggi, () => PerId > 0);
+        _deleteDefinitivoCommand = new RelayCommand(EliminaPersonaleDefinitivamente, () => PerId > 0);
         _openSelectedPersonaleCommand = new RelayCommand(ApriSchedaSelezionata, () => SelectedPersonale is not null);
         _restoreArchivioCommand = new RelayCommand(RipristinaArchivio, () => SelectedArchivio is not null);
         _deleteArchivioDefinitivoCommand = new RelayCommand(EliminaArchivioDefinitivamente, () => SelectedArchivio is not null);
@@ -1106,6 +1110,9 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<string> RuoliSanitariDisponibili { get; } =
         new(["Infermiere", "Medico"]);
 
+    public ObservableCollection<string> StatiServizioPersonaleDisponibili { get; } =
+        new(StatoServizioPersonaleCatalogo.Tutti);
+
     public RelayCommand SearchCommand { get; }
 
     public RelayCommand OpenScadenzaCommand { get; }
@@ -1135,6 +1142,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand SaveCommand { get; }
 
     public RelayCommand DeleteCommand => _deleteCommand;
+
+    public RelayCommand DeleteDefinitivoCommand => _deleteDefinitivoCommand;
 
     public RelayCommand OpenSelectedPersonaleCommand => _openSelectedPersonaleCommand;
 
@@ -1340,6 +1349,7 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(IsExistingPerson));
                 _deleteCommand.RaiseCanExecuteChanged();
+                _deleteDefinitivoCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -1446,6 +1456,51 @@ public sealed class MainWindowViewModel : ObservableObject
         get => _numeroBrevettoSmz;
         set => SetProperty(ref _numeroBrevettoSmz, value);
     }
+
+    public string StatoServizioPersonale
+    {
+        get => _statoServizioPersonale;
+        set
+        {
+            var valoreNormalizzato = StatoServizioPersonaleCatalogo.Normalizza(value);
+            if (SetProperty(ref _statoServizioPersonale, valoreNormalizzato))
+            {
+                if (IsPersonaleInServizio)
+                {
+                    DataFineServizio = string.Empty;
+                }
+
+                OnPropertyChanged(nameof(IsPersonaleInServizio));
+                OnPropertyChanged(nameof(StatoServizioSchedaSintesi));
+                OnPropertyChanged(nameof(DataFineServizioLabel));
+            }
+        }
+    }
+
+    public string DataFineServizio
+    {
+        get => _dataFineServizio;
+        set
+        {
+            if (SetProperty(ref _dataFineServizio, value))
+            {
+                OnPropertyChanged(nameof(StatoServizioSchedaSintesi));
+            }
+        }
+    }
+
+    public bool IsPersonaleInServizio =>
+        string.Equals(StatoServizioPersonale, StatoServizioPersonaleCatalogo.Attivo, StringComparison.OrdinalIgnoreCase);
+
+    public string DataFineServizioLabel =>
+        IsPersonaleInServizio ? "Fine servizio" : $"Data {StatoServizioPersonale.ToLowerInvariant()}";
+
+    public string StatoServizioSchedaSintesi =>
+        IsPersonaleInServizio
+            ? "In servizio"
+            : string.IsNullOrWhiteSpace(DataFineServizio)
+                ? StatoServizioPersonale
+                : $"{StatoServizioPersonale} dal {DataFineServizio}";
 
     public string AttagliamentoVoce
     {
@@ -3124,6 +3179,8 @@ public sealed class MainWindowViewModel : ObservableObject
         CodiceFiscale = string.Empty;
         MatricolaPersonale = string.Empty;
         NumeroBrevettoSmz = string.Empty;
+        StatoServizioPersonale = StatoServizioPersonaleCatalogo.Attivo;
+        DataFineServizio = string.Empty;
         DataNascita = string.Empty;
         LuogoNascita = string.Empty;
         ViaResidenza = string.Empty;
@@ -3163,6 +3220,8 @@ public sealed class MainWindowViewModel : ObservableObject
         CodiceFiscale = personale.CodiceFiscale;
         MatricolaPersonale = personale.MatricolaPersonale;
         NumeroBrevettoSmz = personale.NumeroBrevettoSmz;
+        StatoServizioPersonale = personale.StatoServizio;
+        DataFineServizio = FormatDate(personale.DataFineServizio);
         DataNascita = FormatDate(personale.DataNascita);
         LuogoNascita = personale.LuogoNascita;
         ViaResidenza = personale.ViaResidenza;
@@ -3237,7 +3296,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void EliminaPersonale()
+    private void DisattivaPersonaleDaOggi()
     {
         if (PerId == 0)
         {
@@ -3245,8 +3304,8 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         var result = MessageBox.Show(
-            $"Archiviare la scheda di {Cognome} {Nome}?\n\nLa scheda verra rimossa dall'elenco operativo ma restera conservata nell'archivio interno.",
-            "Conferma archiviazione",
+            $"Impostare {Cognome} {Nome} come cessato dal servizio da oggi?\n\nLa scheda resta nello storico e non verra proposta nei nuovi servizi successivi a oggi.",
+            "Conferma cessazione",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);
 
@@ -3255,17 +3314,62 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var archiveId = _repository.DeletePersonale(PerId);
-        RicaricaSuggerimentiRicerca();
-        CaricaElenco();
-        InizializzaBozzaServizio(preserveSelections: true);
-        CaricaArchivio();
-        AggiornaScadenziario();
-        NuovoPersonale();
-        SelectedArchivio = ArchivioItems.FirstOrDefault(item => item.PersonaleArchivioId == archiveId);
-        SezioneAttivaIndex = ArchiveSectionIndex;
-        Stato = "Scheda archiviata. I dati restano conservati nell'archivio interno.";
-        EseguiBackupLocaleSilenzioso("archive-person");
+        try
+        {
+            StatoServizioPersonale = StatoServizioPersonaleCatalogo.Cessato;
+            DataFineServizio = DateTime.Today.ToString("dd/MM/yyyy");
+            var personale = BuildModelFromEditor();
+            var perId = _repository.SavePersonale(personale, isNewRecord: false);
+            RicaricaSuggerimentiRicerca();
+            CaricaElenco();
+            InizializzaBozzaServizio(preserveSelections: true);
+            AggiornaScadenziario();
+            CaricaPersonale(perId);
+            Stato = "Scheda cessata. Resta disponibile nello storico e nei servizi fino alla data di fine servizio.";
+            EseguiBackupLocaleSilenzioso("disable-person");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Cessazione personale", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Cessazione non riuscita";
+        }
+    }
+
+    private void EliminaPersonaleDefinitivamente()
+    {
+        if (PerId == 0)
+        {
+            return;
+        }
+
+        var result = MessageBox.Show(
+            $"Eliminare definitivamente la scheda di {Cognome} {Nome}?\n\nUsa questa funzione solo per schede create per errore. Se la scheda e collegata a servizi salvati, l'eliminazione sara bloccata.",
+            "Conferma eliminazione definitiva",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            var nominativo = $"{Cognome} {Nome}".Trim();
+            _repository.DeletePersonaleDefinitivo(PerId);
+            RicaricaSuggerimentiRicerca();
+            CaricaElenco();
+            InizializzaBozzaServizio(preserveSelections: true);
+            AggiornaScadenziario();
+            NuovoPersonale();
+            Stato = $"Scheda eliminata definitivamente: {nominativo}.";
+            EseguiBackupLocaleSilenzioso("delete-person");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Eliminazione definitiva personale", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Eliminazione definitiva non riuscita";
+        }
     }
 
     private void RipristinaArchivio()
@@ -4179,6 +4283,12 @@ public sealed class MainWindowViewModel : ObservableObject
             throw new InvalidOperationException("Per il profilo sanitario seleziona il ruolo sanitario.");
         }
 
+        var statoServizio = StatoServizioPersonaleCatalogo.Normalizza(StatoServizioPersonale);
+        DateOnly? dataFineServizio = string.Equals(statoServizio, StatoServizioPersonaleCatalogo.Attivo, StringComparison.OrdinalIgnoreCase)
+            ? null
+            : ParseDate(DataFineServizio, "Data fine servizio")
+                ?? throw new InvalidOperationException("Per personale trasferito o cessato indica la data di fine servizio.");
+
         return new Personale
         {
             PerId = ParseRequiredPerId(),
@@ -4190,6 +4300,8 @@ public sealed class MainWindowViewModel : ObservableObject
             CodiceFiscale = CodiceFiscale.Trim().ToUpperInvariant(),
             MatricolaPersonale = MatricolaPersonale.Trim(),
             NumeroBrevettoSmz = NumeroBrevettoSmz.Trim(),
+            StatoServizio = statoServizio,
+            DataFineServizio = dataFineServizio,
             DataNascita = ParseDate(DataNascita, "Data di nascita"),
             LuogoNascita = LuogoNascita.Trim(),
             ViaResidenza = ViaResidenza.Trim(),
@@ -4508,6 +4620,7 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(SchedaRiepilogoTitolo));
         OnPropertyChanged(nameof(SchedaRiepilogoPerId));
+        OnPropertyChanged(nameof(StatoServizioSchedaSintesi));
         OnPropertyChanged(nameof(SchedaAbilitazioniTotali));
         OnPropertyChanged(nameof(SchedaAbilitazioniPrincipali));
         OnPropertyChanged(nameof(SchedaAbilitazioniPrincipaliFooter));
@@ -4524,8 +4637,10 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private void InizializzaBozzaServizio(bool preserveSelections)
     {
+        var dataServizioOperativa = TryParseDate(ServizioData) ?? DateOnly.FromDateTime(DateTime.Today);
         var personaleAttivo = _repository
             .SearchPersonale(string.Empty, null, null)
+            .Where(item => item.IsUtilizzabileInData(dataServizioOperativa))
             .OrderBy(item => QualificaFormatter.GetGerarchiaOrdine(item.Qualifica, item.IsProfiloSanitario, item.RuoloSanitario))
             .ThenBy(item => item.Cognome)
             .ThenBy(item => item.Nome)
@@ -5205,6 +5320,8 @@ public sealed class MainWindowViewModel : ObservableObject
         AppendSnapshot(builder, "CodiceFiscale", CodiceFiscale);
         AppendSnapshot(builder, "Matricola", MatricolaPersonale);
         AppendSnapshot(builder, "Brevetto", NumeroBrevettoSmz);
+        AppendSnapshot(builder, "StatoServizio", StatoServizioPersonale);
+        AppendSnapshot(builder, "DataFineServizio", DataFineServizio);
         AppendSnapshot(builder, "DataNascita", DataNascita);
         AppendSnapshot(builder, "LuogoNascita", LuogoNascita);
         AppendSnapshot(builder, "ViaResidenza", ViaResidenza);

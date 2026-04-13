@@ -22,6 +22,10 @@ public sealed class Personale
 
     public string NumeroBrevettoSmz { get; set; } = string.Empty;
 
+    public string StatoServizio { get; set; } = StatoServizioPersonaleCatalogo.Attivo;
+
+    public DateOnly? DataFineServizio { get; set; }
+
     public DateOnly? DataNascita { get; set; }
 
     public string LuogoNascita { get; set; } = string.Empty;
@@ -47,6 +51,14 @@ public sealed class Personale
     public List<PersonaleAttagliamento> Attagliamento { get; set; } = [];
 
     public bool IsProfiloSanitario => ProfiliPersonaleCatalogo.IsSanitario(ProfiloPersonale);
+
+    public bool IsAttivo => string.Equals(
+        StatoServizioPersonaleCatalogo.Normalizza(StatoServizio),
+        StatoServizioPersonaleCatalogo.Attivo,
+        StringComparison.OrdinalIgnoreCase);
+
+    public bool IsUtilizzabileInData(DateOnly dataServizio) =>
+        IsAttivo || (DataFineServizio is not null && dataServizio <= DataFineServizio.Value);
 
     public string NominativoCompleto => $"{Cognome} {Nome}".Trim();
 
