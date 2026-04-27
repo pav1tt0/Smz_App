@@ -1558,9 +1558,17 @@
                                             <DataGridTextColumn Header="Cognome e nome"
                                                                 Width="220"
                                                                 Binding="{Binding Nominativo}" />
-                                            <DataGridCheckBoxColumn Header="Presente"
-                                                                    Width="90"
-                                                                    Binding="{Binding Presente, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTemplateColumn Header="Presente"
+                                                                    Width="90">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <CheckBox HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"
+                                                                  Focusable="False"
+                                                                  IsChecked="{Binding Presente, UpdateSourceTrigger=PropertyChanged}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
                                             <DataGridTemplateColumn Header="Gruppo operativo" Width="180">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
@@ -1639,9 +1647,17 @@
                                             <DataGridTextColumn Header="Ruolo"
                                                                 Width="160"
                                                                 Binding="{Binding Ruolo, UpdateSourceTrigger=PropertyChanged}" />
-                                            <DataGridCheckBoxColumn Header="Presente"
-                                                                    Width="90"
-                                                                    Binding="{Binding Presente, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTemplateColumn Header="Presente"
+                                                                    Width="90">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <CheckBox HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"
+                                                                  Focusable="False"
+                                                                  IsChecked="{Binding Presente, UpdateSourceTrigger=PropertyChanged}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                            </DataGridTemplateColumn>
                                             <DataGridTextColumn Header="Contatti"
                                                                 Width="180"
                                                                 Binding="{Binding Contatti, UpdateSourceTrigger=PropertyChanged}" />
@@ -1816,99 +1832,6 @@
                                                             </StackPanel>
                                                         </Grid>
 
-                                                        <DockPanel Margin="0,12,0,0" LastChildFill="False">
-                                                            <TextBlock DockPanel.Dock="Left"
-                                                                       Text="Dettaglio contabile SMZ"
-                                                                       Foreground="#17313E"
-                                                                       FontWeight="SemiBold"
-                                                                       VerticalAlignment="Center" />
-                                                            <StackPanel DockPanel.Dock="Right"
-                                                                        Orientation="Horizontal">
-                                                                <Button Content="Flagga / deflagga tutti"
-                                                                        Padding="10,5"
-                                                                        Command="{Binding DataContext.FlaggaTuttiImmersioneCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                        CommandParameter="{Binding}"
-                                                                        Style="{StaticResource SecondaryButtonStyle}" />
-                                                            </StackPanel>
-                                                        </DockPanel>
-                                                        <TextBlock Margin="0,4,0,0"
-                                                                   Text="Compila solo gli operatori SMZ effettivamente entrati in immersione. Profondita e ore vengono allineate automaticamente su tutti gli operatori flaggati della stessa immersione e la profondita viene controllata in base all'apparato."
-                                                                   Foreground="#53646A"
-                                                                   TextWrapping="Wrap" />
-
-                                                        <DataGrid Margin="0,10,0,0"
-                                                                  ItemsSource="{Binding Partecipazioni}"
-                                                                  AutoGenerateColumns="False"
-                                                                  CanUserAddRows="False"
-                                                                  HeadersVisibility="Column"
-                                                                  RowHeaderWidth="0"
-                                                                  MinHeight="180"
-                                                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                                            <DataGrid.Columns>
-                                                                <DataGridCheckBoxColumn Header="In"
-                                                                                        Width="42"
-                                                                                        Binding="{Binding InImmersione, UpdateSourceTrigger=PropertyChanged}" />
-                                                                <DataGridTextColumn Header="Operatore"
-                                                                                    Width="250"
-                                                                                    Binding="{Binding NominativoConQualifica}" />
-                                                                <DataGridTemplateColumn Header="Apparato"
-                                                                                        Width="120">
-                                                                    <DataGridTemplateColumn.CellTemplate>
-                                                                        <DataTemplate>
-                                                                            <ComboBox ItemsSource="{Binding DataContext.TipologieImmersioneOperativeCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                                      SelectedItem="{Binding TipologiaImmersioneOperativa, UpdateSourceTrigger=PropertyChanged}"
-                                                                                      DisplayMemberPath="Descrizione" />
-                                                                        </DataTemplate>
-                                                                    </DataGridTemplateColumn.CellTemplate>
-                                                                </DataGridTemplateColumn>
-                                                                <DataGridTemplateColumn Header="Prof."
-                                                                                        Width="68">
-                                                                    <DataGridTemplateColumn.CellTemplate>
-                                                                        <DataTemplate>
-                                                                            <TextBox Text="{Binding ProfonditaMetri, UpdateSourceTrigger=LostFocus}"
-                                                                                     MaxLength="3"
-                                                                                     ToolTip="{Binding TipologiaImmersioneOperativa.ProfonditaConsentitaDisplay, TargetNullValue='Seleziona prima l''apparato per vedere il range di profondita.'}" />
-                                                                        </DataTemplate>
-                                                                    </DataGridTemplateColumn.CellTemplate>
-                                                                </DataGridTemplateColumn>
-                                                                <DataGridTemplateColumn Header="Fascia"
-                                                                                        Width="88">
-                                                                    <DataGridTemplateColumn.CellTemplate>
-                                                                        <DataTemplate>
-                                                                            <ComboBox ItemsSource="{Binding DataContext.FasceProfonditaCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                                      SelectedItem="{Binding FasciaProfondita, UpdateSourceTrigger=PropertyChanged}"
-                                                                                      DisplayMemberPath="Descrizione" />
-                                                                        </DataTemplate>
-                                                                    </DataGridTemplateColumn.CellTemplate>
-                                                                </DataGridTemplateColumn>
-                                                                <DataGridTemplateColumn Header="Ore"
-                                                                                        Width="68">
-                                                                    <DataGridTemplateColumn.CellTemplate>
-                                                                        <DataTemplate>
-                                                                            <TextBox Text="{Binding OreImmersione, UpdateSourceTrigger=PropertyChanged}" />
-                                                                        </DataTemplate>
-                                                                    </DataGridTemplateColumn.CellTemplate>
-                                                                </DataGridTemplateColumn>
-                                                                <DataGridTemplateColumn Header="Cat."
-                                                                                        Width="96">
-                                                                    <DataGridTemplateColumn.CellTemplate>
-                                                                        <DataTemplate>
-                                                                            <ComboBox ItemsSource="{Binding DataContext.CategorieContabiliOreCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                                      SelectedItem="{Binding CategoriaContabileOre, UpdateSourceTrigger=PropertyChanged}"
-                                                                                      DisplayMemberPath="Descrizione" />
-                                                                        </DataTemplate>
-                                                                    </DataGridTemplateColumn.CellTemplate>
-                                                                </DataGridTemplateColumn>
-                                                                <DataGridTextColumn Header="Tariffa"
-                                                                                    Width="72"
-                                                                                    Binding="{Binding TariffaPropostaDisplay}" />
-                                                                <DataGridTextColumn Header="Importo"
-                                                                                    Width="78"
-                                                                                    Binding="{Binding ImportoStimatoDisplay}" />
-                                                            </DataGrid.Columns>
-                                                        </DataGrid>
-
                                                         <TextBlock Margin="0,10,0,0" Text="Note immersione" Foreground="#50626A" />
                                                         <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}"
                                                                  TextWrapping="Wrap"
@@ -1919,6 +1842,111 @@
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
+
+                                    <Border Margin="0,2,14,0"
+                                            Background="#F8FBFD"
+                                            BorderBrush="#D8E1E8"
+                                            BorderThickness="1"
+                                            CornerRadius="18"
+                                            Padding="14">
+                                        <StackPanel>
+                                            <DockPanel LastChildFill="False">
+                                                <TextBlock DockPanel.Dock="Left"
+                                                           Text="Dettaglio contabile SMZ"
+                                                           Foreground="#17313E"
+                                                           FontWeight="SemiBold"
+                                                           VerticalAlignment="Center" />
+                                            </DockPanel>
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Text="Compila solo gli operatori SMZ effettivamente entrati in immersione. Apparato e categoria contabile vengono estesi agli SMZ successivi della stessa immersione; profondita e ore vengono allineate automaticamente su tutti gli operatori flaggati e la profondita viene controllata in base all'apparato."
+                                                       Foreground="#53646A"
+                                                       TextWrapping="Wrap" />
+
+                                            <DataGrid Margin="0,12,0,0"
+                                                      ItemsSource="{Binding ServizioPartecipazioniContabiliBozza}"
+                                                      AutoGenerateColumns="False"
+                                                      CanUserAddRows="False"
+                                                      HeadersVisibility="Column"
+                                                      RowHeaderWidth="0"
+                                                      MinHeight="220"
+                                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn Header="Imm."
+                                                                        Width="54"
+                                                                        Binding="{Binding NumeroImmersione}" />
+                                                    <DataGridTemplateColumn Header="In"
+                                                                            Width="42">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <CheckBox HorizontalAlignment="Center"
+                                                                          VerticalAlignment="Center"
+                                                                          Focusable="False"
+                                                                          IsChecked="{Binding InImmersione, UpdateSourceTrigger=PropertyChanged}" />
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTextColumn Header="Operatore"
+                                                                        Width="250"
+                                                                        Binding="{Binding NominativoConQualifica}" />
+                                                    <DataGridTemplateColumn Header="Apparato"
+                                                                            Width="120">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <ComboBox ItemsSource="{Binding DataContext.TipologieImmersioneOperativeCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          SelectedItem="{Binding TipologiaImmersioneOperativa, UpdateSourceTrigger=PropertyChanged}"
+                                                                          DisplayMemberPath="Descrizione" />
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Prof."
+                                                                            Width="68">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <TextBox Text="{Binding ProfonditaMetri, UpdateSourceTrigger=LostFocus}"
+                                                                         MaxLength="3"
+                                                                         ToolTip="{Binding TipologiaImmersioneOperativa.ProfonditaConsentitaDisplay, TargetNullValue='Seleziona prima l''apparato per vedere il range di profondita.'}" />
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Fascia"
+                                                                            Width="88">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <ComboBox ItemsSource="{Binding DataContext.FasceProfonditaCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          SelectedItem="{Binding FasciaProfondita, UpdateSourceTrigger=PropertyChanged}"
+                                                                          DisplayMemberPath="Descrizione" />
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Ore"
+                                                                            Width="68">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <TextBox Text="{Binding OreImmersione, UpdateSourceTrigger=PropertyChanged}" />
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Cat."
+                                                                            Width="96">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <ComboBox ItemsSource="{Binding DataContext.CategorieContabiliOreCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          SelectedItem="{Binding CategoriaContabileOre, UpdateSourceTrigger=PropertyChanged}"
+                                                                          DisplayMemberPath="Descrizione" />
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTextColumn Header="Tariffa"
+                                                                        Width="72"
+                                                                        Binding="{Binding TariffaPropostaDisplay}" />
+                                                    <DataGridTextColumn Header="Importo"
+                                                                        Width="78"
+                                                                        Binding="{Binding ImportoStimatoDisplay}" />
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>

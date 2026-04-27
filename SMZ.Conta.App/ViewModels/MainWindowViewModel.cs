@@ -512,6 +512,12 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<ServizioImmersioneDraftViewModel> ServizioImmersioniBozza { get; }
 
+    public IReadOnlyList<ServizioPartecipanteImmersioneDraftViewModel> ServizioPartecipazioniContabiliBozza =>
+        ServizioImmersioniBozza
+            .OrderBy(item => item.NumeroImmersione)
+            .SelectMany(item => item.Partecipazioni)
+            .ToList();
+
     public ObservableCollection<ServizioSupportoOccasionaleDraftViewModel> ServizioSupportiOccasionaliBozza { get; }
 
     public ObservableCollection<ServizioGiornalieroSummary> ServiziSalvati { get; }
@@ -4734,6 +4740,7 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 if (existing.TryGetValue(operatore.PerId, out var row))
                 {
+                    row.NumeroImmersione = immersione.NumeroImmersione;
                     row.Qualifica = operatore.Qualifica;
                     row.Nominativo = operatore.Nominativo;
                     orderedRows.Add(row);
@@ -4742,6 +4749,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
                 row = new ServizioPartecipanteImmersioneDraftViewModel
                 {
+                    NumeroImmersione = immersione.NumeroImmersione,
                     PerId = operatore.PerId,
                     Qualifica = operatore.Qualifica,
                     Nominativo = operatore.Nominativo,
@@ -4769,6 +4777,8 @@ public sealed class MainWindowViewModel : ObservableObject
 
             AggiornaStatoCondivisioneValoriImmersione(immersione);
         }
+
+        OnPropertyChanged(nameof(ServizioPartecipazioniContabiliBozza));
     }
 
     private void FlaggaTuttiImmersione(object? parameter)
@@ -5056,12 +5066,24 @@ public sealed class MainWindowViewModel : ObservableObject
             or nameof(ServizioPartecipanteImmersioneDraftViewModel.CategoriaContabileOre)
             or nameof(ServizioPartecipanteImmersioneDraftViewModel.Note))
         {
+            if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.TipologiaImmersioneOperativa)
+                && !_isSyncingValoriCondivisiImmersione)
+            {
+                PropagaSelezioniAiSuccessivi(row, sincronizzaTipologia: true, sincronizzaCategoria: false);
+            }
+
             if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.OreImmersione)
                 && !_isSyncingValoriCondivisiImmersione
                 && TrovaImmersioneDiPartecipazione(row) is { } immersione
                 && !immersione.OreCondiviseInizializzate)
             {
                 SincronizzaValoriCondivisiImmersione(immersione, row, sincronizzaProfondita: false, sincronizzaOre: true);
+            }
+
+            if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.CategoriaContabileOre)
+                && !_isSyncingValoriCondivisiImmersione)
+            {
+                PropagaSelezioniAiSuccessivi(row, sincronizzaTipologia: false, sincronizzaCategoria: true);
             }
 
             if (e.PropertyName is nameof(ServizioPartecipanteImmersioneDraftViewModel.OreImmersione)
@@ -5092,6 +5114,68 @@ public sealed class MainWindowViewModel : ObservableObject
     private ServizioImmersioneDraftViewModel? TrovaImmersioneDiPartecipazione(ServizioPartecipanteImmersioneDraftViewModel partecipazione) =>
         ServizioImmersioniBozza.FirstOrDefault(item => item.Partecipazioni.Contains(partecipazione));
 
+    private void PropagaSelezioniAiSuccessivi(
+        ServizioPartecipanteImmersioneDraftViewModel origine,
+        bool sincronizzaTipologia,
+        bool sincronizzaCategoria)
+    {
+        if (_isSyncingValoriCondivisiImmersione || !origine.InImmersione)
+        {
+            return;
+        }
+
+        var immersione = TrovaImmersioneDiPartecipazione(origine);
+        if (immersione is null)
+        {
+            return;
+        }
+
+        var indiceOrigine = immersione.Partecipazioni.IndexOf(origine);
+        if (indiceOrigine < 0)
+        {
+            return;
+        }
+
+        var righeSuccessive = immersione.Partecipazioni
+            .Skip(indiceOrigine + 1)
+            .Where(item => item.InImmersione)
+            .ToList();
+        if (righeSuccessive.Count == 0)
+        {
+            return;
+        }
+
+        var tipologiaCondivisa = sincronizzaTipologia ? origine.TipologiaImmersioneOperativa : null;
+        var categoriaCondivisa = sincronizzaCategoria ? origine.CategoriaContabileOre : null;
+        if (tipologiaCondivisa is null && categoriaCondivisa is null)
+        {
+            return;
+        }
+
+        _isSyncingValoriCondivisiImmersione = true;
+        try
+        {
+            foreach (var partecipazione in righeSuccessive)
+            {
+                if (tipologiaCondivisa is not null
+                    && !ReferenceEquals(partecipazione.TipologiaImmersioneOperativa, tipologiaCondivisa))
+                {
+                    partecipazione.TipologiaImmersioneOperativa = tipologiaCondivisa;
+                }
+
+                if (categoriaCondivisa is not null
+                    && !ReferenceEquals(partecipazione.CategoriaContabileOre, categoriaCondivisa))
+                {
+                    partecipazione.CategoriaContabileOre = categoriaCondivisa;
+                }
+            }
+        }
+        finally
+        {
+            _isSyncingValoriCondivisiImmersione = false;
+        }
+    }
+
     private void ApplicaValoriCondivisiAllaPartecipazione(ServizioPartecipanteImmersioneDraftViewModel partecipazione)
     {
         if (_isSyncingValoriCondivisiImmersione || !partecipazione.InImmersione)
@@ -5105,12 +5189,25 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
+        var indicePartecipazione = immersione.Partecipazioni.IndexOf(partecipazione);
+        var righePrecedentiInImmersione = indicePartecipazione <= 0
+            ? new List<ServizioPartecipanteImmersioneDraftViewModel>()
+            : immersione.Partecipazioni
+                .Take(indicePartecipazione)
+                .Where(item => item.InImmersione)
+                .ToList();
         var altreRigheInImmersione = immersione.Partecipazioni
             .Where(item => item.InImmersione && !ReferenceEquals(item, partecipazione))
             .ToList();
+        var tipologiaCondivisa = righePrecedentiInImmersione
+            .Select(item => item.TipologiaImmersioneOperativa)
+            .LastOrDefault(item => item is not null);
         var profonditaCondivisa = immersione.ProfonditaCondivisaInizializzata
             ? string.Empty
             : TrovaValoreCondivisoImmersione(null, altreRigheInImmersione.Select(item => item.ProfonditaMetri));
+        var categoriaCondivisa = righePrecedentiInImmersione
+            .Select(item => item.CategoriaContabileOre)
+            .LastOrDefault(item => item is not null);
         var oreCondivise = immersione.OreCondiviseInizializzate
             ? string.Empty
             : TrovaValoreCondivisoImmersione(null, altreRigheInImmersione.Select(item => item.OreImmersione));
@@ -5118,9 +5215,19 @@ public sealed class MainWindowViewModel : ObservableObject
         _isSyncingValoriCondivisiImmersione = true;
         try
         {
+            if (tipologiaCondivisa is not null)
+            {
+                partecipazione.TipologiaImmersioneOperativa = tipologiaCondivisa;
+            }
+
             if (!string.IsNullOrWhiteSpace(profonditaCondivisa))
             {
                 partecipazione.ProfonditaMetri = profonditaCondivisa;
+            }
+
+            if (categoriaCondivisa is not null)
+            {
+                partecipazione.CategoriaContabileOre = categoriaCondivisa;
             }
 
             if (!string.IsNullOrWhiteSpace(oreCondivise))

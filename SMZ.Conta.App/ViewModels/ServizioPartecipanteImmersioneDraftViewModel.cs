@@ -5,6 +5,7 @@ namespace SMZ.Conta.App.ViewModels;
 
 public sealed class ServizioPartecipanteImmersioneDraftViewModel : ObservableObject
 {
+    private int _numeroImmersione;
     private int _perId;
     private string _qualifica = string.Empty;
     private string _nominativo = string.Empty;
@@ -17,6 +18,12 @@ public sealed class ServizioPartecipanteImmersioneDraftViewModel : ObservableObj
     private decimal? _tariffaProposta;
     private decimal? _importoStimato;
     private string _note = string.Empty;
+
+    public int NumeroImmersione
+    {
+        get => _numeroImmersione;
+        set => SetProperty(ref _numeroImmersione, value);
+    }
 
     public int PerId
     {
