@@ -2149,9 +2149,11 @@
                                             <ColumnDefinition Width="18" />
                                             <ColumnDefinition Width="220" />
                                             <ColumnDefinition Width="18" />
+                                            <ColumnDefinition Width="160" />
+                                            <ColumnDefinition Width="18" />
                                             <ColumnDefinition Width="190" />
                                             <ColumnDefinition Width="18" />
-                                            <ColumnDefinition Width="170" />
+                                            <ColumnDefinition Width="150" />
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
@@ -2173,17 +2175,24 @@
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="4">
+                                            <TextBlock Text="Decorrenza qualifica" Foreground="#50626A" />
+                                            <controls:DateInputPicker Text="{Binding DataDecorrenzaQualifica, UpdateSourceTrigger=PropertyChanged}"
+                                                                      Width="150"
+                                                                      ToolTip="Data decorrenza della qualifica, usata per ordinare l'anzianita a parita di qualifica" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="6">
                                             <TextBlock Text="Profilo personale" Foreground="#50626A" />
                                             <ComboBox ItemsSource="{Binding ProfiliPersonaleDisponibili}"
                                                       SelectedItem="{Binding ProfiloPersonale}" />
                                         </StackPanel>
 
-                                        <StackPanel Grid.Column="6">
+                                        <StackPanel Grid.Column="8">
                                             <TextBlock Text="N. brevetto" Foreground="#50626A" />
                                             <TextBox Text="{Binding NumeroBrevettoSmz, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
-                                        <StackPanel Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="3" Margin="0,10,0,0">
+                                        <StackPanel Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="5" Margin="0,10,0,0">
                                             <TextBlock Text="Ruolo sanitario" Foreground="#50626A" />
                                             <ComboBox ItemsSource="{Binding RuoliSanitariDisponibili}"
                                                       SelectedItem="{Binding RuoloSanitario}"

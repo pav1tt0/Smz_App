@@ -92,6 +92,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _cognome = string.Empty;
     private string _nome = string.Empty;
     private string _qualifica = string.Empty;
+    private string _dataDecorrenzaQualifica = string.Empty;
     private string _profiloPersonale = ProfiliPersonaleCatalogo.OperatoreSubacqueo;
     private string _ruoloSanitario = string.Empty;
     private string _codiceFiscale = string.Empty;
@@ -1402,6 +1403,12 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         get => _qualifica;
         set => SetProperty(ref _qualifica, value);
+    }
+
+    public string DataDecorrenzaQualifica
+    {
+        get => _dataDecorrenzaQualifica;
+        set => SetProperty(ref _dataDecorrenzaQualifica, value);
     }
 
     public string ProfiloPersonale
@@ -3180,6 +3187,7 @@ public sealed class MainWindowViewModel : ObservableObject
         Cognome = string.Empty;
         Nome = string.Empty;
         Qualifica = string.Empty;
+        DataDecorrenzaQualifica = string.Empty;
         ProfiloPersonale = ProfiliPersonaleDisponibili[0];
         RuoloSanitario = string.Empty;
         CodiceFiscale = string.Empty;
@@ -3221,6 +3229,7 @@ public sealed class MainWindowViewModel : ObservableObject
         Cognome = personale.Cognome;
         Nome = personale.Nome;
         Qualifica = personale.Qualifica;
+        DataDecorrenzaQualifica = FormatDate(personale.DataDecorrenzaQualifica);
         ProfiloPersonale = ProfiliPersonaleCatalogo.Normalizza(personale.ProfiloPersonale);
         RuoloSanitario = personale.RuoloSanitario;
         CodiceFiscale = personale.CodiceFiscale;
@@ -4204,6 +4213,11 @@ public sealed class MainWindowViewModel : ObservableObject
 
         foreach (var row in immersione.Partecipazioni)
         {
+            if (IsDirettoreImmersione(immersione, row.PerId))
+            {
+                continue;
+            }
+
             var includeRow = IsPartecipazioneImmersioneCompilata(row);
             if (!includeRow)
             {
@@ -4301,6 +4315,7 @@ public sealed class MainWindowViewModel : ObservableObject
             Cognome = Cognome.Trim(),
             Nome = Nome.Trim(),
             Qualifica = Qualifica.Trim(),
+            DataDecorrenzaQualifica = ParseDate(DataDecorrenzaQualifica, "Data decorrenza qualifica"),
             ProfiloPersonale = ProfiliPersonaleCatalogo.Normalizza(ProfiloPersonale),
             RuoloSanitario = IsProfiloSanitario ? RuoloSanitario.Trim() : string.Empty,
             CodiceFiscale = CodiceFiscale.Trim().ToUpperInvariant(),
@@ -4528,6 +4543,8 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private static string FormatDate(DateOnly? value) => value?.ToString("dd/MM/yyyy") ?? string.Empty;
 
+    private static DateOnly GetOrdineDecorrenzaQualifica(DateOnly? value) => value ?? DateOnly.MaxValue;
+
     private static decimal? ParseDecimalSilenzioso(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -4648,6 +4665,7 @@ public sealed class MainWindowViewModel : ObservableObject
             .SearchPersonale(string.Empty, null, null)
             .Where(item => item.IsUtilizzabileInData(dataServizioOperativa))
             .OrderBy(item => QualificaFormatter.GetGerarchiaOrdine(item.Qualifica, item.IsProfiloSanitario, item.RuoloSanitario))
+            .ThenBy(item => GetOrdineDecorrenzaQualifica(item.DataDecorrenzaQualifica))
             .ThenBy(item => item.Cognome)
             .ThenBy(item => item.Nome)
             .ToList();
@@ -4674,6 +4692,7 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 PerId = personale.PerId,
                 Qualifica = personale.Qualifica,
+                DataDecorrenzaQualifica = personale.DataDecorrenzaQualifica,
                 Nominativo = personale.NominativoCompleto,
                 ProfiloPersonale = personale.ProfiloPersonale,
                 RuoloSanitario = personale.RuoloSanitario,
@@ -4727,6 +4746,7 @@ public sealed class MainWindowViewModel : ObservableObject
             .Where(item => item is not null && !ProfiliPersonaleCatalogo.IsSanitario(item.ProfiloPersonale))
             .Cast<PersonaleListItemViewModel>()
             .OrderBy(item => QualificaFormatter.GetGerarchiaOrdine(item.Qualifica, item.IsProfiloSanitario, item.RuoloSanitario))
+            .ThenBy(item => GetOrdineDecorrenzaQualifica(item.DataDecorrenzaQualifica))
             .ThenBy(item => item.Cognome)
             .ThenBy(item => item.Nome)
             .ToList();
@@ -4735,13 +4755,20 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             var existing = immersione.Partecipazioni.ToDictionary(item => item.PerId);
             var orderedRows = new List<ServizioPartecipanteImmersioneDraftViewModel>();
+            var direttorePerId = GetPerIdOperatoreSelezionato(immersione.DirettoreImmersione);
 
             foreach (var operatore in operatoriSmzPresenti)
             {
+                if (direttorePerId == operatore.PerId)
+                {
+                    continue;
+                }
+
                 if (existing.TryGetValue(operatore.PerId, out var row))
                 {
                     row.NumeroImmersione = immersione.NumeroImmersione;
                     row.Qualifica = operatore.Qualifica;
+                    row.DataDecorrenzaQualifica = operatore.DataDecorrenzaQualifica;
                     row.Nominativo = operatore.Nominativo;
                     orderedRows.Add(row);
                     continue;
@@ -4752,6 +4779,7 @@ public sealed class MainWindowViewModel : ObservableObject
                     NumeroImmersione = immersione.NumeroImmersione,
                     PerId = operatore.PerId,
                     Qualifica = operatore.Qualifica,
+                    DataDecorrenzaQualifica = operatore.DataDecorrenzaQualifica,
                     Nominativo = operatore.Nominativo,
                 };
                 row.PropertyChanged += ServizioPartecipazioneImmersione_PropertyChanged;
@@ -5013,6 +5041,11 @@ public sealed class MainWindowViewModel : ObservableObject
             or nameof(ServizioImmersioneDraftViewModel.AssistenteBlsd)
             or nameof(ServizioImmersioneDraftViewModel.AssistenteSanitario))
         {
+            if (e.PropertyName is nameof(ServizioImmersioneDraftViewModel.DirettoreImmersione))
+            {
+                SincronizzaPartecipazioniImmersioneBozza();
+            }
+
             AggiornaRiepilogoBozzaServizio();
         }
     }
@@ -5249,6 +5282,7 @@ public sealed class MainWindowViewModel : ObservableObject
             .Where(item => item is not null)
             .Cast<PersonaleListItemViewModel>()
             .OrderBy(item => QualificaFormatter.GetGerarchiaOrdine(item.Qualifica, item.IsProfiloSanitario, item.RuoloSanitario))
+            .ThenBy(item => GetOrdineDecorrenzaQualifica(item.DataDecorrenzaQualifica))
             .ThenBy(item => item.Cognome)
             .ThenBy(item => item.Nome)
             .ToList();
@@ -5297,6 +5331,9 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private static int? GetPerIdOperatoreSelezionato(PersonaleListItemViewModel? operatore) =>
         operatore is { PerId: > 0 } ? operatore.PerId : null;
+
+    private static bool IsDirettoreImmersione(ServizioImmersioneDraftViewModel immersione, int perId) =>
+        GetPerIdOperatoreSelezionato(immersione.DirettoreImmersione) == perId;
 
     private int ContaPartecipantiInterniBozza() =>
         ServizioPartecipantiBozza.Count(IsPartecipanteInternoCompilato);
@@ -5422,6 +5459,7 @@ public sealed class MainWindowViewModel : ObservableObject
         AppendSnapshot(builder, "Cognome", Cognome);
         AppendSnapshot(builder, "Nome", Nome);
         AppendSnapshot(builder, "Qualifica", Qualifica);
+        AppendSnapshot(builder, "DataDecorrenzaQualifica", DataDecorrenzaQualifica);
         AppendSnapshot(builder, "Profilo", ProfiloPersonale);
         AppendSnapshot(builder, "RuoloSanitario", RuoloSanitario);
         AppendSnapshot(builder, "CodiceFiscale", CodiceFiscale);

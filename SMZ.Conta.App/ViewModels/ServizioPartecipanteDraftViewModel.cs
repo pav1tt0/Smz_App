@@ -7,6 +7,7 @@ public sealed class ServizioPartecipanteDraftViewModel : ObservableObject
 {
     private int _perId;
     private string _qualifica = string.Empty;
+    private DateOnly? _dataDecorrenzaQualifica;
     private string _nominativo = string.Empty;
     private string _profiloPersonale = string.Empty;
     private string _ruoloSanitario = string.Empty;
@@ -34,6 +35,12 @@ public sealed class ServizioPartecipanteDraftViewModel : ObservableObject
                 OnPropertyChanged(nameof(QualificaDisplay));
             }
         }
+    }
+
+    public DateOnly? DataDecorrenzaQualifica
+    {
+        get => _dataDecorrenzaQualifica;
+        set => SetProperty(ref _dataDecorrenzaQualifica, value);
     }
 
     public string Nominativo

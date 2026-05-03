@@ -12,6 +12,8 @@ public sealed class Personale
 
     public string Qualifica { get; set; } = string.Empty;
 
+    public DateOnly? DataDecorrenzaQualifica { get; set; }
+
     public string ProfiloPersonale { get; set; } = ProfiliPersonaleCatalogo.OperatoreSubacqueo;
 
     public string RuoloSanitario { get; set; } = string.Empty;

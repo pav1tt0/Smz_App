@@ -8,6 +8,7 @@ public sealed class ServizioPartecipanteImmersioneDraftViewModel : ObservableObj
     private int _numeroImmersione;
     private int _perId;
     private string _qualifica = string.Empty;
+    private DateOnly? _dataDecorrenzaQualifica;
     private string _nominativo = string.Empty;
     private bool _inImmersione;
     private TipologiaImmersioneOperativa? _tipologiaImmersioneOperativa;
@@ -41,6 +42,12 @@ public sealed class ServizioPartecipanteImmersioneDraftViewModel : ObservableObj
                 OnPropertyChanged(nameof(NominativoConQualifica));
             }
         }
+    }
+
+    public DateOnly? DataDecorrenzaQualifica
+    {
+        get => _dataDecorrenzaQualifica;
+        set => SetProperty(ref _dataDecorrenzaQualifica, value);
     }
 
     public string Nominativo

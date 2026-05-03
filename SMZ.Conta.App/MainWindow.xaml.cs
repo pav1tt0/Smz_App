@@ -162,6 +162,14 @@ public partial class MainWindow : Window
                 return rankCompare;
             }
 
+            var leftDecorrenza = left.DataDecorrenzaQualifica ?? DateOnly.MaxValue;
+            var rightDecorrenza = right.DataDecorrenzaQualifica ?? DateOnly.MaxValue;
+            var decorrenzaCompare = leftDecorrenza.CompareTo(rightDecorrenza);
+            if (decorrenzaCompare != 0)
+            {
+                return decorrenzaCompare;
+            }
+
             return StringComparer.CurrentCultureIgnoreCase.Compare(left.Qualifica, right.Qualifica);
         }
     }

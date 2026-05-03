@@ -9,6 +9,7 @@ public sealed class PersonaleListItemViewModel : ObservableObject
     private string _cognome = string.Empty;
     private string _nome = string.Empty;
     private string _qualifica = string.Empty;
+    private DateOnly? _dataDecorrenzaQualifica;
     private string _profiloPersonale = ProfiliPersonaleCatalogo.OperatoreSubacqueo;
     private string _ruoloSanitario = string.Empty;
     private string _codiceFiscale = string.Empty;
@@ -57,6 +58,12 @@ public sealed class PersonaleListItemViewModel : ObservableObject
                 OnPropertyChanged(nameof(NominativoConQualifica));
             }
         }
+    }
+
+    public DateOnly? DataDecorrenzaQualifica
+    {
+        get => _dataDecorrenzaQualifica;
+        set => SetProperty(ref _dataDecorrenzaQualifica, value);
     }
 
     public string ProfiloPersonale
@@ -150,6 +157,7 @@ public sealed class PersonaleListItemViewModel : ObservableObject
             Cognome = personale.Cognome,
             Nome = personale.Nome,
             Qualifica = personale.Qualifica,
+            DataDecorrenzaQualifica = personale.DataDecorrenzaQualifica,
             ProfiloPersonale = personale.ProfiloPersonale,
             RuoloSanitario = personale.RuoloSanitario,
             CodiceFiscale = personale.CodiceFiscale,

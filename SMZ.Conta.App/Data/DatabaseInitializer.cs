@@ -36,6 +36,7 @@ public static class DatabaseInitializer
                 Cognome TEXT NOT NULL,
                 Nome TEXT NOT NULL,
                 Qualifica TEXT NULL,
+                DataDecorrenzaQualifica TEXT NULL,
                 ProfiloPersonale TEXT NOT NULL DEFAULT 'Operatore Subacqueo',
                 RuoloSanitario TEXT NULL,
                 CodiceFiscale TEXT NOT NULL,
@@ -130,6 +131,7 @@ public static class DatabaseInitializer
                 Cognome TEXT NOT NULL,
                 Nome TEXT NOT NULL,
                 Qualifica TEXT NULL,
+                DataDecorrenzaQualifica TEXT NULL,
                 ProfiloPersonale TEXT NOT NULL DEFAULT 'Operatore Subacqueo',
                 RuoloSanitario TEXT NULL,
                 CodiceFiscale TEXT NOT NULL,
@@ -481,6 +483,7 @@ public static class DatabaseInitializer
     private static void EnsureColumnMigrations(SqliteConnection connection, SqliteTransaction transaction)
     {
         AddColumnIfMissing(connection, transaction, "Personale", "Qualifica", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "Personale", "DataDecorrenzaQualifica", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "ProfiloPersonale", "TEXT NOT NULL DEFAULT 'Operatore Subacqueo'");
         AddColumnIfMissing(connection, transaction, "Personale", "RuoloSanitario", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "Personale", "MatricolaPersonale", "TEXT NULL");
@@ -496,6 +499,7 @@ public static class DatabaseInitializer
         AddColumnIfMissing(connection, transaction, "Personale", "Mail2Utente", "TEXT NULL");
 
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "Qualifica", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "DataDecorrenzaQualifica", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "ProfiloPersonale", "TEXT NOT NULL DEFAULT 'Operatore Subacqueo'");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "RuoloSanitario", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "PersonaleArchivio", "MatricolaPersonale", "TEXT NULL");
