@@ -179,18 +179,22 @@ public sealed class BackupService
 
     private static void CreateConsistentDatabaseCopy(string destinationPath)
     {
-        using var source = new SqliteConnection(DatabasePaths.ConnectionString);
-        source.Open();
-
         var builder = new SqliteConnectionStringBuilder
         {
             DataSource = destinationPath,
             ForeignKeys = true,
+            Pooling = false,
         };
 
-        using var destination = new SqliteConnection(builder.ToString());
-        destination.Open();
-        source.BackupDatabase(destination);
+        using (var source = new SqliteConnection(DatabasePaths.ConnectionString))
+        using (var destination = new SqliteConnection(builder.ToString()))
+        {
+            source.Open();
+            destination.Open();
+            source.BackupDatabase(destination);
+        }
+
+        SqliteConnection.ClearAllPools();
     }
 
     private static void ReplaceDirectoryContents(string sourceDirectory, string targetDirectory)

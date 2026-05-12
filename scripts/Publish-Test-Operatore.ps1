@@ -10,6 +10,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $projectPath = Join-Path $repoRoot "SMZ.Conta.App\SMZ.Conta.App.csproj"
 $distRoot = Join-Path $repoRoot "dist"
 $instructionsPath = Join-Path $repoRoot "ISTRUZIONI_TEST_OPERATORE_SMZ.md"
+$backupProcedurePath = Join-Path $repoRoot "PROCEDURA_BACKUP_E_CAMBIO_PC_SMZ.md"
 $packageName = "SMZ.Conta.App-$Runtime-test"
 $publishDir = Join-Path $distRoot $packageName
 $zipPath = Join-Path $distRoot "$packageName.zip"
@@ -26,6 +27,10 @@ dotnet publish $projectPath `
 
 if (Test-Path $instructionsPath) {
     Copy-Item -LiteralPath $instructionsPath -Destination (Join-Path $publishDir "LEGGIMI_TEST_OPERATORE_SMZ.md") -Force
+}
+
+if (Test-Path $backupProcedurePath) {
+    Copy-Item -LiteralPath $backupProcedurePath -Destination (Join-Path $publishDir "PROCEDURA_BACKUP_E_CAMBIO_PC_SMZ.md") -Force
 }
 
 if (-not $SkipZip) {

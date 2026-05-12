@@ -54,6 +54,14 @@
             <Setter Property="Padding" Value="8,6"/>
         </Style>
 
+        <Style x:Key="ServizioWheelDataGridStyle" TargetType="DataGrid">
+            <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
+        </Style>
+
+        <Style x:Key="ServizioWheelTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
+        </Style>
+
         <Style TargetType="TabControl">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -1290,8 +1298,13 @@
                         </StackPanel>
 
                         <Border Grid.Column="2" Style="{StaticResource CardStyle}">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                            <ScrollViewer x:Name="ServizioEditorScrollViewer"
+                                          VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled">
+                                <ScrollViewer.Resources>
+                                    <Style TargetType="DataGrid" BasedOn="{StaticResource ServizioWheelDataGridStyle}" />
+                                    <Style TargetType="TextBox" BasedOn="{StaticResource ServizioWheelTextBoxStyle}" />
+                                </ScrollViewer.Resources>
                                 <StackPanel>
                                     <TextBlock Text="{Binding ServizioEditorTitolo}"
                                                FontSize="22"
@@ -1521,11 +1534,13 @@
                                             <StackPanel Grid.Row="4" Grid.ColumnSpan="5" Margin="0,10,0,0">
                                                 <TextBlock Text="Attivita svolta" Foreground="#50626A" />
                                                 <TextBox Text="{Binding ServizioAttivitaSvolta, UpdateSourceTrigger=PropertyChanged}"
+                                                         Style="{StaticResource ServizioWheelTextBoxStyle}"
                                                          TextWrapping="Wrap"
                                                          AcceptsReturn="True"
                                                          MinHeight="64" />
                                                 <TextBlock Margin="0,10,0,0" Text="Note servizio" Foreground="#50626A" />
                                                 <TextBox Text="{Binding ServizioNote, UpdateSourceTrigger=PropertyChanged}"
+                                                         Style="{StaticResource ServizioWheelTextBoxStyle}"
                                                          TextWrapping="Wrap"
                                                          AcceptsReturn="True"
                                                          MinHeight="54" />
@@ -1543,6 +1558,7 @@
                                                TextWrapping="Wrap" />
 
                                     <DataGrid Margin="0,16,0,0"
+                                              Style="{StaticResource ServizioWheelDataGridStyle}"
                                               ItemsSource="{Binding ServizioPartecipantiBozza}"
                                               AutoGenerateColumns="False"
                                               CanUserAddRows="False"
@@ -1550,7 +1566,7 @@
                                               RowHeaderWidth="0"
                                               Sorting="ServizioPartecipantiDataGrid_Sorting"
                                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                              ScrollViewer.VerticalScrollBarVisibility="Disabled">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Qualifica"
                                                                 Width="120"
@@ -1629,6 +1645,7 @@
                                                TextWrapping="Wrap" />
 
                                     <DataGrid Margin="0,16,0,0"
+                                              Style="{StaticResource ServizioWheelDataGridStyle}"
                                               ItemsSource="{Binding ServizioSupportiOccasionaliBozza}"
                                               SelectedItem="{Binding SelectedSupportoOccasionale}"
                                               AutoGenerateColumns="False"
@@ -1636,7 +1653,7 @@
                                               HeadersVisibility="Column"
                                               RowHeaderWidth="0"
                                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                              ScrollViewer.VerticalScrollBarVisibility="Disabled">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Nominativo"
                                                                 Width="220"
@@ -1667,11 +1684,19 @@
                                         </DataGrid.Columns>
                                     </DataGrid>
 
-                                    <TextBlock Margin="0,24,0,0"
-                                               Text="Immersioni del servizio"
-                                               FontSize="19"
-                                               FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                    <DockPanel Margin="0,24,14,0"
+                                               LastChildFill="False">
+                                        <TextBlock DockPanel.Dock="Left"
+                                                   Text="Immersioni del servizio"
+                                                   FontSize="19"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E"
+                                                   VerticalAlignment="Center" />
+                                        <Button DockPanel.Dock="Right"
+                                                Content="Aggiungi immersione"
+                                                Command="{Binding AddImmersioneCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                    </DockPanel>
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Compila le immersioni dopo aver selezionato il personale. Gli orari mostrano il formato atteso direttamente nel campo."
                                                Foreground="#53646A"
@@ -1693,10 +1718,19 @@
                                                         CornerRadius="18"
                                                         Padding="14">
                                                     <StackPanel>
-                                                        <TextBlock Text="{Binding NumeroImmersione, StringFormat=Immersione {0}}"
-                                                                   FontSize="18"
-                                                                   FontWeight="SemiBold"
-                                                                   Foreground="#17313E" />
+                                                        <DockPanel LastChildFill="False">
+                                                            <TextBlock DockPanel.Dock="Left"
+                                                                       Text="{Binding NumeroImmersione, StringFormat=Immersione {0}}"
+                                                                       FontSize="18"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="#17313E"
+                                                                       VerticalAlignment="Center" />
+                                                            <Button DockPanel.Dock="Right"
+                                                                    Content="Rimuovi"
+                                                                    Command="{Binding DataContext.RemoveImmersioneCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Style="{StaticResource DangerButtonStyle}" />
+                                                        </DockPanel>
 
                                                         <Border Margin="0,12,0,0"
                                                                 Background="#EEF6FB"
@@ -1832,8 +1866,33 @@
                                                             </StackPanel>
                                                         </Grid>
 
+                                                        <Grid Margin="0,10,0,0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="14" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <StackPanel>
+                                                                <TextBlock Text="Localita immersione" Foreground="#50626A" />
+                                                                <ComboBox Margin="0,6,0,0"
+                                                                          ItemsSource="{Binding DataContext.LocalitaOperativeCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          SelectedItem="{Binding LocalitaOperativa, UpdateSourceTrigger=PropertyChanged}"
+                                                                          DisplayMemberPath="Descrizione" />
+                                                            </StackPanel>
+
+                                                            <StackPanel Grid.Column="2">
+                                                                <TextBlock Text="Scopo immersione" Foreground="#50626A" />
+                                                                <ComboBox Margin="0,6,0,0"
+                                                                          ItemsSource="{Binding DataContext.ScopiImmersioneCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                          SelectedItem="{Binding ScopoImmersione, UpdateSourceTrigger=PropertyChanged}"
+                                                                          DisplayMemberPath="Descrizione" />
+                                                            </StackPanel>
+                                                        </Grid>
+
                                                         <TextBlock Margin="0,10,0,0" Text="Note immersione" Foreground="#50626A" />
                                                         <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Style="{StaticResource ServizioWheelTextBoxStyle}"
                                                                  TextWrapping="Wrap"
                                                                  AcceptsReturn="True"
                                                                  MinHeight="44" />
@@ -1863,14 +1922,14 @@
                                                        TextWrapping="Wrap" />
 
                                             <DataGrid Margin="0,12,0,0"
+                                                      Style="{StaticResource ServizioWheelDataGridStyle}"
                                                       ItemsSource="{Binding ServizioPartecipazioniContabiliBozza}"
                                                       AutoGenerateColumns="False"
                                                       CanUserAddRows="False"
                                                       HeadersVisibility="Column"
                                                       RowHeaderWidth="0"
-                                                      MinHeight="220"
                                                       ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                                      ScrollViewer.VerticalScrollBarVisibility="Disabled">
                                                 <DataGrid.Columns>
                                                     <DataGridTextColumn Header="Imm."
                                                                         Width="54"

@@ -173,4 +173,5 @@ public partial class MainWindow : Window
             return StringComparer.CurrentCultureIgnoreCase.Compare(left.Qualifica, right.Qualifica);
         }
     }
+
 }

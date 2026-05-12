@@ -50,6 +50,8 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _addUnitaNavaleCommand;
     private readonly RelayCommand _addSupportoOccasionaleCommand;
     private readonly RelayCommand _removeSupportoOccasionaleCommand;
+    private readonly RelayCommand _addImmersioneCommand;
+    private readonly RelayCommand _removeImmersioneCommand;
     private readonly RelayCommand _openSelectedPersonaleCommand;
     private readonly RelayCommand _reloadServizioPersonaleCommand;
     private readonly RelayCommand _reloadContabilitaCommand;
@@ -189,6 +191,8 @@ public sealed class MainWindowViewModel : ObservableObject
         _addUnitaNavaleCommand = new RelayCommand(AggiungiUnitaNavale);
         _addSupportoOccasionaleCommand = new RelayCommand(AggiungiSupportoOccasionale);
         _removeSupportoOccasionaleCommand = new RelayCommand(RimuoviSupportoOccasionale, () => SelectedSupportoOccasionale is not null);
+        _addImmersioneCommand = new RelayCommand(AggiungiImmersione);
+        _removeImmersioneCommand = new RelayCommand(RimuoviImmersione);
         NewCommand = new RelayCommand(() =>
         {
             NuovoPersonale();
@@ -381,6 +385,10 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand ToggleWelcomeAudioCommand => _toggleWelcomeAudioCommand;
 
     public RelayCommand FlaggaTuttiImmersioneCommand => _flaggaTuttiImmersioneCommand;
+
+    public RelayCommand AddImmersioneCommand => _addImmersioneCommand;
+
+    public RelayCommand RemoveImmersioneCommand => _removeImmersioneCommand;
 
     public RelayCommand AddLocalitaOperativaCommand => _addLocalitaOperativaCommand;
 
@@ -1074,7 +1082,7 @@ public sealed class MainWindowViewModel : ObservableObject
             : _backupSettings.ExternalBackupDirectory;
 
     public string BackupDescrizione =>
-        "Il backup locale protegge dalle modifiche accidentali. Il backup esterno serve per guasto o cambio PC.";
+        "Il backup locale protegge dalle modifiche accidentali. Configura una cartella esterna su USB, disco esterno o cartella sincronizzata: dopo ogni salvataggio importante il programma crea automaticamente anche un backup esterno, utile per guasto o cambio PC.";
 
     public bool IsExistingServizio => _servizioGiornalieroId > 0;
 
@@ -2596,6 +2604,28 @@ public sealed class MainWindowViewModel : ObservableObject
         _backupService.SaveSettings(_backupSettings);
         AggiornaStatoBackup();
         Stato = $"Cartella backup esterno impostata: {_backupSettings.ExternalBackupDirectory}";
+
+        try
+        {
+            var result = _backupService.CreateExternalBackup(_backupSettings.ExternalBackupDirectory, "configure-external");
+            AggiornaStatoBackup();
+            Stato = $"Cartella backup esterno impostata e primo backup creato: {Path.GetFileName(result.BackupPath)}";
+            MessageBox.Show(
+                $"Cartella backup esterno impostata.\n\nPrimo backup creato in:\n{result.BackupPath}",
+                "Backup esterno",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            AggiornaStatoBackup();
+            MessageBox.Show(
+                $"Cartella impostata, ma il primo backup esterno non e riuscito.\n\n{ex.Message}",
+                "Backup esterno",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            Stato = $"Cartella backup esterno impostata, ma primo backup non riuscito: {ex.Message}";
+        }
     }
 
     private void RipristinaDaBackup()
@@ -2654,6 +2684,7 @@ public sealed class MainWindowViewModel : ObservableObject
         try
         {
             _backupService.CreateLocalBackup("startup-auto");
+            EseguiBackupEsternoSilenzioso("startup-auto");
             AggiornaStatoBackup();
             Stato = "Backup locale automatico eseguito all'avvio.";
         }
@@ -2669,12 +2700,30 @@ public sealed class MainWindowViewModel : ObservableObject
         try
         {
             _backupService.CreateLocalBackup(reason);
+            EseguiBackupEsternoSilenzioso(reason);
             AggiornaStatoBackup();
         }
         catch (Exception ex)
         {
             AggiornaStatoBackup();
             Stato = $"{Stato} Backup locale non riuscito: {ex.Message}";
+        }
+    }
+
+    private void EseguiBackupEsternoSilenzioso(string reason)
+    {
+        if (string.IsNullOrWhiteSpace(_backupSettings.ExternalBackupDirectory))
+        {
+            return;
+        }
+
+        try
+        {
+            _backupService.CreateExternalBackup(_backupSettings.ExternalBackupDirectory, reason);
+        }
+        catch (Exception ex)
+        {
+            Stato = $"{Stato} Backup esterno non riuscito: {ex.Message}";
         }
     }
 
@@ -3024,6 +3073,8 @@ public sealed class MainWindowViewModel : ObservableObject
                 OperatoreSoccorso = TrovaOperatoreServizio(immersione.OperatoreSoccorsoPerId),
                 AssistenteBlsd = TrovaOperatoreServizio(immersione.AssistenteBlsdPerId),
                 AssistenteSanitario = TrovaOperatoreServizio(immersione.AssistenteSanitarioPerId),
+                LocalitaOperativa = LocalitaOperativeCatalogo.FirstOrDefault(localita => localita.LocalitaOperativaId == immersione.LocalitaOperativaId),
+                ScopoImmersione = ScopiImmersioneCatalogo.FirstOrDefault(scopo => scopo.ScopoImmersioneId == immersione.ScopoImmersioneId),
                 Note = immersione.Note,
             };
 
@@ -3031,15 +3082,9 @@ public sealed class MainWindowViewModel : ObservableObject
             ServizioImmersioniBozza.Add(item);
         }
 
-        while (ServizioImmersioniBozza.Count < 2)
+        if (ServizioImmersioniBozza.Count == 0)
         {
-            var item = new ServizioImmersioneDraftViewModel
-            {
-                NumeroImmersione = ServizioImmersioniBozza.Count + 1,
-            };
-
-            item.PropertyChanged += ServizioImmersioneBozza_PropertyChanged;
-            ServizioImmersioniBozza.Add(item);
+            ServizioImmersioniBozza.Add(CreaImmersioneBozza(1));
         }
 
         SincronizzaPartecipazioniImmersioneBozza();
@@ -3139,30 +3184,16 @@ public sealed class MainWindowViewModel : ObservableObject
 
         foreach (var immersione in ServizioImmersioniBozza)
         {
-            immersione.OrarioInizio = string.Empty;
-            immersione.OrarioFine = string.Empty;
-            immersione.ProfonditaCondivisaInizializzata = false;
-            immersione.OreCondiviseInizializzate = false;
-            immersione.DirettoreImmersione = null;
-            immersione.OperatoreSoccorso = null;
-            immersione.AssistenteBlsd = null;
-            immersione.AssistenteSanitario = null;
-            immersione.Note = string.Empty;
-
             foreach (var partecipazione in immersione.Partecipazioni)
             {
-                partecipazione.InImmersione = false;
-                partecipazione.TipologiaImmersioneOperativa = null;
-                partecipazione.ProfonditaMetri = string.Empty;
-                partecipazione.FasciaProfondita = null;
-                partecipazione.OreImmersione = string.Empty;
-                partecipazione.CategoriaContabileOre = null;
-                partecipazione.TariffaProposta = null;
-                partecipazione.ImportoStimato = null;
-                partecipazione.Note = string.Empty;
+                partecipazione.PropertyChanged -= ServizioPartecipazioneImmersione_PropertyChanged;
             }
+
+            immersione.PropertyChanged -= ServizioImmersioneBozza_PropertyChanged;
         }
 
+        ServizioImmersioniBozza.Clear();
+        ServizioImmersioniBozza.Add(CreaImmersioneBozza(1));
         SincronizzaPartecipazioniImmersioneBozza();
 
         foreach (var supporto in ServizioSupportiOccasionaliBozza)
@@ -4173,6 +4204,8 @@ public sealed class MainWindowViewModel : ObservableObject
                 || row.OperatoreSoccorso is not null
                 || row.AssistenteBlsd is not null
                 || row.AssistenteSanitario is not null
+                || row.LocalitaOperativa is not null
+                || row.ScopoImmersione is not null
                 || !string.IsNullOrWhiteSpace(row.Note)
                 || partecipazioniImmersione.Count > 0;
 
@@ -4195,8 +4228,8 @@ public sealed class MainWindowViewModel : ObservableObject
                 OperatoreSoccorsoPerId = GetPerIdOperatoreSelezionato(row.OperatoreSoccorso),
                 AssistenteBlsdPerId = GetPerIdOperatoreSelezionato(row.AssistenteBlsd),
                 AssistenteSanitarioPerId = GetPerIdOperatoreSelezionato(row.AssistenteSanitario),
-                LocalitaOperativaId = ServizioLocalitaSelezionata?.LocalitaOperativaId,
-                ScopoImmersioneId = ServizioScopoSelezionato?.ScopoImmersioneId,
+                LocalitaOperativaId = row.LocalitaOperativa?.LocalitaOperativaId ?? ServizioLocalitaSelezionata?.LocalitaOperativaId,
+                ScopoImmersioneId = row.ScopoImmersione?.ScopoImmersioneId ?? ServizioScopoSelezionato?.ScopoImmersioneId,
                 Note = row.Note.Trim(),
                 Partecipazioni = partecipazioniImmersione,
             });
@@ -4715,13 +4748,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
         if (ServizioImmersioniBozza.Count == 0)
         {
-            ServizioImmersioniBozza.Add(new ServizioImmersioneDraftViewModel { NumeroImmersione = 1 });
-            ServizioImmersioniBozza.Add(new ServizioImmersioneDraftViewModel { NumeroImmersione = 2 });
-
-            foreach (var immersione in ServizioImmersioniBozza)
-            {
-                immersione.PropertyChanged += ServizioImmersioneBozza_PropertyChanged;
-            }
+            ServizioImmersioniBozza.Add(CreaImmersioneBozza(1));
         }
         else if (preserveSelections)
         {
@@ -4731,11 +4758,66 @@ public sealed class MainWindowViewModel : ObservableObject
                 immersione.OperatoreSoccorso = TrovaOperatoreServizio(immersione.OperatoreSoccorso?.PerId);
                 immersione.AssistenteBlsd = TrovaOperatoreServizio(immersione.AssistenteBlsd?.PerId);
                 immersione.AssistenteSanitario = TrovaOperatoreServizio(immersione.AssistenteSanitario?.PerId);
+                immersione.LocalitaOperativa = immersione.LocalitaOperativa is null
+                    ? null
+                    : LocalitaOperativeCatalogo.FirstOrDefault(item => item.LocalitaOperativaId == immersione.LocalitaOperativa.LocalitaOperativaId);
+                immersione.ScopoImmersione = immersione.ScopoImmersione is null
+                    ? null
+                    : ScopiImmersioneCatalogo.FirstOrDefault(item => item.ScopoImmersioneId == immersione.ScopoImmersione.ScopoImmersioneId);
             }
         }
 
         SincronizzaPartecipazioniImmersioneBozza();
         AggiornaRiepilogoBozzaServizio();
+    }
+
+    private ServizioImmersioneDraftViewModel CreaImmersioneBozza(int numeroImmersione)
+    {
+        var item = new ServizioImmersioneDraftViewModel { NumeroImmersione = numeroImmersione };
+        item.PropertyChanged += ServizioImmersioneBozza_PropertyChanged;
+        return item;
+    }
+
+    private void AggiungiImmersione()
+    {
+        var numeroImmersione = ServizioImmersioniBozza.Count == 0
+            ? 1
+            : ServizioImmersioniBozza.Max(item => item.NumeroImmersione) + 1;
+
+        ServizioImmersioniBozza.Add(CreaImmersioneBozza(numeroImmersione));
+        SincronizzaPartecipazioniImmersioneBozza();
+        AggiornaRiepilogoBozzaServizio();
+        Stato = $"Immersione {numeroImmersione} aggiunta.";
+    }
+
+    private void RimuoviImmersione(object? parameter)
+    {
+        if (parameter is not ServizioImmersioneDraftViewModel immersione || ServizioImmersioniBozza.Count <= 1)
+        {
+            Stato = "Mantieni almeno una immersione nella bozza del servizio.";
+            return;
+        }
+
+        immersione.PropertyChanged -= ServizioImmersioneBozza_PropertyChanged;
+        foreach (var partecipazione in immersione.Partecipazioni)
+        {
+            partecipazione.PropertyChanged -= ServizioPartecipazioneImmersione_PropertyChanged;
+        }
+
+        ServizioImmersioniBozza.Remove(immersione);
+        RinumeraImmersioniBozza();
+        SincronizzaPartecipazioniImmersioneBozza();
+        AggiornaRiepilogoBozzaServizio();
+        Stato = "Immersione rimossa.";
+    }
+
+    private void RinumeraImmersioniBozza()
+    {
+        var numero = 1;
+        foreach (var immersione in ServizioImmersioniBozza.OrderBy(item => item.NumeroImmersione))
+        {
+            immersione.NumeroImmersione = numero++;
+        }
     }
 
     private void SincronizzaPartecipazioniImmersioneBozza()
@@ -5039,7 +5121,10 @@ public sealed class MainWindowViewModel : ObservableObject
         if (e.PropertyName is nameof(ServizioImmersioneDraftViewModel.DirettoreImmersione)
             or nameof(ServizioImmersioneDraftViewModel.OperatoreSoccorso)
             or nameof(ServizioImmersioneDraftViewModel.AssistenteBlsd)
-            or nameof(ServizioImmersioneDraftViewModel.AssistenteSanitario))
+            or nameof(ServizioImmersioneDraftViewModel.AssistenteSanitario)
+            or nameof(ServizioImmersioneDraftViewModel.LocalitaOperativa)
+            or nameof(ServizioImmersioneDraftViewModel.ScopoImmersione)
+            or nameof(ServizioImmersioneDraftViewModel.Note))
         {
             if (e.PropertyName is nameof(ServizioImmersioneDraftViewModel.DirettoreImmersione))
             {
@@ -5574,6 +5659,8 @@ public sealed class MainWindowViewModel : ObservableObject
                     immersione.OperatoreSoccorso?.PerId.ToString() ?? string.Empty,
                     immersione.AssistenteBlsd?.PerId.ToString() ?? string.Empty,
                     immersione.AssistenteSanitario?.PerId.ToString() ?? string.Empty,
+                    immersione.LocalitaOperativa?.LocalitaOperativaId.ToString() ?? string.Empty,
+                    immersione.ScopoImmersione?.ScopoImmersioneId.ToString() ?? string.Empty,
                     NormalizeSnapshotValue(immersione.Note)));
 
             foreach (var partecipazione in immersione.Partecipazioni)
