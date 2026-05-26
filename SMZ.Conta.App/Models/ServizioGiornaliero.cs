@@ -24,6 +24,8 @@ public sealed class ServizioGiornaliero
 
     public int? UnitaNavaleId { get; set; }
 
+    public int? ResponsabileServizioPerId { get; set; }
+
     public bool FuoriSede { get; set; }
 
     public bool IndennitaOrdinePubblico { get; set; }

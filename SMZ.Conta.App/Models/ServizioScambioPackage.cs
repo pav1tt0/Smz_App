@@ -39,6 +39,8 @@ public sealed class ServizioScambioPackageService
 
     public string UnitaNavaleSigla { get; set; } = string.Empty;
 
+    public ServizioScambioPackagePersonRef? ResponsabileServizio { get; set; }
+
     public bool FuoriSede { get; set; }
 
     public bool IndennitaOrdinePubblico { get; set; }

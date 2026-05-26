@@ -338,6 +338,7 @@ public static class DatabaseInitializer
                 LocalitaOperativaId INTEGER NULL,
                 ScopoImmersioneId INTEGER NULL,
                 UnitaNavaleId INTEGER NULL,
+                ResponsabileServizioPerId INTEGER NULL,
                 FuoriSede INTEGER NOT NULL DEFAULT 0,
                 IndennitaOrdinePubblico INTEGER NOT NULL DEFAULT 0,
                 AttivitaSvolta TEXT NULL,
@@ -346,7 +347,8 @@ public static class DatabaseInitializer
                 AggiornatoIl TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (LocalitaOperativaId) REFERENCES LocalitaOperative (LocalitaOperativaId) ON DELETE RESTRICT,
                 FOREIGN KEY (ScopoImmersioneId) REFERENCES ScopiImmersione (ScopoImmersioneId) ON DELETE RESTRICT,
-                FOREIGN KEY (UnitaNavaleId) REFERENCES UnitaNavali (UnitaNavaleId) ON DELETE RESTRICT
+                FOREIGN KEY (UnitaNavaleId) REFERENCES UnitaNavali (UnitaNavaleId) ON DELETE RESTRICT,
+                FOREIGN KEY (ResponsabileServizioPerId) REFERENCES Personale (PerId) ON DELETE RESTRICT
             );
 
             CREATE INDEX IF NOT EXISTS IX_ServiziGiornalieri_DataServizio
@@ -528,6 +530,7 @@ public static class DatabaseInitializer
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "StraordinarioAttivo", "INTEGER NOT NULL DEFAULT 0");
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "StraordinarioInizio", "TEXT NULL");
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "StraordinarioFine", "TEXT NULL");
+        AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "ResponsabileServizioPerId", "INTEGER NULL");
         AddColumnIfMissing(connection, transaction, "ServiziGiornalieri", "IndennitaOrdinePubblico", "INTEGER NOT NULL DEFAULT 0");
         AddColumnIfMissing(connection, transaction, "TipologieImmersioneOperative", "ProfonditaMinimaMetri", "INTEGER NULL");
         AddColumnIfMissing(connection, transaction, "TipologieImmersioneOperative", "ProfonditaMassimaMetri", "INTEGER NULL");

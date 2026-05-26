@@ -108,6 +108,7 @@ public sealed class ServizioScambioService
                 UnitaNavaleSigla = servizio.UnitaNavaleId is { } siglaId && unitaById.TryGetValue(siglaId, out var unitaSigla)
                     ? unitaSigla.Sigla
                     : string.Empty,
+                ResponsabileServizio = BuildNullablePersonRef(servizio.ResponsabileServizioPerId, personaleById),
                 FuoriSede = servizio.FuoriSede,
                 IndennitaOrdinePubblico = servizio.IndennitaOrdinePubblico,
                 AttivitaSvolta = servizio.AttivitaSvolta,
@@ -296,6 +297,7 @@ public sealed class ServizioScambioService
             LocalitaOperativaId = ResolveOptionalLocalitaId(package.LocalitaDescrizione, localitaByDescription),
             ScopoImmersioneId = ResolveOptionalScopoId(package.ScopoDescrizione, scopiByDescription),
             UnitaNavaleId = ResolveOptionalUnitaId(package.UnitaNavaleSigla, package.UnitaNavaleDescrizione, unitaBySigla, unitaByDescription),
+            ResponsabileServizioPerId = ResolveRolePersonId(package.ResponsabileServizio, peopleResolver, partecipantiByPerId, "responsabile servizio"),
             FuoriSede = package.FuoriSede,
             IndennitaOrdinePubblico = package.IndennitaOrdinePubblico,
             AttivitaSvolta = package.AttivitaSvolta?.Trim() ?? string.Empty,

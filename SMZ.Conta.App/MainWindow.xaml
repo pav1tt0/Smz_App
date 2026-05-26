@@ -7,6 +7,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="{Binding Titolo}"
+        Icon="Assets/logo_smz.png"
         Width="1660"
         Height="960"
         MinWidth="1460"
@@ -377,6 +378,27 @@
             <Setter Property="Background" Value="#140D1F33"/>
             <Setter Property="BorderBrush" Value="#345B7B"/>
             <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="WelcomeBubbleStyle" TargetType="Ellipse">
+            <Setter Property="Fill" Value="#18D7F4FF"/>
+            <Setter Property="Stroke" Value="#8BE8FAFF"/>
+            <Setter Property="StrokeThickness" Value="1"/>
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="0.82" ScaleY="0.82" />
+                        <TranslateTransform />
+                    </TransformGroup>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <BlurEffect Radius="0.4" />
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <ImageBrush x:Key="HomePhotoBrush"
@@ -1097,6 +1119,11 @@
                                                 Command="{Binding SaveServizioCommand}" />
                                     </StackPanel>
 
+                                    <Button Margin="0,10,0,0"
+                                            Content="Stampa servizio"
+                                            Command="{Binding PrintServizioCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" />
+
                                     <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                         <Button Content="Apri selezionato"
                                                 Command="{Binding OpenServizioCommand}"
@@ -1306,10 +1333,17 @@
                                     <Style TargetType="TextBox" BasedOn="{StaticResource ServizioWheelTextBoxStyle}" />
                                 </ScrollViewer.Resources>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding ServizioEditorTitolo}"
-                                               FontSize="22"
-                                               FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                    <DockPanel LastChildFill="True">
+                                        <Button DockPanel.Dock="Right"
+                                                Content="Stampa servizio"
+                                                Command="{Binding PrintServizioCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                        <TextBlock Text="{Binding ServizioEditorTitolo}"
+                                                   FontSize="22"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E"
+                                                   VerticalAlignment="Center" />
+                                    </DockPanel>
                                     <TextBlock Margin="0,10,0,0"
                                                Text="{Binding ServizioEditorSottotitolo}"
                                                Foreground="#53646A"
@@ -1524,12 +1558,28 @@
                                                 </StackPanel>
                                             </Grid>
 
-                                            <StackPanel Grid.Row="3" Grid.ColumnSpan="5" Margin="0,10,0,0">
-                                                <TextBlock Text="Scopo immersione" Foreground="#50626A" />
-                                                <ComboBox ItemsSource="{Binding ScopiImmersioneCatalogo}"
-                                                          SelectedItem="{Binding ServizioScopoSelezionato}"
-                                                          DisplayMemberPath="Descrizione" />
-                                            </StackPanel>
+                                            <Grid Grid.Row="3" Grid.ColumnSpan="5" Margin="0,10,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="18" />
+                                                    <ColumnDefinition Width="300" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel>
+                                                    <TextBlock Text="Scopo immersione" Foreground="#50626A" />
+                                                    <ComboBox ItemsSource="{Binding ScopiImmersioneCatalogo}"
+                                                              SelectedItem="{Binding ServizioScopoSelezionato}"
+                                                              DisplayMemberPath="Descrizione" />
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2">
+                                                    <TextBlock Text="Responsabile servizio" Foreground="#50626A" />
+                                                    <ComboBox ItemsSource="{Binding OperatoriServizioPresentiDisponibili}"
+                                                              SelectedItem="{Binding ServizioResponsabileSelezionato}"
+                                                              DisplayMemberPath="NominativoConQualifica"
+                                                              ToolTip="Proposto automaticamente: il piu alto in grado tra i presenti. Modificabile se necessario." />
+                                                </StackPanel>
+                                            </Grid>
 
                                             <StackPanel Grid.Row="4" Grid.ColumnSpan="5" Margin="0,10,0,0">
                                                 <TextBlock Text="Attivita svolta" Foreground="#50626A" />
@@ -1698,7 +1748,7 @@
                                                 Style="{StaticResource SecondaryButtonStyle}" />
                                     </DockPanel>
                                     <TextBlock Margin="0,8,0,0"
-                                               Text="Compila le immersioni dopo aver selezionato il personale. Gli orari mostrano il formato atteso direttamente nel campo."
+                                               Text="Compila solo i ruoli di intestazione per ogni immersione. Direttori e assistenti restano evidenziati nella tabella unica e non vengono conteggiati in acqua nello stesso turno."
                                                Foreground="#53646A"
                                                TextWrapping="Wrap" />
 
@@ -1866,30 +1916,6 @@
                                                             </StackPanel>
                                                         </Grid>
 
-                                                        <Grid Margin="0,10,0,0">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="14" />
-                                                                <ColumnDefinition Width="*" />
-                                                            </Grid.ColumnDefinitions>
-
-                                                            <StackPanel>
-                                                                <TextBlock Text="Localita immersione" Foreground="#50626A" />
-                                                                <ComboBox Margin="0,6,0,0"
-                                                                          ItemsSource="{Binding DataContext.LocalitaOperativeCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                          SelectedItem="{Binding LocalitaOperativa, UpdateSourceTrigger=PropertyChanged}"
-                                                                          DisplayMemberPath="Descrizione" />
-                                                            </StackPanel>
-
-                                                            <StackPanel Grid.Column="2">
-                                                                <TextBlock Text="Scopo immersione" Foreground="#50626A" />
-                                                                <ComboBox Margin="0,6,0,0"
-                                                                          ItemsSource="{Binding DataContext.ScopiImmersioneCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                          SelectedItem="{Binding ScopoImmersione, UpdateSourceTrigger=PropertyChanged}"
-                                                                          DisplayMemberPath="Descrizione" />
-                                                            </StackPanel>
-                                                        </Grid>
-
                                                         <TextBlock Margin="0,10,0,0" Text="Note immersione" Foreground="#50626A" />
                                                         <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}"
                                                                  Style="{StaticResource ServizioWheelTextBoxStyle}"
@@ -1917,37 +1943,37 @@
                                                            VerticalAlignment="Center" />
                                             </DockPanel>
                                             <TextBlock Margin="0,4,0,0"
-                                                       Text="Compila solo gli operatori SMZ effettivamente entrati in immersione. Apparato e categoria contabile vengono estesi agli SMZ successivi della stessa immersione; profondita e ore vengono allineate automaticamente su tutti gli operatori flaggati e la profondita viene controllata in base all'apparato."
+                                                       Text="Compila una sola riga per operatore: apparato, profondita, ore e categoria vengono applicati automaticamente a tutte le immersioni utili. Correggi solo le eccezioni."
                                                        Foreground="#53646A"
                                                        TextWrapping="Wrap" />
 
                                             <DataGrid Margin="0,12,0,0"
                                                       Style="{StaticResource ServizioWheelDataGridStyle}"
-                                                      ItemsSource="{Binding ServizioPartecipazioniContabiliBozza}"
+                                                      ItemsSource="{Binding ServizioPartecipazioniContabiliUnicheBozza}"
                                                       AutoGenerateColumns="False"
                                                       CanUserAddRows="False"
                                                       HeadersVisibility="Column"
                                                       RowHeaderWidth="0"
                                                       ScrollViewer.HorizontalScrollBarVisibility="Auto"
                                                       ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                                <DataGrid.RowStyle>
+                                                    <Style TargetType="DataGridRow">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasRuoliImmersione}" Value="True">
+                                                                <Setter Property="Background" Value="#FFF7E6" />
+                                                                <Setter Property="BorderBrush" Value="#E7B75F" />
+                                                                <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </DataGrid.RowStyle>
                                                 <DataGrid.Columns>
-                                                    <DataGridTextColumn Header="Imm."
-                                                                        Width="54"
-                                                                        Binding="{Binding NumeroImmersione}" />
-                                                    <DataGridTemplateColumn Header="In"
-                                                                            Width="42">
-                                                        <DataGridTemplateColumn.CellTemplate>
-                                                            <DataTemplate>
-                                                                <CheckBox HorizontalAlignment="Center"
-                                                                          VerticalAlignment="Center"
-                                                                          Focusable="False"
-                                                                          IsChecked="{Binding InImmersione, UpdateSourceTrigger=PropertyChanged}" />
-                                                            </DataTemplate>
-                                                        </DataGridTemplateColumn.CellTemplate>
-                                                    </DataGridTemplateColumn>
                                                     <DataGridTextColumn Header="Operatore"
                                                                         Width="250"
                                                                         Binding="{Binding NominativoConQualifica}" />
+                                                    <DataGridTextColumn Header="Ruoli"
+                                                                        Width="260"
+                                                                        Binding="{Binding RuoliImmersione}" />
                                                     <DataGridTemplateColumn Header="Apparato"
                                                                             Width="120">
                                                         <DataGridTemplateColumn.CellTemplate>
@@ -3990,6 +4016,299 @@
                             </EventTrigger>
                         </Ellipse.Triggers>
                     </Ellipse>
+
+                    <Canvas ClipToBounds="True"
+                            IsHitTestVisible="False">
+                        <Ellipse Canvas.Left="120"
+                                 Canvas.Bottom="-46"
+                                 Width="18"
+                                 Height="18"
+                                 Style="{StaticResource WelcomeBubbleStyle}">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" BeginTime="0:0:0.2">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0"
+                                                             To="0.62"
+                                                             Duration="0:0:2.1"
+                                                             AutoReverse="True" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-860"
+                                                             Duration="0:0:12.5" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.X)"
+                                                             From="0"
+                                                             To="42"
+                                                             Duration="0:0:12.5"
+                                                             AutoReverse="True" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+
+                        <Ellipse Canvas.Left="240"
+                                 Canvas.Bottom="-70"
+                                 Width="10"
+                                 Height="10"
+                                 Style="{StaticResource WelcomeBubbleStyle}">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" BeginTime="0:0:2.4">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0"
+                                                             To="0.48"
+                                                             Duration="0:0:1.8"
+                                                             AutoReverse="True" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-760"
+                                                             Duration="0:0:10.8" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.X)"
+                                                             From="0"
+                                                             To="-26"
+                                                             Duration="0:0:10.8"
+                                                             AutoReverse="True" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+
+                        <Ellipse Canvas.Left="520"
+                                 Canvas.Bottom="-58"
+                                 Width="14"
+                                 Height="14"
+                                 Style="{StaticResource WelcomeBubbleStyle}">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" BeginTime="0:0:1.2">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0"
+                                                             To="0.52"
+                                                             Duration="0:0:2"
+                                                             AutoReverse="True" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-820"
+                                                             Duration="0:0:11.7" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.X)"
+                                                             From="0"
+                                                             To="34"
+                                                             Duration="0:0:11.7"
+                                                             AutoReverse="True" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+
+                        <Ellipse Canvas.Left="430"
+                                 Canvas.Bottom="-38"
+                                 Width="8"
+                                 Height="8"
+                                 Style="{StaticResource WelcomeBubbleStyle}">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" BeginTime="0:0:4.2">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0"
+                                                             To="0.42"
+                                                             Duration="0:0:1.5"
+                                                             AutoReverse="True" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-690"
+                                                             Duration="0:0:9.2" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.X)"
+                                                             From="0"
+                                                             To="-18"
+                                                             Duration="0:0:9.2"
+                                                             AutoReverse="True" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+
+                        <Ellipse Canvas.Left="690"
+                                 Canvas.Bottom="-64"
+                                 Width="17"
+                                 Height="17"
+                                 Style="{StaticResource WelcomeBubbleStyle}">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" BeginTime="0:0:6.1">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0"
+                                                             To="0.54"
+                                                             Duration="0:0:2"
+                                                             AutoReverse="True" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-840"
+                                                             Duration="0:0:12.2" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.X)"
+                                                             From="0"
+                                                             To="38"
+                                                             Duration="0:0:12.2"
+                                                             AutoReverse="True" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+
+                        <Ellipse Canvas.Left="860"
+                                 Canvas.Bottom="-48"
+                                 Width="9"
+                                 Height="9"
+                                 Style="{StaticResource WelcomeBubbleStyle}">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" BeginTime="0:0:1.8">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0"
+                                                             To="0.4"
+                                                             Duration="0:0:1.6"
+                                                             AutoReverse="True" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-730"
+                                                             Duration="0:0:10.1" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.X)"
+                                                             From="0"
+                                                             To="-30"
+                                                             Duration="0:0:10.1"
+                                                             AutoReverse="True" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+
+                        <Ellipse Canvas.Right="340"
+                                 Canvas.Bottom="-62"
+                                 Width="22"
+                                 Height="22"
+                                 Style="{StaticResource WelcomeBubbleStyle}">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" BeginTime="0:0:3.1">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0"
+                                                             To="0.58"
+                                                             Duration="0:0:2.2"
+                                                             AutoReverse="True" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-900"
+                                                             Duration="0:0:13.6" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.X)"
+                                                             From="0"
+                                                             To="-44"
+                                                             Duration="0:0:13.6"
+                                                             AutoReverse="True" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+
+                        <Ellipse Canvas.Right="210"
+                                 Canvas.Bottom="-42"
+                                 Width="12"
+                                 Height="12"
+                                 Style="{StaticResource WelcomeBubbleStyle}">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" BeginTime="0:0:5">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0"
+                                                             To="0.46"
+                                                             Duration="0:0:1.7"
+                                                             AutoReverse="True" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-720"
+                                                             Duration="0:0:9.8" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.X)"
+                                                             From="0"
+                                                             To="24"
+                                                             Duration="0:0:9.8"
+                                                             AutoReverse="True" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+
+                        <Ellipse Canvas.Right="520"
+                                 Canvas.Bottom="-74"
+                                 Width="15"
+                                 Height="15"
+                                 Style="{StaticResource WelcomeBubbleStyle}">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" BeginTime="0:0:7.3">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0"
+                                                             To="0.5"
+                                                             Duration="0:0:1.9"
+                                                             AutoReverse="True" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-790"
+                                                             Duration="0:0:11.1" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.X)"
+                                                             From="0"
+                                                             To="28"
+                                                             Duration="0:0:11.1"
+                                                             AutoReverse="True" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+
+                        <Ellipse Canvas.Right="90"
+                                 Canvas.Bottom="-56"
+                                 Width="7"
+                                 Height="7"
+                                 Style="{StaticResource WelcomeBubbleStyle}">
+                            <Ellipse.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                    <BeginStoryboard>
+                                        <Storyboard RepeatBehavior="Forever" BeginTime="0:0:3.8">
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0"
+                                                             To="0.38"
+                                                             Duration="0:0:1.4"
+                                                             AutoReverse="True" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                                                             From="0"
+                                                             To="-650"
+                                                             Duration="0:0:8.7" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TransformGroup.Children)[1].(TranslateTransform.X)"
+                                                             From="0"
+                                                             To="-20"
+                                                             Duration="0:0:8.7"
+                                                             AutoReverse="True" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Ellipse.Triggers>
+                        </Ellipse>
+                    </Canvas>
 
                     <Viewbox Margin="28"
                              Stretch="Uniform"

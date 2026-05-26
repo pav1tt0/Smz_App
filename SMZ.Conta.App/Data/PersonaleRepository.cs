@@ -655,6 +655,7 @@ public sealed class PersonaleRepository
                    LocalitaOperativaId,
                    ScopoImmersioneId,
                    UnitaNavaleId,
+                   ResponsabileServizioPerId,
                    FuoriSede,
                    IndennitaOrdinePubblico,
                    AttivitaSvolta,
@@ -683,10 +684,11 @@ public sealed class PersonaleRepository
             LocalitaOperativaId = reader.IsDBNull(8) ? null : reader.GetInt32(8),
             ScopoImmersioneId = reader.IsDBNull(9) ? null : reader.GetInt32(9),
             UnitaNavaleId = reader.IsDBNull(10) ? null : reader.GetInt32(10),
-            FuoriSede = reader.GetInt32(11) == 1,
-            IndennitaOrdinePubblico = reader.GetInt32(12) == 1,
-            AttivitaSvolta = reader.IsDBNull(13) ? string.Empty : reader.GetString(13),
-            Note = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            ResponsabileServizioPerId = reader.IsDBNull(11) ? null : reader.GetInt32(11),
+            FuoriSede = reader.GetInt32(12) == 1,
+            IndennitaOrdinePubblico = reader.GetInt32(13) == 1,
+            AttivitaSvolta = reader.IsDBNull(14) ? string.Empty : reader.GetString(14),
+            Note = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
         };
         reader.Close();
 
@@ -736,6 +738,7 @@ public sealed class PersonaleRepository
                     LocalitaOperativaId,
                     ScopoImmersioneId,
                     UnitaNavaleId,
+                    ResponsabileServizioPerId,
                     FuoriSede,
                     IndennitaOrdinePubblico,
                     AttivitaSvolta,
@@ -752,6 +755,7 @@ public sealed class PersonaleRepository
                     $localitaOperativaId,
                     $scopoImmersioneId,
                     $unitaNavaleId,
+                    $responsabileServizioPerId,
                     $fuoriSede,
                     $indennitaOrdinePubblico,
                     $attivitaSvolta,
@@ -779,6 +783,7 @@ public sealed class PersonaleRepository
                     LocalitaOperativaId = $localitaOperativaId,
                     ScopoImmersioneId = $scopoImmersioneId,
                     UnitaNavaleId = $unitaNavaleId,
+                    ResponsabileServizioPerId = $responsabileServizioPerId,
                     FuoriSede = $fuoriSede,
                     IndennitaOrdinePubblico = $indennitaOrdinePubblico,
                     AttivitaSvolta = $attivitaSvolta,
@@ -1422,6 +1427,7 @@ public sealed class PersonaleRepository
         command.Parameters.AddWithValue("$localitaOperativaId", servizio.LocalitaOperativaId is null ? DBNull.Value : servizio.LocalitaOperativaId.Value);
         command.Parameters.AddWithValue("$scopoImmersioneId", servizio.ScopoImmersioneId is null ? DBNull.Value : servizio.ScopoImmersioneId.Value);
         command.Parameters.AddWithValue("$unitaNavaleId", servizio.UnitaNavaleId is null ? DBNull.Value : servizio.UnitaNavaleId.Value);
+        command.Parameters.AddWithValue("$responsabileServizioPerId", servizio.ResponsabileServizioPerId is null ? DBNull.Value : servizio.ResponsabileServizioPerId.Value);
         command.Parameters.AddWithValue("$fuoriSede", servizio.FuoriSede ? 1 : 0);
         command.Parameters.AddWithValue("$indennitaOrdinePubblico", servizio.IndennitaOrdinePubblico ? 1 : 0);
         command.Parameters.AddWithValue("$attivitaSvolta", DbText(servizio.AttivitaSvolta));
