@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 
 namespace SMZ.Conta.App.Infrastructure;
 
@@ -45,7 +46,12 @@ public static class MouseWheelScrollViewerBehavior
             return;
         }
 
-        var scrollViewer = FindServiceEditorScrollViewer(source);
+        if (e.OriginalSource is DependencyObject originalSource && IsInsideOpenComboBox(originalSource))
+        {
+            return;
+        }
+
+        var scrollViewer = FindScrollableAncestor(source);
         if (scrollViewer is null || !scrollViewer.IsVisible)
         {
             return;
@@ -55,19 +61,51 @@ public static class MouseWheelScrollViewerBehavior
         e.Handled = true;
     }
 
-    private static ScrollViewer? FindServiceEditorScrollViewer(DependencyObject source)
+    private static ScrollViewer? FindScrollableAncestor(DependencyObject source)
     {
-        var current = VisualTreeHelper.GetParent(source);
+        var current = GetParent(source);
+        ScrollViewer? fallbackScrollViewer = null;
         while (current is not null)
         {
-            if (current is ScrollViewer { Name: "ServizioEditorScrollViewer" } scrollViewer)
+            if (current is ScrollViewer scrollViewer)
             {
-                return scrollViewer;
+                fallbackScrollViewer ??= scrollViewer;
+
+                if (scrollViewer.ScrollableHeight > 0)
+                {
+                    return scrollViewer;
+                }
             }
 
-            current = VisualTreeHelper.GetParent(current);
+            current = GetParent(current);
         }
 
-        return null;
+        return fallbackScrollViewer;
+    }
+
+    private static bool IsInsideOpenComboBox(DependencyObject source)
+    {
+        var current = source;
+        while (current is not null)
+        {
+            if (current is ComboBox { IsDropDownOpen: true })
+            {
+                return true;
+            }
+
+            current = GetParent(current);
+        }
+
+        return false;
+    }
+
+    private static DependencyObject? GetParent(DependencyObject source)
+    {
+        if (source is Visual or Visual3D)
+        {
+            return VisualTreeHelper.GetParent(source);
+        }
+
+        return source is FrameworkElement element ? element.Parent : null;
     }
 }

@@ -1326,11 +1326,18 @@
 
                         <Border Grid.Column="2" Style="{StaticResource CardStyle}">
                             <ScrollViewer x:Name="ServizioEditorScrollViewer"
+                                          infra:MouseWheelScrollViewerBehavior.ForwardToParent="True"
                                           VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled">
                                 <ScrollViewer.Resources>
                                     <Style TargetType="DataGrid" BasedOn="{StaticResource ServizioWheelDataGridStyle}" />
                                     <Style TargetType="TextBox" BasedOn="{StaticResource ServizioWheelTextBoxStyle}" />
+                                    <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                                        <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
+                                    </Style>
+                                    <Style TargetType="controls:DateInputPicker">
+                                        <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
+                                    </Style>
                                 </ScrollViewer.Resources>
                                 <StackPanel>
                                     <DockPanel LastChildFill="True">
@@ -1398,7 +1405,8 @@
                                                               ToolTip="Seleziona uno degli orari fissi del servizio" />
 
                                                     <StackPanel Grid.Column="2">
-                                                        <CheckBox IsChecked="{Binding ServizioOrarioDerogaAttiva}"
+                                                        <CheckBox HorizontalAlignment="Left"
+                                                                  IsChecked="{Binding ServizioOrarioDerogaAttiva}"
                                                                   Content="Orario in deroga" />
                                                         <StackPanel Margin="0,8,0,0"
                                                                     Orientation="Horizontal"
@@ -1972,7 +1980,7 @@
                                                                         Width="250"
                                                                         Binding="{Binding NominativoConQualifica}" />
                                                     <DataGridTextColumn Header="Ruoli"
-                                                                        Width="260"
+                                                                        Width="150"
                                                                         Binding="{Binding RuoliImmersione}" />
                                                     <DataGridTemplateColumn Header="Apparato"
                                                                             Width="120">
