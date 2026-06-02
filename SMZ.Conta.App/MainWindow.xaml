@@ -809,81 +809,85 @@
                 <TabItem Header="Ricerca">
                     <Grid Margin="6">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="390" />
+                            <ColumnDefinition Width="330" />
                             <ColumnDefinition Width="20" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <Grid Grid.Column="0">
+                        <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Filtri personale"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+
+                                <TextBlock Margin="0,14,0,0" Text="Cognome o nome" Foreground="#50626A" />
+                                <TextBox Text="{Binding FiltroCognome, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <Border Margin="0,8,0,0"
+                                        Padding="8"
+                                        Background="#F4F7F3"
+                                        BorderBrush="#D2DBD6"
+                                        BorderThickness="1"
+                                        CornerRadius="12"
+                                        Visibility="{Binding IsSearchSuggestionsOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <ListBox ItemsSource="{Binding SearchSuggestions}"
+                                             SelectedItem="{Binding SelectedSearchSuggestion}"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             MaxHeight="120"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                                </Border>
+
+                                <TextBlock Margin="0,12,0,0" Text="Abilitazione o specialita" Foreground="#50626A" />
+                                <ComboBox ItemsSource="{Binding FiltroAbilitazioni}"
+                                          SelectedItem="{Binding FiltroAbilitazione}"
+                                          DisplayMemberPath="Descrizione" />
+
+                                <TextBlock Margin="0,12,0,0" Text="Visite in scadenza entro" Foreground="#50626A" />
+                                <controls:DateInputPicker Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
+                                                          Width="150"
+                                                          HorizontalAlignment="Left"
+                                                          ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Text="Inserisci una data, ad esempio 18/03/2026"
+                                           Foreground="#6A7B80"
+                                           FontSize="12"
+                                           TextWrapping="Wrap" />
+
+                                <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+                                    <Button Content="Applica"
+                                            Command="{Binding SearchCommand}" />
+                                    <Button Content="Pulisci"
+                                            Command="{Binding ClearFiltersCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Grid Grid.Column="2">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="12" />
+                                <RowDefinition Height="14" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
-                            <Border Style="{StaticResource CardStyle}">
-                                <StackPanel>
-                                    <TextBlock Text="Ricerca personale"
-                                               FontSize="20"
-                                               FontWeight="SemiBold"
-                                               Foreground="#17313E" />
-
-                                    <TextBlock Margin="0,14,0,0" Text="Cognome o nome" Foreground="#50626A" />
-                                    <TextBox Text="{Binding FiltroCognome, UpdateSourceTrigger=PropertyChanged}" />
-
-                                    <Border Margin="0,8,0,0"
-                                            Padding="8"
-                                            Background="#F4F7F3"
-                                            BorderBrush="#D2DBD6"
-                                            BorderThickness="1"
-                                            CornerRadius="12"
-                                            Visibility="{Binding IsSearchSuggestionsOpen, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <ListBox ItemsSource="{Binding SearchSuggestions}"
-                                                 SelectedItem="{Binding SelectedSearchSuggestion}"
-                                                 BorderThickness="0"
-                                                 Background="Transparent"
-                                                 MaxHeight="120"
-                                                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
-                                    </Border>
-
-                                    <TextBlock Margin="0,12,0,0" Text="Abilitazione" Foreground="#50626A" />
-                                    <ComboBox ItemsSource="{Binding FiltroAbilitazioni}"
-                                              SelectedItem="{Binding FiltroAbilitazione}"
-                                              DisplayMemberPath="Descrizione" />
-
-                                    <TextBlock Margin="0,12,0,0" Text="Visite in scadenza entro" Foreground="#50626A" />
-                                    <controls:DateInputPicker Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
-                                                              Width="150"
-                                                              ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               Text="Inserisci una data, ad esempio 18/03/2026"
-                                               Foreground="#6A7B80"
-                                               FontSize="12" />
-
-                                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                                        <Button Content="Cerca" Command="{Binding SearchCommand}" />
-                                        <Button Content="Pulisci"
-                                                Command="{Binding ClearFiltersCommand}"
-                                                Style="{StaticResource SecondaryButtonStyle}" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Row="2" Style="{StaticResource CardStyle}" Background="#EEF4F8">
+                            <Border Style="{StaticResource CardStyle}" Background="#EEF4F8">
                                 <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="360" />
+                                        <ColumnDefinition Width="20" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
 
-                                    <DockPanel LastChildFill="False">
-                                        <TextBlock DockPanel.Dock="Left"
-                                                   Text="{Binding ScadenzeTitolo}"
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding ScadenzeTitolo}"
                                                    FontSize="20"
                                                    FontWeight="SemiBold"
                                                    Foreground="#17313E"
                                                    TextWrapping="Wrap" />
-                                        <StackPanel DockPanel.Dock="Right"
+
+                                        <StackPanel Margin="0,12,0,0"
                                                     Orientation="Horizontal"
                                                     VerticalAlignment="Center">
                                             <TextBlock Text="Mostra"
@@ -894,62 +898,62 @@
                                                       ItemsSource="{Binding FiltriScadenze}"
                                                       SelectedItem="{Binding FiltroScadenzeSelezionato}" />
                                         </StackPanel>
-                                    </DockPanel>
 
-                                    <Grid Grid.Row="1" Margin="0,14,0,14">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="10" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="10" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
+                                        <Grid Margin="0,14,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="10" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="10" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
 
-                                        <Border Background="#183E5F" CornerRadius="16" Padding="12">
-                                            <StackPanel>
-                                                <TextBlock Text="Totali"
-                                                           Foreground="#C9D7DA"
-                                                           FontSize="13" />
-                                                <TextBlock Text="{Binding ScadenzeTotali}"
-                                                           Foreground="#FFF8EE"
-                                                           FontSize="24"
-                                                           FontWeight="SemiBold" />
-                                            </StackPanel>
-                                        </Border>
+                                            <Border Background="#183E5F" CornerRadius="12" Padding="12">
+                                                <StackPanel>
+                                                    <TextBlock Text="Totali"
+                                                               Foreground="#C9D7DA"
+                                                               FontSize="13" />
+                                                    <TextBlock Text="{Binding ScadenzeTotali}"
+                                                               Foreground="#FFF8EE"
+                                                               FontSize="24"
+                                                               FontWeight="SemiBold" />
+                                                </StackPanel>
+                                            </Border>
 
-                                        <Border Grid.Column="2" Background="#9C3636" CornerRadius="16" Padding="12">
-                                            <StackPanel>
-                                                <TextBlock Text="Scadute"
-                                                           Foreground="#F8DBDB"
-                                                           FontSize="13" />
-                                                <TextBlock Text="{Binding ScadenzeScadute}"
-                                                           Foreground="#FFF7F3"
-                                                           FontSize="24"
-                                                           FontWeight="SemiBold" />
-                                            </StackPanel>
-                                        </Border>
+                                            <Border Grid.Column="2" Background="#9C3636" CornerRadius="12" Padding="12">
+                                                <StackPanel>
+                                                    <TextBlock Text="Scadute"
+                                                               Foreground="#F8DBDB"
+                                                               FontSize="13" />
+                                                    <TextBlock Text="{Binding ScadenzeScadute}"
+                                                               Foreground="#FFF7F3"
+                                                               FontSize="24"
+                                                               FontWeight="SemiBold" />
+                                                </StackPanel>
+                                            </Border>
 
-                                        <Border Grid.Column="4" Background="#CFA032" CornerRadius="16" Padding="12">
-                                            <StackPanel>
-                                                <TextBlock Text="Urgenti 7 gg"
-                                                           Foreground="#664B12"
-                                                           FontSize="13" />
-                                                <TextBlock Text="{Binding ScadenzeUrgenti}"
-                                                           Foreground="#17313E"
-                                                           FontSize="24"
-                                                           FontWeight="SemiBold" />
-                                            </StackPanel>
-                                        </Border>
-                                    </Grid>
+                                            <Border Grid.Column="4" Background="#CFA032" CornerRadius="12" Padding="12">
+                                                <StackPanel>
+                                                    <TextBlock Text="Urgenti"
+                                                               Foreground="#664B12"
+                                                               FontSize="13" />
+                                                    <TextBlock Text="{Binding ScadenzeUrgenti}"
+                                                               Foreground="#17313E"
+                                                               FontSize="24"
+                                                               FontWeight="SemiBold" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+                                    </StackPanel>
 
-                                    <ScrollViewer Grid.Row="2"
+                                    <ScrollViewer Grid.Column="2"
                                                   VerticalScrollBarVisibility="Auto"
                                                   HorizontalScrollBarVisibility="Disabled"
-                                                  MaxHeight="420">
+                                                  MaxHeight="180">
                                         <ItemsControl ItemsSource="{Binding ScadenzeProssime}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Button Margin="0,0,0,10"
+                                                    <Button Margin="0,0,0,8"
                                                             Padding="0"
                                                             Background="Transparent"
                                                             BorderThickness="0"
@@ -961,49 +965,39 @@
                                                                 <ContentPresenter />
                                                             </ControlTemplate>
                                                         </Button.Template>
-                                                        <Border Padding="12"
-                                                                CornerRadius="16"
+                                                        <Border Padding="10"
+                                                                CornerRadius="12"
                                                                 Background="{Binding CardBackground}">
-                                                            <StackPanel>
-                                                                <DockPanel LastChildFill="False">
-                                                                    <TextBlock DockPanel.Dock="Left"
-                                                                               Text="{Binding Nominativo}"
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding Nominativo}"
                                                                                FontWeight="SemiBold"
                                                                                Foreground="#17313E" />
-                                                                    <Border DockPanel.Dock="Right"
-                                                                            Background="{Binding BadgeBackground}"
-                                                                            CornerRadius="999"
-                                                                            Padding="8,3">
-                                                                        <TextBlock Text="{Binding GiorniResidui}"
-                                                                                   Foreground="{Binding BadgeForeground}"
-                                                                                   FontSize="12" />
-                                                                    </Border>
-                                                                </DockPanel>
-                                                                <TextBlock Margin="0,2,0,0"
-                                                                           Text="{Binding PerId, StringFormat=PerID {0}}"
-                                                                           Foreground="#6B7E82"
-                                                                           FontSize="12" />
-                                                                <TextBlock Margin="0,4,0,0"
-                                                                           Text="{Binding Titolo}"
-                                                                           Foreground="{Binding TitoloForeground}"
-                                                                           FontWeight="SemiBold" />
-                                                                <TextBlock Margin="0,2,0,0"
-                                                                           Text="{Binding StatoSintesi}"
-                                                                           Foreground="{Binding TitoloForeground}"
-                                                                           FontSize="12"
-                                                                           FontWeight="SemiBold" />
-                                                                <TextBlock Margin="0,2,0,0"
-                                                                           Text="{Binding Origine}"
-                                                                           Foreground="#6B7E82"
-                                                                           FontSize="12" />
-                                                                <TextBlock Margin="0,4,0,0"
-                                                                           Text="{Binding DataScadenza}"
-                                                                           Foreground="#17313E" />
-                                                                <TextBlock Margin="0,2,0,0"
-                                                                           Text="{Binding Dettaglio}"
-                                                                           Foreground="#607176"
-                                                                           TextWrapping="Wrap" />
-                                                            </StackPanel>
+                                                                    <TextBlock Margin="0,3,0,0"
+                                                                               Text="{Binding Titolo}"
+                                                                               Foreground="{Binding TitoloForeground}"
+                                                                               FontWeight="SemiBold"
+                                                                               TextTrimming="CharacterEllipsis" />
+                                                                    <TextBlock Margin="0,2,0,0"
+                                                                               Text="{Binding DataScadenza}"
+                                                                               Foreground="#607176"
+                                                                               FontSize="12" />
+                                                                </StackPanel>
+                                                                <Border Grid.Column="1"
+                                                                        Margin="12,0,0,0"
+                                                                        VerticalAlignment="Top"
+                                                                        Background="{Binding BadgeBackground}"
+                                                                        CornerRadius="999"
+                                                                        Padding="8,3">
+                                                                    <TextBlock Text="{Binding GiorniResidui}"
+                                                                               Foreground="{Binding BadgeForeground}"
+                                                                               FontSize="12" />
+                                                                </Border>
+                                                            </Grid>
                                                         </Border>
                                                     </Button>
                                                 </DataTemplate>
@@ -1012,9 +1006,8 @@
                                     </ScrollViewer>
                                 </Grid>
                             </Border>
-                        </Grid>
 
-                        <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -1043,7 +1036,7 @@
                                          Margin="0,16,0,0"
                                          ItemsSource="{Binding PersonaleItems}"
                                          SelectedItem="{Binding SelectedPersonale}"
-                                         Height="640"
+                                         MaxHeight="520"
                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                          ScrollViewer.CanContentScroll="False"
@@ -1051,48 +1044,83 @@
                                          Background="Transparent">
                                     <ListBox.ItemsPanel>
                                         <ItemsPanelTemplate>
-                                            <WrapPanel Orientation="Horizontal" />
+                                            <StackPanel Orientation="Vertical" />
                                         </ItemsPanelTemplate>
                                     </ListBox.ItemsPanel>
                                     <ListBox.ItemContainerStyle>
                                         <Style TargetType="ListBoxItem">
                                             <Setter Property="Padding" Value="0" />
-                                            <Setter Property="Margin" Value="0,0,12,12" />
+                                            <Setter Property="Margin" Value="0,0,0,8" />
                                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                                             <Setter Property="VerticalContentAlignment" Value="Stretch" />
                                         </Style>
                                     </ListBox.ItemContainerStyle>
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Width="260"
-                                                    MinHeight="96"
-                                                    Padding="14"
+                                            <Border Padding="12"
                                                     Background="#F7F9FB"
                                                     BorderBrush="#DCE5EC"
                                                     BorderThickness="1"
-                                                    CornerRadius="16">
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding Nominativo}"
-                                                               FontSize="17"
-                                                               FontWeight="SemiBold"
-                                                               Foreground="#17313E" />
-                                                    <TextBlock Margin="0,4,0,0"
-                                                               Text="{Binding CodiceFiscale}"
-                                                               Foreground="#53646A" />
-                                                    <TextBlock Margin="0,2,0,0"
-                                                               Text="{Binding Contatti}"
-                                                               Foreground="#53646A" />
-                                                    <TextBlock Margin="0,6,0,0"
-                                                               Text="{Binding StatoServizioSintesi}"
-                                                               Foreground="#24527B"
-                                                               FontWeight="SemiBold" />
-                                                </StackPanel>
+                                                    CornerRadius="10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="2*" />
+                                                        <ColumnDefinition Width="1.1*" />
+                                                        <ColumnDefinition Width="1.5*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding NominativoConQualifica}"
+                                                                   FontSize="15"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#17313E"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Margin="0,3,0,0"
+                                                                   Text="{Binding ProfiloPersonale}"
+                                                                   Foreground="#607176"
+                                                                   FontSize="12"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="1" Margin="14,0,0,0">
+                                                        <TextBlock Text="Codice fiscale"
+                                                                   Foreground="#6B7E82"
+                                                                   FontSize="11" />
+                                                        <TextBlock Text="{Binding CodiceFiscale}"
+                                                                   Foreground="#17313E"
+                                                                   FontWeight="SemiBold"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="2" Margin="14,0,0,0">
+                                                        <TextBlock Text="Contatti"
+                                                                   Foreground="#6B7E82"
+                                                                   FontSize="11" />
+                                                        <TextBlock Text="{Binding Contatti}"
+                                                                   Foreground="#53646A"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+
+                                                    <Border Grid.Column="3"
+                                                            Margin="14,0,0,0"
+                                                            Padding="10,4"
+                                                            VerticalAlignment="Center"
+                                                            Background="#E2ECF3"
+                                                            CornerRadius="999">
+                                                        <TextBlock Text="{Binding StatoServizioSintesi}"
+                                                                   Foreground="#24527B"
+                                                                   FontSize="12"
+                                                                   FontWeight="SemiBold" />
+                                                    </Border>
+                                                </Grid>
                                             </Border>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
                             </Grid>
                         </Border>
+                        </Grid>
                     </Grid>
                 </TabItem>
 
