@@ -16,12 +16,11 @@ namespace SMZ.Conta.App.ViewModels;
 public sealed class MainWindowViewModel : ObservableObject
 {
     private const int HomeSectionIndex = 0;
-    private const int SearchSectionIndex = 1;
-    private const int ServicesSectionIndex = 2;
-    private const int PersonalSectionIndex = 3;
-    private const int ArchiveSectionIndex = 4;
-    private const int AccountingSectionIndex = 5;
-    private const int ReportsSectionIndex = 6;
+    private const int ServicesSectionIndex = 1;
+    private const int PersonalSectionIndex = 2;
+    private const int ArchiveSectionIndex = 3;
+    private const int AccountingSectionIndex = 4;
+    private const int ReportsSectionIndex = 5;
     private static readonly PersonaleListItemViewModel OperatoreVuoto = new();
     private static readonly UnitaNavale UnitaNavaleVuota = new() { UnitaNavaleId = 0, Descrizione = string.Empty, Ordine = 0 };
     private static readonly string[] OrariServizioFissi =
@@ -331,7 +330,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public string HomeTitolo => "Centro Nautico e Sommozzatori";
 
     public string HomeSottotitolo =>
-        "Una home iniziale piu moderna per accedere ai moduli del nucleo: ricerca, servizi giornalieri, anagrafica e archivio.";
+        "Una home iniziale piu moderna per accedere ai moduli del nucleo: personale, servizi giornalieri, archivio e contabilita.";
 
     public int DashboardDipendentiTotali => PersonaleItems.Count;
 
