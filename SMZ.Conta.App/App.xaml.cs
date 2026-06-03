@@ -24,7 +24,7 @@ public partial class App : Application
 
             MessageBox.Show(
                 $"Errore durante l'inizializzazione del database SQLite.{Environment.NewLine}{Environment.NewLine}{dettagli}",
-                "SMZ Conta",
+                "SMZ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
 
@@ -42,7 +42,7 @@ public partial class App : Application
         {
             MessageBox.Show(
                 $"Errore durante l'avvio dell'interfaccia principale.{Environment.NewLine}{Environment.NewLine}{ex.Message}",
-                "SMZ Conta",
+                "SMZ",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
 

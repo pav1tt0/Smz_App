@@ -11,7 +11,7 @@ $projectPath = Join-Path $repoRoot "SMZ.Conta.App\SMZ.Conta.App.csproj"
 $distRoot = Join-Path $repoRoot "dist"
 $instructionsPath = Join-Path $repoRoot "ISTRUZIONI_TEST_OPERATORE_SMZ.md"
 $backupProcedurePath = Join-Path $repoRoot "PROCEDURA_BACKUP_E_CAMBIO_PC_SMZ.md"
-$packageName = "SMZ.Conta.App-$Runtime-test"
+$packageName = "SMZ.App-$Runtime-test"
 $publishDir = Join-Path $distRoot $packageName
 $zipPath = Join-Path $distRoot "$packageName.zip"
 

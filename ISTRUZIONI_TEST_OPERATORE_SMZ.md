@@ -2,8 +2,8 @@
 
 Output pronto per il test:
 
-- cartella: `dist\SMZ.Conta.App-win-x64-test`
-- eseguibile: `dist\SMZ.Conta.App-win-x64-test\SMZ.Conta.App.exe`
+- cartella: `dist\SMZ.App-win-x64-test`
+- eseguibile: `dist\SMZ.App-win-x64-test\SMZ.App.exe`
 
 Caratteristiche del pacchetto:
 
@@ -19,9 +19,9 @@ Dove salva i dati:
 
 Come consegnarlo all'operatore:
 
-1. Passare l'intera cartella `dist\SMZ.Conta.App-win-x64-test`
+1. Passare l'intera cartella `dist\SMZ.App-win-x64-test`
 2. Oppure creare e passare il file zip generato dallo script di pubblicazione
-3. Avvio tramite doppio click su `SMZ.Conta.App.exe`
+3. Avvio tramite doppio click su `SMZ.App.exe`
 
 Per rigenerare il pacchetto:
 

@@ -1757,74 +1757,259 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <Grid>
+                        <Grid Grid.ColumnSpan="3"
+                              Visibility="{Binding IsElencoPersonaleVisibile, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="18" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
                             <Border Style="{StaticResource CardStyle}">
-                                <StackPanel>
-                                    <TextBlock Text="Filtri personale"
-                                               FontSize="20"
-                                               FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1.3*" />
+                                        <ColumnDefinition Width="14" />
+                                        <ColumnDefinition Width="1.1*" />
+                                        <ColumnDefinition Width="14" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="14" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                                    <TextBlock Margin="0,14,0,0" Text="Cognome o nome" Foreground="#50626A" />
-                                    <TextBox Text="{Binding FiltroCognome, UpdateSourceTrigger=PropertyChanged}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Cerca personale"
+                                                   Foreground="#50626A" />
+                                        <TextBox Text="{Binding FiltroCognome, UpdateSourceTrigger=PropertyChanged}" />
+                                        <Border Margin="0,8,0,0"
+                                                Padding="8"
+                                                Background="#F4F7F3"
+                                                BorderBrush="#D2DBD6"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Visibility="{Binding IsSearchSuggestionsOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <ListBox ItemsSource="{Binding SearchSuggestions}"
+                                                     SelectedItem="{Binding SelectedSearchSuggestion}"
+                                                     BorderThickness="0"
+                                                     Background="Transparent"
+                                                     MaxHeight="140"
+                                                     ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                                        </Border>
+                                    </StackPanel>
 
-                                    <Border Margin="0,8,0,0"
-                                            Padding="8"
-                                            Background="#F4F7F3"
-                                            BorderBrush="#D2DBD6"
-                                            BorderThickness="1"
-                                            CornerRadius="12"
-                                            Visibility="{Binding IsSearchSuggestionsOpen, Converter={StaticResource BoolToVisibilityConverter}}">
-                                        <ListBox ItemsSource="{Binding SearchSuggestions}"
-                                                 SelectedItem="{Binding SelectedSearchSuggestion}"
-                                                 BorderThickness="0"
-                                                 Background="Transparent"
-                                                 MaxHeight="120"
-                                                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
-                                    </Border>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Abilitazione"
+                                                   Foreground="#50626A" />
+                                        <ComboBox ItemsSource="{Binding FiltroAbilitazioni}"
+                                                  SelectedItem="{Binding FiltroAbilitazione}"
+                                                  DisplayMemberPath="Descrizione" />
+                                    </StackPanel>
 
-                                    <TextBlock Margin="0,12,0,0" Text="Abilitazione o specialita" Foreground="#50626A" />
-                                    <ComboBox ItemsSource="{Binding FiltroAbilitazioni}"
-                                              SelectedItem="{Binding FiltroAbilitazione}"
-                                              DisplayMemberPath="Descrizione" />
+                                    <StackPanel Grid.Column="4">
+                                        <TextBlock Text="Visite entro"
+                                                   Foreground="#50626A" />
+                                        <controls:DateInputPicker Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
+                                                                  Width="150"
+                                                                  ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
+                                    </StackPanel>
 
-                                    <TextBlock Margin="0,12,0,0" Text="Visite in scadenza entro" Foreground="#50626A" />
-                                    <controls:DateInputPicker Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
-                                                              Width="150"
-                                                              HorizontalAlignment="Left"
-                                                              ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               Text="Inserisci una data, ad esempio 18/03/2026"
-                                               Foreground="#6A7B80"
-                                               FontSize="12"
-                                               TextWrapping="Wrap" />
-
-                                    <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
-                                        <Button Content="Applica"
+                                    <StackPanel Grid.Column="6"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Bottom">
+                                        <Button Content="Cerca"
                                                 Command="{Binding SearchCommand}" />
                                         <Button Content="Pulisci"
                                                 Command="{Binding ClearFiltersCommand}"
                                                 Style="{StaticResource SecondaryButtonStyle}" />
+                                        <Button Content="Nuovo"
+                                                Command="{Binding NewCommand}"
+                                                Style="{StaticResource AccentButtonStyle}" />
                                     </StackPanel>
+                                </Grid>
+                            </Border>
 
-                                    <Border Margin="0,18,0,16"
-                                            Height="1"
-                                            Background="#D8E1E8" />
+                            <Border Grid.Row="2"
+                                    Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="14" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
 
-                                    <TextBlock Text="Elenco dipendenti"
-                                               FontSize="20"
-                                               FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                    <DockPanel LastChildFill="False">
+                                        <StackPanel DockPanel.Dock="Left">
+                                            <TextBlock Text="Elenco personale"
+                                                       FontSize="22"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#17313E" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       Text="{Binding DashboardDipendentiTotali, StringFormat={}{0} nominativi disponibili}"
+                                                       Foreground="#53646A" />
+                                        </StackPanel>
+                                        <Button DockPanel.Dock="Right"
+                                                Content="Apri scheda"
+                                                Command="{Binding OpenSelectedPersonaleCommand}" />
+                                    </DockPanel>
 
-                                    <TextBlock Margin="0,10,0,0"
-                                               Text="Seleziona un nominativo per caricare la scheda."
-                                               Foreground="#53646A"
-                                               TextWrapping="Wrap" />
-
-                                    <ListBox Margin="0,14,0,0"
+                                    <ListBox Grid.Row="2"
                                              ItemsSource="{Binding PersonaleItems}"
                                              SelectedItem="{Binding SelectedPersonale}"
-                                             MaxHeight="420"
+                                             MinHeight="520"
+                                             infra:MouseWheelScrollViewerBehavior.ForwardToParent="True"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                             BorderThickness="0"
+                                             Background="Transparent">
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="Padding" Value="0" />
+                                                <Setter Property="Margin" Value="0,0,10,10" />
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Width="300"
+                                                        Padding="0"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Cursor="Hand"
+                                                        Command="{Binding DataContext.OpenSelectedPersonaleCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <ContentPresenter />
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                    <Border Padding="12"
+                                                            BorderThickness="1"
+                                                            CornerRadius="8">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background" Value="#F7F9FB" />
+                                                                <Setter Property="BorderBrush" Value="#DCE5EC" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                                                        <Setter Property="Background" Value="#EAF3F8" />
+                                                                        <Setter Property="BorderBrush" Value="#5B84BD" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <Grid>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="Auto" />
+                                                            </Grid.RowDefinitions>
+
+                                                            <TextBlock Text="{Binding NominativoConQualifica}"
+                                                                       FontSize="14"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="#17313E"
+                                                                       TextTrimming="CharacterEllipsis" />
+
+                                                            <Grid Grid.Row="1"
+                                                                  Margin="0,6,0,0">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Text="{Binding CodiceFiscale}"
+                                                                           Foreground="#53646A"
+                                                                           FontSize="12"
+                                                                           TextTrimming="CharacterEllipsis" />
+                                                                <Border Grid.Column="1"
+                                                                        Margin="8,0,0,0"
+                                                                        Padding="8,3"
+                                                                        Background="#E2ECF3"
+                                                                        CornerRadius="999">
+                                                                    <TextBlock Text="{Binding StatoServizioSintesi}"
+                                                                               Foreground="#24527B"
+                                                                               FontSize="11"
+                                                                               FontWeight="SemiBold" />
+                                                                </Border>
+                                                            </Grid>
+                                                        </Grid>
+                                                    </Border>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <Grid Visibility="Collapsed">
+                            <Border Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <DockPanel LastChildFill="False">
+                                        <StackPanel DockPanel.Dock="Left">
+                                            <TextBlock Text="Personale"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#17313E" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       Text="{Binding DashboardDipendentiTotali, StringFormat={}{0} nominativi}"
+                                                       Foreground="#53646A"
+                                                       FontSize="12" />
+                                        </StackPanel>
+                                        <Button DockPanel.Dock="Right"
+                                                Content="Nuovo"
+                                                Command="{Binding NewCommand}"
+                                                Style="{StaticResource AccentButtonStyle}" />
+                                    </DockPanel>
+
+                                    <StackPanel Grid.Row="1"
+                                                Margin="0,16,0,0">
+                                        <TextBlock Text="Cerca"
+                                                   Foreground="#50626A" />
+                                        <TextBox Text="{Binding FiltroCognome, UpdateSourceTrigger=PropertyChanged}" />
+
+                                        <Border Margin="0,8,0,0"
+                                                Padding="8"
+                                                Background="#F4F7F3"
+                                                BorderBrush="#D2DBD6"
+                                                BorderThickness="1"
+                                                CornerRadius="12"
+                                                Visibility="{Binding IsSearchSuggestionsOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <ListBox ItemsSource="{Binding SearchSuggestions}"
+                                                     SelectedItem="{Binding SelectedSearchSuggestion}"
+                                                     BorderThickness="0"
+                                                     Background="Transparent"
+                                                     MaxHeight="120"
+                                                     ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                                        </Border>
+
+                                        <StackPanel Orientation="Horizontal"
+                                                    Margin="0,12,0,0">
+                                            <Button Content="Cerca"
+                                                    Command="{Binding SearchCommand}" />
+                                            <Button Content="Pulisci"
+                                                    Command="{Binding ClearFiltersCommand}"
+                                                    Style="{StaticResource SecondaryButtonStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <ListBox Grid.Row="2"
+                                             Margin="0,14,0,0"
+                                             ItemsSource="{Binding PersonaleItems}"
+                                             SelectedItem="{Binding SelectedPersonale}"
+                                             MinHeight="420"
+                                             MaxHeight="620"
                                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                              ScrollViewer.CanContentScroll="False"
@@ -1841,36 +2026,89 @@
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Padding="12"
-                                                        Background="#F7F9FB"
-                                                        BorderBrush="#DCE5EC"
                                                         BorderThickness="1"
                                                         CornerRadius="10">
-                                                    <StackPanel>
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="#F7F9FB" />
+                                                            <Setter Property="BorderBrush" Value="#DCE5EC" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                                                    <Setter Property="Background" Value="#EAF3F8" />
+                                                                    <Setter Property="BorderBrush" Value="#5B84BD" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
+
                                                         <TextBlock Text="{Binding NominativoConQualifica}"
                                                                    FontSize="14"
                                                                    FontWeight="SemiBold"
                                                                    Foreground="#17313E"
                                                                    TextTrimming="CharacterEllipsis" />
-                                                        <TextBlock Margin="0,3,0,0"
-                                                                   Text="{Binding CodiceFiscale}"
-                                                                   Foreground="#53646A"
-                                                                   FontSize="12"
-                                                                   TextTrimming="CharacterEllipsis" />
-                                                        <TextBlock Margin="0,3,0,0"
-                                                                   Text="{Binding StatoServizioSintesi}"
-                                                                   Foreground="#24527B"
-                                                                   FontSize="12"
-                                                                   FontWeight="SemiBold" />
-                                                    </StackPanel>
+
+                                                        <Grid Grid.Row="1"
+                                                              Margin="0,6,0,0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Text="{Binding CodiceFiscale}"
+                                                                       Foreground="#53646A"
+                                                                       FontSize="12"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                            <Border Grid.Column="1"
+                                                                    Margin="8,0,0,0"
+                                                                    Padding="8,3"
+                                                                    Background="#E2ECF3"
+                                                                    CornerRadius="999">
+                                                                <TextBlock Text="{Binding StatoServizioSintesi}"
+                                                                           Foreground="#24527B"
+                                                                           FontSize="11"
+                                                                           FontWeight="SemiBold" />
+                                                            </Border>
+                                                        </Grid>
+                                                    </Grid>
                                                 </Border>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>
-                                </StackPanel>
+
+                                    <Expander Grid.Row="3"
+                                              Margin="0,12,0,0"
+                                              Header="Filtri avanzati"
+                                              Foreground="#17313E"
+                                              FontWeight="SemiBold">
+                                        <StackPanel Margin="0,10,0,0">
+                                            <TextBlock Text="Abilitazione o specialita"
+                                                       Foreground="#50626A"
+                                                       FontWeight="Normal" />
+                                            <ComboBox ItemsSource="{Binding FiltroAbilitazioni}"
+                                                      SelectedItem="{Binding FiltroAbilitazione}"
+                                                      DisplayMemberPath="Descrizione" />
+
+                                            <TextBlock Margin="0,12,0,0"
+                                                       Text="Visite in scadenza entro"
+                                                       Foreground="#50626A"
+                                                       FontWeight="Normal" />
+                                            <controls:DateInputPicker Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
+                                                                      Width="150"
+                                                                      HorizontalAlignment="Left"
+                                                                      ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
+                                        </StackPanel>
+                                    </Expander>
+                                </Grid>
                             </Border>
                         </Grid>
 
-                        <Grid Grid.Column="2">
+                        <Grid Grid.Column="0"
+                              Grid.ColumnSpan="3"
+                              Visibility="{Binding IsSchedaPersonaleVisibile, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="18" />
@@ -1889,6 +2127,9 @@
                                     <StackPanel DockPanel.Dock="Right"
                                                 Orientation="Horizontal"
                                                 VerticalAlignment="Center">
+                                        <Button Content="Torna elenco"
+                                                Command="{Binding CloseSchedaPersonaleCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
                                         <Button Content="Nuovo"
                                                 Command="{Binding NewCommand}"
                                                 Style="{StaticResource AccentButtonStyle}" />

@@ -55,6 +55,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _addImmersioneCommand;
     private readonly RelayCommand _removeImmersioneCommand;
     private readonly RelayCommand _openSelectedPersonaleCommand;
+    private readonly RelayCommand _closeSchedaPersonaleCommand;
     private readonly RelayCommand _reloadServizioPersonaleCommand;
     private readonly RelayCommand _reloadContabilitaCommand;
     private readonly RelayCommand _reloadRegistroImmersioniCommand;
@@ -87,6 +88,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _filtroCognome = string.Empty;
     private string _filtroScadenzeSelezionato = "Tutte";
     private bool _isSearchSuggestionsOpen;
+    private bool _isSchedaPersonaleVisibile;
     private AbilitazioneFilterOptionViewModel? _filtroAbilitazione;
     private string _filtroVisiteEntro = string.Empty;
     private int _sezioneAttivaIndex;
@@ -203,11 +205,13 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             NuovoPersonale();
             SezioneAttivaIndex = PersonalSectionIndex;
+            IsSchedaPersonaleVisibile = true;
         });
         SaveCommand = new RelayCommand(SalvaPersonale);
         _deleteCommand = new RelayCommand(DisattivaPersonaleDaOggi, () => PerId > 0);
         _deleteDefinitivoCommand = new RelayCommand(EliminaPersonaleDefinitivamente, () => PerId > 0);
-        _openSelectedPersonaleCommand = new RelayCommand(ApriSchedaSelezionata, () => SelectedPersonale is not null);
+        _openSelectedPersonaleCommand = new RelayCommand(ApriSchedaSelezionata);
+        _closeSchedaPersonaleCommand = new RelayCommand(() => IsSchedaPersonaleVisibile = false);
         _restoreArchivioCommand = new RelayCommand(RipristinaArchivio, () => SelectedArchivio is not null);
         _deleteArchivioDefinitivoCommand = new RelayCommand(EliminaArchivioDefinitivamente, () => SelectedArchivio is not null);
         SaveAbilitazioneCommand = new RelayCommand(SalvaAbilitazioneInEditor);
@@ -1189,6 +1193,8 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public RelayCommand OpenSelectedPersonaleCommand => _openSelectedPersonaleCommand;
 
+    public RelayCommand CloseSchedaPersonaleCommand => _closeSchedaPersonaleCommand;
+
     public RelayCommand RestoreArchivioCommand => _restoreArchivioCommand;
 
     public RelayCommand DeleteArchivioDefinitivoCommand => _deleteArchivioDefinitivoCommand;
@@ -1265,6 +1271,20 @@ public sealed class MainWindowViewModel : ObservableObject
             }
         }
     }
+
+    public bool IsSchedaPersonaleVisibile
+    {
+        get => _isSchedaPersonaleVisibile;
+        set
+        {
+            if (SetProperty(ref _isSchedaPersonaleVisibile, value))
+            {
+                OnPropertyChanged(nameof(IsElencoPersonaleVisibile));
+            }
+        }
+    }
+
+    public bool IsElencoPersonaleVisibile => !IsSchedaPersonaleVisibile;
 
     public PersonaleAbilitazioneRowViewModel? SelectedAbilitazione
     {
@@ -1348,6 +1368,7 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 FiltroCognome = value;
                 IsSearchSuggestionsOpen = false;
+                CaricaElenco();
             }
         }
     }
@@ -3347,8 +3368,13 @@ public sealed class MainWindowViewModel : ObservableObject
         Stato = $"Scheda caricata: {personale.NominativoCompleto}";
     }
 
-    private void ApriSchedaSelezionata()
+    private void ApriSchedaSelezionata(object? parameter)
     {
+        if (parameter is PersonaleListItemViewModel personale)
+        {
+            SelectedPersonale = personale;
+        }
+
         if (SelectedPersonale is null)
         {
             return;
@@ -3356,6 +3382,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
         CaricaPersonale(SelectedPersonale.PerId);
         SezioneAttivaIndex = PersonalSectionIndex;
+        IsSchedaPersonaleVisibile = true;
     }
 
     private void SalvaPersonale()
@@ -4656,9 +4683,20 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         var testo = FiltroCognome.Trim();
+        var testoNormalizzato = NormalizzaTestoRicerca(testo);
+        var partiRicerca = testoNormalizzato
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var suggerimenti = _allSearchSuggestions
-            .Where(item => item.Contains(testo, StringComparison.OrdinalIgnoreCase))
+            .Select(item => new
+            {
+                Valore = item,
+                Punteggio = CalcolaPunteggioSuggerimento(item, testoNormalizzato, partiRicerca),
+            })
+            .Where(item => item.Punteggio < int.MaxValue)
+            .OrderBy(item => item.Punteggio)
+            .ThenBy(item => item.Valore)
             .Take(8)
+            .Select(item => item.Valore)
             .ToList();
 
         foreach (var suggerimento in suggerimenti)
@@ -4667,6 +4705,50 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         IsSearchSuggestionsOpen = SearchSuggestions.Count > 0;
+    }
+
+    private static int CalcolaPunteggioSuggerimento(string valore, string testoRicerca, string[] partiRicerca)
+    {
+        var valoreNormalizzato = NormalizzaTestoRicerca(valore);
+        var parole = valoreNormalizzato.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (valoreNormalizzato.Equals(testoRicerca, StringComparison.Ordinal))
+        {
+            return 0;
+        }
+
+        if (valoreNormalizzato.StartsWith(testoRicerca, StringComparison.Ordinal))
+        {
+            return 1;
+        }
+
+        if (partiRicerca.Length > 0 && partiRicerca.All(parte => parole.Any(parola => parola.StartsWith(parte, StringComparison.Ordinal))))
+        {
+            return 2;
+        }
+
+        if (partiRicerca.Length > 0 && partiRicerca.All(parte => valoreNormalizzato.Contains(parte, StringComparison.Ordinal)))
+        {
+            return 3;
+        }
+
+        return int.MaxValue;
+    }
+
+    private static string NormalizzaTestoRicerca(string value)
+    {
+        var normalized = value.Trim().ToUpperInvariant().Normalize(NormalizationForm.FormD);
+        var builder = new StringBuilder(normalized.Length);
+
+        foreach (var character in normalized)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(character) != UnicodeCategory.NonSpacingMark)
+            {
+                builder.Append(character);
+            }
+        }
+
+        return builder.ToString().Normalize(NormalizationForm.FormC);
     }
 
     private void RicaricaSuggerimentiRicerca()

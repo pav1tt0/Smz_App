@@ -1,6 +1,6 @@
 # Procedura backup e cambio PC SMZ
 
-Questa procedura serve agli operatori che usano SMZ Conta senza competenze tecniche.
+Questa procedura serve agli operatori che usano SMZ senza competenze tecniche.
 
 ## Regola principale
 
@@ -17,7 +17,7 @@ Cartelle consigliate:
 
 ## Prima configurazione
 
-1. Aprire SMZ Conta.
+1. Aprire SMZ.
 2. Andare in `Stampe e report`.
 3. Nel riquadro `Backup dati`, premere `Configura cartella esterna`.
 4. Scegliere la chiavetta, disco, cartella di rete o cartella sincronizzata.
@@ -42,14 +42,14 @@ Se il backup esterno non e aggiornato, collegare il supporto esterno o verificar
 
 Sul vecchio PC:
 
-1. Aprire SMZ Conta.
+1. Aprire SMZ.
 2. Andare in `Stampe e report`.
 3. Premere `Crea backup esterno`.
 4. Verificare che il file `.smzbak` sia presente nella cartella esterna.
 
 Sul nuovo PC:
 
-1. Installare o copiare SMZ Conta.
+1. Installare o copiare SMZ.
 2. Aprire il programma.
 3. Andare in `Stampe e report`.
 4. Premere `Ripristina da backup`.
