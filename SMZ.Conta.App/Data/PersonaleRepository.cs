@@ -285,7 +285,11 @@ public sealed class PersonaleRepository
         };
     }
 
-    public List<ServizioGiornalieroSummary> GetServiziGiornalieriRecenti(int maxItems = 24)
+    public List<ServizioGiornalieroSummary> GetServiziGiornalieriRecenti(
+        int maxItems = 10,
+        string searchText = "",
+        string numeroServizio = "",
+        string dataServizio = "")
     {
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
@@ -331,10 +335,21 @@ public sealed class PersonaleRepository
             LEFT JOIN LocalitaOperative lo ON lo.LocalitaOperativaId = s.LocalitaOperativaId
             LEFT JOIN ScopiImmersione sc ON sc.ScopoImmersioneId = s.ScopoImmersioneId
             LEFT JOIN UnitaNavali unv ON unv.UnitaNavaleId = s.UnitaNavaleId
+            WHERE ($search = '' OR COALESCE(lo.Descrizione, '') LIKE $searchLike)
+              AND ($numeroServizio = '' OR COALESCE(s.NumeroOrdineServizio, '') LIKE $numeroServizioLike)
+              AND ($dataServizio = '' OR s.DataServizio = $dataServizio)
             ORDER BY s.DataServizio DESC, s.ServizioGiornalieroId DESC
             LIMIT $maxItems;
             """;
+        var search = searchText.Trim();
+        var numero = numeroServizio.Trim();
+        var data = dataServizio.Trim();
         command.Parameters.AddWithValue("$maxItems", maxItems);
+        command.Parameters.AddWithValue("$search", search);
+        command.Parameters.AddWithValue("$searchLike", $"%{search}%");
+        command.Parameters.AddWithValue("$numeroServizio", numero);
+        command.Parameters.AddWithValue("$numeroServizioLike", $"%{numero}%");
+        command.Parameters.AddWithValue("$dataServizio", data);
 
         using var reader = command.ExecuteReader();
         var items = new List<ServizioGiornalieroSummary>();

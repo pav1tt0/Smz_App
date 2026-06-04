@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using Microsoft.Win32;
 using SMZ.Conta.App.Data;
@@ -45,6 +46,9 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _printServizioCommand;
     private readonly RelayCommand _openServizioCommand;
     private readonly RelayCommand _openServizioFromListCommand;
+    private readonly RelayCommand _closeSchedaServizioCommand;
+    private readonly RelayCommand _duplicateServizioCommand;
+    private readonly RelayCommand _clearServiziSearchCommand;
     private readonly RelayCommand _exportServizioPackageCommand;
     private readonly RelayCommand _importServizioPackageCommand;
     private readonly RelayCommand _deleteServizioCommand;
@@ -89,6 +93,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _filtroScadenzeSelezionato = "Tutte";
     private bool _isSearchSuggestionsOpen;
     private bool _isSchedaPersonaleVisibile;
+    private bool _isSchedaServizioVisibile;
     private AbilitazioneFilterOptionViewModel? _filtroAbilitazione;
     private string _filtroVisiteEntro = string.Empty;
     private int _sezioneAttivaIndex;
@@ -132,6 +137,9 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _attagliamentoVoce = string.Empty;
     private string _attagliamentoTagliaMisura = string.Empty;
     private string _attagliamentoNote = string.Empty;
+    private string _serviziSearchText = string.Empty;
+    private string _serviziNumeroSearchText = string.Empty;
+    private string _serviziDataSearchText = string.Empty;
     private long _servizioGiornalieroId;
     private string _servizioData = DateTime.Today.ToString("dd/MM/yyyy");
     private string _servizioNumeroOrdine = string.Empty;
@@ -192,6 +200,9 @@ public sealed class MainWindowViewModel : ObservableObject
         _printServizioCommand = new RelayCommand(StampaServizioGiornaliero);
         _openServizioCommand = new RelayCommand(ApriServizioSelezionato, () => SelectedServizioSalvato is not null);
         _openServizioFromListCommand = new RelayCommand(ApriServizioDaParametro);
+        _closeSchedaServizioCommand = new RelayCommand(() => IsSchedaServizioVisibile = false);
+        _duplicateServizioCommand = new RelayCommand(DuplicaServizioSelezionato, () => SelectedServizioSalvato is not null);
+        _clearServiziSearchCommand = new RelayCommand(PulisciRicercaServizi);
         _exportServizioPackageCommand = new RelayCommand(EsportaPacchettoServizioSelezionato, () => SelectedServizioSalvato is not null);
         _importServizioPackageCommand = new RelayCommand(ImportaPacchettoServizio);
         _deleteServizioCommand = new RelayCommand(EliminaServizioSelezionato, () => SelectedServizioSalvato is not null);
@@ -445,7 +456,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
                 if (value == ServicesSectionIndex)
                 {
-                    NuovoServizioGiornaliero();
+                    IsSchedaServizioVisibile = false;
                 }
                 else if (value == AccountingSectionIndex)
                 {
@@ -548,6 +559,42 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<ServizioGiornalieroSummary> ServiziSalvati { get; }
 
+    public string ServiziSearchText
+    {
+        get => _serviziSearchText;
+        set
+        {
+            if (SetProperty(ref _serviziSearchText, value))
+            {
+                CaricaServiziSalvati();
+            }
+        }
+    }
+
+    public string ServiziNumeroSearchText
+    {
+        get => _serviziNumeroSearchText;
+        set
+        {
+            if (SetProperty(ref _serviziNumeroSearchText, value))
+            {
+                CaricaServiziSalvati();
+            }
+        }
+    }
+
+    public string ServiziDataSearchText
+    {
+        get => _serviziDataSearchText;
+        set
+        {
+            if (SetProperty(ref _serviziDataSearchText, value))
+            {
+                CaricaServiziSalvati();
+            }
+        }
+    }
+
     public ObservableCollection<ContabilitaSmzSummary> ContabilitaSmzItems { get; }
 
     public ObservableCollection<ContabilitaSanitarioSummary> ContabilitaSanitariItems { get; }
@@ -596,6 +643,7 @@ public sealed class MainWindowViewModel : ObservableObject
             if (SetProperty(ref _selectedServizioSalvato, value))
             {
                 _openServizioCommand.RaiseCanExecuteChanged();
+                _duplicateServizioCommand.RaiseCanExecuteChanged();
                 _exportServizioPackageCommand.RaiseCanExecuteChanged();
                 _deleteServizioCommand.RaiseCanExecuteChanged();
             }
@@ -999,8 +1047,17 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string ServiziSalvatiStato =>
         ServiziSalvati.Count == 0
-            ? "Nessun servizio ancora registrato."
-            : $"{ServiziSalvati.Count} servizi recenti disponibili nel database locale.";
+            ? !HasFiltroServiziAttivo
+                ? "Nessun servizio ancora registrato."
+                : "Nessun servizio trovato con la ricerca impostata."
+            : !HasFiltroServiziAttivo
+                ? $"{ServiziSalvati.Count} servizi recenti visualizzati."
+                : $"{ServiziSalvati.Count} servizi trovati per la ricerca impostata.";
+
+    private bool HasFiltroServiziAttivo =>
+        !string.IsNullOrWhiteSpace(ServiziSearchText)
+        || !string.IsNullOrWhiteSpace(ServiziNumeroSearchText)
+        || !string.IsNullOrWhiteSpace(ServiziDataSearchText);
 
     public string ContabilitaPeriodoTitolo =>
         ContabilitaMeseSelezionato is null
@@ -1173,6 +1230,12 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public RelayCommand OpenServizioFromListCommand => _openServizioFromListCommand;
 
+    public RelayCommand CloseSchedaServizioCommand => _closeSchedaServizioCommand;
+
+    public RelayCommand DuplicateServizioCommand => _duplicateServizioCommand;
+
+    public RelayCommand ClearServiziSearchCommand => _clearServiziSearchCommand;
+
     public RelayCommand ExportServizioPackageCommand => _exportServizioPackageCommand;
 
     public RelayCommand ImportServizioPackageCommand => _importServizioPackageCommand;
@@ -1285,6 +1348,20 @@ public sealed class MainWindowViewModel : ObservableObject
     }
 
     public bool IsElencoPersonaleVisibile => !IsSchedaPersonaleVisibile;
+
+    public bool IsSchedaServizioVisibile
+    {
+        get => _isSchedaServizioVisibile;
+        set
+        {
+            if (SetProperty(ref _isSchedaServizioVisibile, value))
+            {
+                OnPropertyChanged(nameof(IsElencoServiziVisibile));
+            }
+        }
+    }
+
+    public bool IsElencoServiziVisibile => !IsSchedaServizioVisibile;
 
     public PersonaleAbilitazioneRowViewModel? SelectedAbilitazione
     {
@@ -2204,7 +2281,16 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private void CaricaServiziSalvati(long? selectedServizioId = null)
     {
-        var items = _repository.GetServiziGiornalieriRecenti();
+        var dataFiltro = TryParseDate(ServiziDataSearchText);
+        var dataFiltroDb = dataFiltro?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? string.Empty;
+        var hasSearch = !string.IsNullOrWhiteSpace(ServiziSearchText)
+            || !string.IsNullOrWhiteSpace(ServiziNumeroSearchText)
+            || !string.IsNullOrWhiteSpace(dataFiltroDb);
+        var items = _repository.GetServiziGiornalieriRecenti(
+            maxItems: hasSearch ? 50 : 10,
+            searchText: ServiziSearchText,
+            numeroServizio: ServiziNumeroSearchText,
+            dataServizio: dataFiltroDb);
         var selectedId = selectedServizioId ?? SelectedServizioSalvato?.ServizioGiornalieroId;
 
         ServiziSalvati.Clear();
@@ -2218,6 +2304,17 @@ public sealed class MainWindowViewModel : ObservableObject
             : ServiziSalvati.FirstOrDefault(item => item.ServizioGiornalieroId == selectedId.Value);
 
         OnPropertyChanged(nameof(ServiziSalvatiStato));
+    }
+
+    private void PulisciRicercaServizi()
+    {
+        _serviziSearchText = string.Empty;
+        _serviziNumeroSearchText = string.Empty;
+        _serviziDataSearchText = string.Empty;
+        OnPropertyChanged(nameof(ServiziSearchText));
+        OnPropertyChanged(nameof(ServiziNumeroSearchText));
+        OnPropertyChanged(nameof(ServiziDataSearchText));
+        CaricaServiziSalvati();
     }
 
     private void InizializzaContabilita()
@@ -2829,6 +2926,7 @@ public sealed class MainWindowViewModel : ObservableObject
             AggiornaAnniContabilitaDisponibili();
             AggiornaDatiMensili();
             RegistraSnapshotServizio();
+            IsSchedaServizioVisibile = false;
             Stato = isNuovoServizio
                 ? $"Servizio giornaliero salvato con ID {servizioGiornalieroId}."
                 : $"Servizio giornaliero #{servizioGiornalieroId} aggiornato.";
@@ -2864,6 +2962,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         CaricaServizioGiornaliero(SelectedServizioSalvato.ServizioGiornalieroId);
+        IsSchedaServizioVisibile = true;
     }
 
     private void ApriServizioDaParametro(object? parameter)
@@ -2875,6 +2974,32 @@ public sealed class MainWindowViewModel : ObservableObject
 
         SelectedServizioSalvato = servizio;
         CaricaServizioGiornaliero(servizio.ServizioGiornalieroId);
+        IsSchedaServizioVisibile = true;
+    }
+
+    private void DuplicaServizioSelezionato()
+    {
+        if (SelectedServizioSalvato is null)
+        {
+            return;
+        }
+
+        var servizioOrigine = SelectedServizioSalvato;
+        CaricaServizioGiornaliero(servizioOrigine.ServizioGiornalieroId);
+
+        _servizioGiornalieroId = 0;
+        SelectedServizioSalvato = null;
+        ServizioData = DateTime.Today.ToString("dd/MM/yyyy");
+        ServizioNumeroOrdine = string.Empty;
+        ServizioOrarioDerogaAttiva = false;
+        ServizioOrarioDerogaInizio = string.Empty;
+        ServizioOrarioDerogaFine = string.Empty;
+
+        AggiornaContestoServizio();
+        AggiornaRiepilogoBozzaServizio();
+        RegistraSnapshotServizio();
+        IsSchedaServizioVisibile = true;
+        Stato = $"Bozza creata duplicando il servizio del {servizioOrigine.DataServizio:dd/MM/yyyy}.";
     }
 
     private void EsportaPacchettoServizioSelezionato()
@@ -3062,6 +3187,7 @@ public sealed class MainWindowViewModel : ObservableObject
             if (_servizioGiornalieroId == servizioGiornalieroId)
             {
                 NuovoServizioGiornaliero();
+                IsSchedaServizioVisibile = false;
             }
 
             CaricaServiziSalvati();
@@ -3276,6 +3402,7 @@ public sealed class MainWindowViewModel : ObservableObject
         AggiornaContestoServizio();
         AggiornaRiepilogoBozzaServizio();
         RegistraSnapshotServizio();
+        IsSchedaServizioVisibile = true;
         Stato = "Nuova bozza servizio giornaliero.";
     }
 
@@ -3971,12 +4098,8 @@ public sealed class MainWindowViewModel : ObservableObject
         start = string.Empty;
         end = string.Empty;
 
-        var normalized = new string(value
-            .Select(character => char.IsDigit(character) ? character : '|')
-            .ToArray());
-        var parts = normalized
-            .Split('|', StringSplitOptions.RemoveEmptyEntries)
-            .Where(part => part.Length is 3 or 4)
+        var parts = Regex.Matches(value, @"\d{1,2}[\.:]?\d{2}")
+            .Select(match => match.Value)
             .Take(2)
             .ToList();
 
@@ -6014,6 +6137,7 @@ public sealed class MainWindowViewModel : ObservableObject
         InizializzaEditorTariffeContabili();
         InizializzaBozzaServizio(preserveSelections: false);
         NuovoServizioGiornaliero();
+        IsSchedaServizioVisibile = false;
         NuovoPersonale();
         MostraTariffeContabili = false;
         SezioneAttivaIndex = HomeSectionIndex;

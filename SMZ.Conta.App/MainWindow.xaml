@@ -796,238 +796,306 @@
 
                 <TabItem Header="Servizio giornaliero">
                     <Grid Margin="6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="320" />
-                            <ColumnDefinition Width="20" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                        <Grid Visibility="{Binding IsElencoServiziVisibile, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="18" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
 
-                        <StackPanel Grid.Column="0">
                             <Border Style="{StaticResource CardStyle}">
-                                <StackPanel>
-                                    <TextBlock Text="Gestione servizi"
-                                               FontSize="20"
-                                               FontWeight="SemiBold"
-                                               Foreground="#17313E" />
-                                    <TextBlock Margin="0,12,0,0"
-                                               Text="{Binding ServizioBozzaStato}"
-                                               Foreground="#53646A"
-                                               TextWrapping="Wrap" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="0.9*" />
+                                        <ColumnDefinition Width="18" />
+                                        <ColumnDefinition Width="1.8*" />
+                                        <ColumnDefinition Width="18" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                                        <Button Content="Nuovo servizio"
+                                    <StackPanel>
+                                        <TextBlock Text="Servizi giornalieri"
+                                                   FontSize="22"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E" />
+                                        <TextBlock Margin="0,4,0,0"
+                                                   Text="{Binding ServiziSalvatiStato}"
+                                                   Foreground="#53646A"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Ricerca servizi"
+                                                   Foreground="#50626A" />
+                                        <Grid Margin="0,6,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="12" />
+                                                <ColumnDefinition Width="110" />
+                                                <ColumnDefinition Width="12" />
+                                                <ColumnDefinition Width="150" />
+                                                <ColumnDefinition Width="12" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="4" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <TextBlock Text="Localita"
+                                                       Foreground="#50626A"
+                                                       FontSize="12" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="N. servizio"
+                                                       Foreground="#50626A"
+                                                       FontSize="12" />
+                                            <TextBlock Grid.Column="4"
+                                                       Text="Data"
+                                                       Foreground="#50626A"
+                                                       FontSize="12" />
+
+                                            <TextBox Grid.Row="2"
+                                                     Text="{Binding ServiziSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="Cerca per localita" />
+                                            <TextBox Grid.Row="2"
+                                                     Grid.Column="2"
+                                                     Text="{Binding ServiziNumeroSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="Numero servizio" />
+                                            <controls:DateInputPicker Grid.Row="2"
+                                                                      Grid.Column="4"
+                                                                      Text="{Binding ServiziDataSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                                      Width="145"
+                                                                      ToolTip="Seleziona la data del servizio" />
+                                            <Button Grid.Row="2"
+                                                    Grid.Column="6"
+                                                    Content="Pulisci"
+                                                    Command="{Binding ClearServiziSearchCommand}"
+                                                    Style="{StaticResource SecondaryButtonStyle}" />
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <WrapPanel Grid.Column="4"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Bottom">
+                                        <Button Content="Nuovo"
                                                 Command="{Binding NewServizioCommand}"
                                                 Style="{StaticResource AccentButtonStyle}" />
-                                        <Button Content="Salva servizio"
-                                                Command="{Binding SaveServizioCommand}" />
-                                    </StackPanel>
-
-                                    <Button Margin="0,10,0,0"
-                                            Content="Stampa servizio"
-                                            Command="{Binding PrintServizioCommand}"
-                                            Style="{StaticResource SecondaryButtonStyle}" />
-
-                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                        <Button Content="Apri selezionato"
-                                                Command="{Binding OpenServizioCommand}"
+                                        <Button Content="Duplica"
+                                                Command="{Binding DuplicateServizioCommand}"
                                                 Style="{StaticResource SecondaryButtonStyle}" />
-                                        <Button Content="Elimina servizio"
+                                        <Button Content="Elimina"
                                                 Command="{Binding DeleteServizioCommand}"
                                                 Style="{StaticResource DangerButtonStyle}" />
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                        <Button Content="Esporta selezionato"
-                                                Command="{Binding ExportServizioPackageCommand}"
-                                                Style="{StaticResource SecondaryButtonStyle}" />
-                                        <Button Content="Importa servizio"
+                                        <Button Content="Importa"
                                                 Command="{Binding ImportServizioPackageCommand}"
                                                 Style="{StaticResource SecondaryButtonStyle}" />
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                        <Button Content="Aggiorna personale"
-                                                Command="{Binding ReloadServizioPersonaleCommand}"
-                                                Style="{StaticResource SecondaryButtonStyle}" />
-                                    </StackPanel>
-                                </StackPanel>
+                                    </WrapPanel>
+                                </Grid>
                             </Border>
 
-                            <Border Margin="0,12,0,0"
-                                    Style="{StaticResource CardStyle}"
-                                    Background="#EEF4F8">
-                                <StackPanel>
-                                    <TextBlock Text="Sintesi operativa"
-                                               FontSize="18"
-                                               FontWeight="SemiBold"
-                                               Foreground="#17313E" />
-
-                                    <Grid Margin="0,14,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="10" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <Border Background="#173A57"
-                                                CornerRadius="16"
-                                                Padding="12">
-                                            <StackPanel>
-                                                <TextBlock Text="Partecipanti"
-                                                           Foreground="#C9D7DA"
-                                                           FontSize="13" />
-                                                <TextBlock Text="{Binding ServizioPartecipantiTotali}"
-                                                           Foreground="#FFF8EE"
-                                                           FontSize="24"
-                                                           FontWeight="SemiBold" />
-                                            </StackPanel>
-                                        </Border>
-
-                                        <Border Grid.Column="2"
-                                                Background="#CFA032"
-                                                CornerRadius="16"
-                                                Padding="12">
-                                            <StackPanel>
-                                                <TextBlock Text="Presenti"
-                                                           Foreground="#664B12"
-                                                           FontSize="13" />
-                                                <TextBlock Text="{Binding ServizioPresentiTotali}"
-                                                           Foreground="#17313E"
-                                                           FontSize="24"
-                                                           FontWeight="SemiBold" />
-                                            </StackPanel>
-                                        </Border>
-                                    </Grid>
-
-                                            <Border Margin="0,10,0,0"
-                                                    Background="#F8FBFD"
-                                                    CornerRadius="16"
-                                                    Padding="12">
-                                        <StackPanel>
-                                            <TextBlock Text="Categoria registro"
-                                                       Foreground="#53646A"
-                                                       FontSize="12" />
-                                            <TextBlock Margin="0,4,0,0"
-                                                       Text="{Binding ServizioCategoriaRegistroDescrizione}"
-                                                       Foreground="#17313E"
-                                                       FontWeight="SemiBold"
-                                                       TextWrapping="Wrap" />
-                                        </StackPanel>
-                                    </Border>
-
-                                    <Border Margin="0,10,0,0"
-                                            Background="#F8FBFD"
-                                            CornerRadius="16"
-                                            Padding="12">
-                                        <StackPanel>
-                                            <TextBlock Text="Tipo servizio"
-                                                       Foreground="#53646A"
-                                                       FontSize="12" />
-                                            <TextBlock Margin="0,4,0,0"
-                                                       Text="{Binding ServizioTipoDescrizione}"
-                                                       Foreground="#17313E"
-                                                       FontWeight="SemiBold"
-                                                       TextWrapping="Wrap" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       Text="{Binding ServizioFuoriSedeDescrizione}"
-                                                       Foreground="#53646A" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       Text="{Binding ServizioOrdinePubblicoDescrizione}"
-                                                       Foreground="#53646A" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       Text="{Binding ServizioOrarioRiepilogo}"
-                                                       Foreground="#53646A" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       Text="{Binding ServizioStraordinarioOreDisplay}"
-                                                       Foreground="#53646A" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       Text="{Binding ServizioImmersioniCompilate, StringFormat=Immersioni compilate: {0}}"
-                                                       Foreground="#53646A" />
-                                        </StackPanel>
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Margin="0,12,0,0"
+                            <Border Grid.Row="2"
                                     Style="{StaticResource CardStyle}">
-                                <StackPanel>
-                                    <TextBlock Text="Servizi registrati"
-                                               FontSize="18"
-                                               FontWeight="SemiBold"
-                                               Foreground="#17313E" />
-                                    <TextBlock Margin="0,10,0,0"
-                                               Text="{Binding ServiziSalvatiStato}"
-                                               Foreground="#53646A"
-                                               TextWrapping="Wrap" />
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="14" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
 
-                                    <ListBox Margin="0,14,0,0"
+                                    <DockPanel LastChildFill="False">
+                                        <StackPanel DockPanel.Dock="Left">
+                                            <TextBlock Text="Elenco servizi compilati"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#17313E" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       Text="Sono visibili i servizi recenti; usa la ricerca per trovare quelli piu vecchi."
+                                                       Foreground="#53646A" />
+                                        </StackPanel>
+                                    </DockPanel>
+
+                                    <ListBox Grid.Row="2"
                                              ItemsSource="{Binding ServiziSalvati}"
                                              SelectedItem="{Binding SelectedServizioSalvato}"
-                                             MaxHeight="360"
+                                             MaxHeight="430"
                                              BorderThickness="0"
-                                             Background="Transparent">
+                                             Background="Transparent"
+                                             HorizontalContentAlignment="Stretch"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                <Setter Property="Padding" Value="0" />
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Margin="0,0,0,10"
-                                                        Padding="14"
+                                                <Border Margin="0,0,0,3"
+                                                        Padding="6"
                                                         Background="#F8FBFD"
                                                         BorderBrush="#D8E1E8"
                                                         BorderThickness="1"
-                                                        CornerRadius="16">
-                                                    <StackPanel>
-                                                        <DockPanel LastChildFill="False">
-                                                            <TextBlock DockPanel.Dock="Left"
-                                                                       Text="{Binding DataServizio, StringFormat={}{0:dd/MM/yyyy}}"
-                                                                       FontSize="16"
-                                                                       FontWeight="SemiBold"
-                                                                       Foreground="#17313E" />
-                                                            <TextBlock DockPanel.Dock="Right"
-                                                                       Text="{Binding TipoServizio}"
-                                                                       Foreground="#4F73A5"
-                                                                       FontWeight="SemiBold" />
-                                                        </DockPanel>
-                                                        <TextBlock Margin="0,6,0,0"
+                                                        CornerRadius="8">
+                                                    <Border.ToolTip>
+                                                        <ToolTip Placement="Mouse"
+                                                                 MaxWidth="420">
+                                                            <Border Padding="14"
+                                                                    Background="#FFFFFF"
+                                                                    BorderBrush="#C8D6DF"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="10">
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding DataServizio, StringFormat=Servizio del {0:dd/MM/yyyy}}"
+                                                                               FontSize="16"
+                                                                               FontWeight="SemiBold"
+                                                                               Foreground="#17313E" />
+                                                                    <TextBlock Margin="0,8,0,0"
+                                                                               Foreground="#53646A"
+                                                                               TextWrapping="Wrap">
+                                                                        <Run Text="Ordine: " />
+                                                                        <Run Text="{Binding NumeroOrdineServizio}" />
+                                                                        <Run Text=" - Orario: " />
+                                                                        <Run Text="{Binding OrarioServizio}" />
+                                                                    </TextBlock>
+                                                                    <TextBlock Margin="0,6,0,0"
+                                                                               Foreground="#53646A"
+                                                                               TextWrapping="Wrap">
+                                                                        <Run Text="Tipo: " />
+                                                                        <Run Text="{Binding TipoServizio}" />
+                                                                    </TextBlock>
+                                                                    <TextBlock Margin="0,6,0,0"
+                                                                               Text="{Binding LocalitaDescrizione, StringFormat=Localita: {0}}"
+                                                                               Foreground="#17313E"
+                                                                               TextWrapping="Wrap" />
+                                                                    <TextBlock Margin="0,6,0,0"
+                                                                               Text="{Binding ScopoDescrizione, StringFormat=Scopo: {0}}"
+                                                                               Foreground="#53646A"
+                                                                               TextWrapping="Wrap" />
+                                                                    <TextBlock Margin="0,6,0,0"
+                                                                               Text="{Binding UnitaNavaleDescrizione, StringFormat=Mezzo: {0}}"
+                                                                               Foreground="#53646A"
+                                                                               TextWrapping="Wrap" />
+                                                                    <TextBlock Margin="0,10,0,0"
+                                                                               Foreground="#17313E"
+                                                                               FontWeight="SemiBold">
+                                                                        <Run Text="Presenti " />
+                                                                        <Run Text="{Binding PresentiTotali}" />
+                                                                        <Run Text=" - Immersioni " />
+                                                                        <Run Text="{Binding ImmersioniTotali}" />
+                                                                    </TextBlock>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </ToolTip>
+                                                    </Border.ToolTip>
+
+                                                    <Grid MinHeight="32">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="92" />
+                                                            <ColumnDefinition Width="78" />
+                                                            <ColumnDefinition Width="168" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="118" />
+                                                            <ColumnDefinition Width="102" />
+                                                            <ColumnDefinition Width="112" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock Text="{Binding DataServizio, StringFormat={}{0:dd/MM/yyyy}}"
+                                                                   FontSize="15"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#17313E"
+                                                                   VerticalAlignment="Center" />
+                                                        <TextBlock Grid.Column="1"
+                                                                   Text="{Binding TipoServizio}"
+                                                                   Foreground="#4F73A5"
+                                                                   FontWeight="SemiBold"
+                                                                   VerticalAlignment="Center"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Grid.Column="2"
                                                                    Foreground="#53646A"
-                                                                   TextWrapping="Wrap">
-                                                            <Run Text="Ordine: " />
+                                                                   VerticalAlignment="Center"
+                                                                   TextTrimming="CharacterEllipsis">
+                                                            <Run Text="Ord. " />
                                                             <Run Text="{Binding NumeroOrdineServizio}" />
-                                                            <Run Text=" | Orario: " />
+                                                            <Run Text=" | " />
                                                             <Run Text="{Binding OrarioServizio}" />
                                                         </TextBlock>
-                                                        <TextBlock Margin="0,6,0,0"
+                                                        <TextBlock Grid.Column="3"
                                                                    Text="{Binding LocalitaDescrizione}"
                                                                    Foreground="#17313E"
-                                                                   TextWrapping="Wrap" />
-                                                        <TextBlock Margin="0,4,0,0"
-                                                                   Text="{Binding ScopoDescrizione}"
-                                                                   Foreground="#53646A"
-                                                                   TextWrapping="Wrap" />
-                                                        <TextBlock Margin="0,6,0,0"
-                                                                   Foreground="#53646A"
-                                                                   TextWrapping="Wrap">
+                                                                   FontWeight="SemiBold"
+                                                                   VerticalAlignment="Center"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Grid.Column="4"
+                                                                   HorizontalAlignment="Left"
+                                                                   VerticalAlignment="Center"
+                                                                   Foreground="#53646A">
+                                                            <Run Text="Presenti " />
                                                             <Run Text="{Binding PresentiTotali}" />
-                                                            <Run Text="/" />
-                                                            <Run Text="{Binding PartecipantiTotali}" />
-                                                            <Run Text=" presenti" />
-                                                            <Run Text=" | Immersioni: " />
-                                                            <Run Text="{Binding ImmersioniTotali}" />
                                                         </TextBlock>
-                                                        <Button Margin="0,10,0,0"
-                                                                Content="Apri servizio"
-                                                                HorizontalAlignment="Left"
+                                                        <TextBlock Grid.Column="5"
+                                                                   HorizontalAlignment="Left"
+                                                                   VerticalAlignment="Center"
+                                                                   Foreground="#53646A"
+                                                                   Text="{Binding ImmersioniTotali, StringFormat=Immersioni: {0}}" />
+                                                        <Button Grid.Column="6"
+                                                                Content="Apri"
+                                                                Width="96"
+                                                                MinWidth="0"
+                                                                Height="26"
+                                                                Padding="8,1"
+                                                                Margin="0"
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Center"
                                                                 Command="{Binding DataContext.OpenServizioFromListCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                 CommandParameter="{Binding}"
                                                                 Style="{StaticResource SecondaryButtonStyle}" />
-                                                    </StackPanel>
+                                                    </Grid>
                                                 </Border>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>
-                                </StackPanel>
+                                </Grid>
                             </Border>
-                        </StackPanel>
+                        </Grid>
 
-                        <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                        <Grid Visibility="{Binding IsSchedaServizioVisibile, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="18" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Border Style="{StaticResource CardStyle}">
+                                <DockPanel LastChildFill="True">
+                                    <WrapPanel DockPanel.Dock="Right"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center">
+                                        <Button Content="Torna elenco"
+                                                Command="{Binding CloseSchedaServizioCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                        <Button Content="Salva"
+                                                Command="{Binding SaveServizioCommand}" />
+                                        <Button Content="Stampa"
+                                                Command="{Binding PrintServizioCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                    </WrapPanel>
+
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding ServizioEditorTitolo}"
+                                                   FontSize="22"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E" />
+                                        <TextBlock Margin="0,4,0,0"
+                                                   Text="{Binding ServizioBozzaStato}"
+                                                   Foreground="#53646A"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+
+                            <Border Grid.Row="2" Style="{StaticResource CardStyle}">
                             <ScrollViewer x:Name="ServizioEditorScrollViewer"
                                           infra:MouseWheelScrollViewerBehavior.ForwardToParent="True"
                                           VerticalScrollBarVisibility="Auto"
@@ -1043,23 +1111,11 @@
                                     </Style>
                                 </ScrollViewer.Resources>
                                 <StackPanel>
-                                    <DockPanel LastChildFill="True">
-                                        <Button DockPanel.Dock="Right"
-                                                Content="Stampa servizio"
-                                                Command="{Binding PrintServizioCommand}"
-                                                Style="{StaticResource SecondaryButtonStyle}" />
-                                        <TextBlock Text="{Binding ServizioEditorTitolo}"
-                                                   FontSize="22"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="#17313E"
-                                                   VerticalAlignment="Center" />
-                                    </DockPanel>
-                                    <TextBlock Margin="0,10,0,0"
-                                               Text="{Binding ServizioEditorSottotitolo}"
+                                    <TextBlock Text="{Binding ServizioEditorSottotitolo}"
                                                Foreground="#53646A"
                                                TextWrapping="Wrap" />
 
-                                    <Border Margin="0,18,0,0"
+                                    <Border Margin="0,16,0,0"
                                             Background="#F2F5F8"
                                             CornerRadius="18"
                                             Padding="16">
@@ -1746,6 +1802,7 @@
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
+                    </Grid>
                     </Grid>
                 </TabItem>
 
