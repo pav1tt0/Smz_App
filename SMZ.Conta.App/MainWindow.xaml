@@ -59,6 +59,18 @@
             <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
         </Style>
 
+        <Style TargetType="DataGrid">
+            <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
+        </Style>
+
+        <Style TargetType="ListBox">
+            <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
+        </Style>
+
+        <Style TargetType="ItemsControl">
+            <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
+        </Style>
+
         <Style x:Key="ServizioWheelTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
         </Style>
@@ -519,9 +531,9 @@
 
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="24" />
-                                <ColumnDefinition Width="3*" />
+                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
@@ -599,9 +611,9 @@
                                                 Foreground="#10274B"
                                                 Style="{StaticResource HomeCardButtonStyle}">
                                             <StackPanel>
-                                                <TextBlock Text="ARCHIVIO"
+                                                <TextBlock Text="BACKUP E"
                                                            HorizontalAlignment="Center" />
-                                                <TextBlock Text="SCHEDE"
+                                                <TextBlock Text="ARCHIVIO"
                                                            Margin="0,4,0,0"
                                                            HorizontalAlignment="Center" />
                                             </StackPanel>
@@ -637,70 +649,69 @@
                                                        TextWrapping="Wrap" />
                                         </StackPanel>
 
-                                        <UniformGrid Grid.Row="2"
-                                                     Columns="3">
-                                            <Button Margin="0,0,10,0"
-                                                    Command="{Binding NavigateSectionCommand}"
-                                                    CommandParameter="2"
-                                                    Background="#F8FAFD"
+                                        <Grid Grid.Row="2"
+                                              HorizontalAlignment="Stretch">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="10" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Background="#FFF7F6"
                                                     BorderBrush="#A64A4A"
-                                                    Foreground="#10274B"
-                                                    Style="{StaticResource HomeMiniCardButtonStyle}"
-                                                    MinHeight="94">
-                                                <StackPanel>
+                                                    BorderThickness="1"
+                                                    CornerRadius="10"
+                                                    Padding="14,12"
+                                                    MinHeight="76">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
                                                     <TextBlock Text="{Binding DashboardVisiteScadutePersonale}"
-                                                               FontSize="32"
+                                                               FontSize="30"
                                                                FontWeight="SemiBold"
                                                                Foreground="#C84848"
                                                                HorizontalAlignment="Center" />
-                                                    <TextBlock Margin="0,6,0,0"
+                                                    <TextBlock Grid.Row="1"
+                                                               Margin="0,4,0,0"
                                                                Text="VISITE SCADUTE"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#6D3030"
                                                                TextAlignment="Center"
                                                                HorizontalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
+                                                </Grid>
+                                            </Border>
 
-                                            <Button Margin="0,0,10,0"
-                                                    Command="{Binding NavigateSectionCommand}"
-                                                    CommandParameter="2"
-                                                    Background="#FBF9F2"
+                                            <Border Grid.Column="2"
+                                                    Background="#FFF9EA"
                                                     BorderBrush="#B17A26"
-                                                    Foreground="#10274B"
-                                                    Style="{StaticResource HomeMiniCardButtonStyle}"
-                                                    MinHeight="94">
-                                                <StackPanel>
+                                                    BorderThickness="1"
+                                                    CornerRadius="10"
+                                                    Padding="14,12"
+                                                    MinHeight="76">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
                                                     <TextBlock Text="{Binding DashboardVisiteInScadenzaPersonale}"
-                                                               FontSize="32"
+                                                               FontSize="30"
                                                                FontWeight="SemiBold"
                                                                Foreground="#B17A26"
                                                                HorizontalAlignment="Center" />
-                                                    <TextBlock Margin="0,6,0,0"
+                                                    <TextBlock Grid.Row="1"
+                                                               Margin="0,4,0,0"
                                                                Text="IN SCADENZA"
-                                                               TextAlignment="Center"
-                                                               HorizontalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-
-                                            <Button Command="{Binding NavigateSectionCommand}"
-                                                    CommandParameter="2"
-                                                    Background="#F7FBFF"
-                                                    BorderBrush="#5B84BD"
-                                                    Foreground="#10274B"
-                                                    Style="{StaticResource HomeMiniCardButtonStyle}"
-                                                    MinHeight="94">
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding DashboardScadenzeAperte}"
-                                                               FontSize="32"
+                                                               FontSize="12"
                                                                FontWeight="SemiBold"
-                                                               Foreground="#2D68A2"
-                                                               HorizontalAlignment="Center" />
-                                                    <TextBlock Margin="0,6,0,0"
-                                                               Text="SCADENZE TOTALI"
+                                                               Foreground="#6C4B13"
                                                                TextAlignment="Center"
                                                                HorizontalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-                                        </UniformGrid>
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
 
                                         <StackPanel Grid.Row="4">
                                             <TextBlock Text="PERSONALE CON CRITICITA'"
@@ -711,14 +722,27 @@
                                                           ItemsSource="{Binding DashboardCriticitaItems}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Border Margin="0,0,0,8"
-                                                                Height="70"
-                                                                Background="#12284C"
-                                                                BorderBrush="#24406B"
-                                                                BorderThickness="1"
-                                                                CornerRadius="10"
-                                                                Padding="12,8">
-                                                            <Grid>
+                                                        <Button Margin="0,0,0,8"
+                                                                Padding="0"
+                                                                BorderThickness="0"
+                                                                Background="Transparent"
+                                                                Cursor="Hand"
+                                                                Command="{Binding DataContext.OpenScadenzaCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                CommandParameter="{Binding}">
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}">
+                                                                        <ContentPresenter />
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                            <Border Height="70"
+                                                                    Background="#12284C"
+                                                                    BorderBrush="#24406B"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="10"
+                                                                    Padding="12,8">
+                                                                <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="1.2*" />
                                                                     <ColumnDefinition Width="14" />
@@ -780,8 +804,9 @@
                                                                         </TextBlock.Style>
                                                                     </TextBlock>
                                                                 </Border>
-                                                            </Grid>
-                                                        </Border>
+                                                                </Grid>
+                                                            </Border>
+                                                        </Button>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
@@ -827,18 +852,18 @@
                                     <StackPanel Grid.Column="2">
                                         <TextBlock Text="Ricerca servizi"
                                                    Foreground="#50626A" />
-                                        <Grid Margin="0,6,0,0">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="12" />
-                                                <ColumnDefinition Width="110" />
-                                                <ColumnDefinition Width="12" />
-                                                <ColumnDefinition Width="150" />
-                                                <ColumnDefinition Width="12" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
+                                         <Grid Margin="0,6,0,0">
+                                             <Grid.ColumnDefinitions>
+                                                 <ColumnDefinition Width="2*" />
+                                                 <ColumnDefinition Width="12" />
+                                                 <ColumnDefinition Width="110" />
+                                                 <ColumnDefinition Width="12" />
+                                                 <ColumnDefinition Width="120" />
+                                                 <ColumnDefinition Width="12" />
+                                                 <ColumnDefinition Width="Auto" />
+                                             </Grid.ColumnDefinitions>
+                                             <Grid.RowDefinitions>
+                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="4" />
                                                 <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
@@ -846,30 +871,32 @@
                                             <TextBlock Text="Localita"
                                                        Foreground="#50626A"
                                                        FontSize="12" />
-                                            <TextBlock Grid.Column="2"
-                                                       Text="N. servizio"
-                                                       Foreground="#50626A"
-                                                       FontSize="12" />
-                                            <TextBlock Grid.Column="4"
-                                                       Text="Data"
-                                                       Foreground="#50626A"
-                                                       FontSize="12" />
+                                             <TextBlock Grid.Column="2"
+                                                        Text="N. servizio"
+                                                        Foreground="#50626A"
+                                                        FontSize="12" />
+                                             <TextBlock Grid.Column="4"
+                                                        Text="Data o mese"
+                                                        Foreground="#50626A"
+                                                        FontSize="12" />
 
                                             <TextBox Grid.Row="2"
                                                      Text="{Binding ServiziSearchText, UpdateSourceTrigger=PropertyChanged}"
                                                      ToolTip="Cerca per localita" />
-                                            <TextBox Grid.Row="2"
-                                                     Grid.Column="2"
-                                                     Text="{Binding ServiziNumeroSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                     ToolTip="Numero servizio" />
-                                            <controls:DateInputPicker Grid.Row="2"
-                                                                      Grid.Column="4"
-                                                                      Text="{Binding ServiziDataSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                                      Width="145"
-                                                                      ToolTip="Seleziona la data del servizio" />
-                                            <Button Grid.Row="2"
-                                                    Grid.Column="6"
-                                                    Content="Pulisci"
+                                             <TextBox Grid.Row="2"
+                                                      Grid.Column="2"
+                                                      Text="{Binding ServiziNumeroSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                      ToolTip="Numero servizio" />
+                                             <controls:DateInputPicker Grid.Row="2"
+                                                                       Grid.Column="4"
+                                                                       Text="{Binding ServiziDataSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                                       AutoFormatText="False"
+                                                                       ShowMonthShortcut="True"
+                                                                       Width="115"
+                                                                       ToolTip="{Binding ServiziDataSearchToolTip}" />
+                                             <Button Grid.Row="2"
+                                                     Grid.Column="6"
+                                                     Content="Pulisci"
                                                     Command="{Binding ClearServiziSearchCommand}"
                                                     Style="{StaticResource SecondaryButtonStyle}" />
                                         </Grid>
@@ -2962,74 +2989,65 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="Archivio">
+                <TabItem Header="Backup e archivio">
                     <Grid Margin="6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="390" />
-                            <ColumnDefinition Width="20" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
 
                         <Border Style="{StaticResource CardStyle}">
                             <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.35*" />
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                                <TextBlock Text="Schede eliminate recuperabili"
-                                           FontSize="20"
-                                           FontWeight="SemiBold"
-                                           Foreground="#17313E" />
+                                <StackPanel>
+                                    <TextBlock Text="Backup dati"
+                                               FontSize="22"
+                                               FontWeight="SemiBold"
+                                               Foreground="#17313E" />
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="{Binding BackupDescrizione}"
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Margin="0,12,0,0"
+                                               Text="{Binding BackupLocaleStato}"
+                                               Foreground="#17313E"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Margin="0,6,0,0"
+                                               Text="{Binding BackupEsternoStato}"
+                                               Foreground="#17313E"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Margin="0,6,0,0"
+                                               Text="{Binding BackupCartellaEsterna, StringFormat=Cartella esterna: {0}}"
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
 
-                                <TextBlock Grid.Row="1"
-                                           Margin="0,12,0,0"
-                                           Text="Qui trovi solo le schede gia eliminate dalla parte operativa ma ancora recuperabili prima della rimozione definitiva."
-                                           Foreground="#53646A"
-                                           TextWrapping="Wrap" />
-
-                                <ListBox Grid.Row="2"
-                                         Margin="0,16,0,0"
-                                         ItemsSource="{Binding ArchivioItems}"
-                                         SelectedItem="{Binding SelectedArchivio}"
-                                         MaxHeight="640"
-                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                         ScrollViewer.CanContentScroll="False"
-                                         BorderThickness="0"
-                                         Background="Transparent"
-                                         MinHeight="640">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Margin="0,0,0,10"
-                                                    Padding="14"
-                                                    Background="#F2F5F0"
-                                                    CornerRadius="16">
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding Nominativo}"
-                                                               FontSize="17"
-                                                               FontWeight="SemiBold"
-                                                               Foreground="#17313E" />
-                                                    <TextBlock Margin="0,4,0,0"
-                                                               Text="{Binding PerIdOriginaleLabel}"
-                                                               Foreground="#53646A" />
-                                                    <TextBlock Margin="0,2,0,0"
-                                                               Text="{Binding CodiceFiscale}"
-                                                               Foreground="#53646A" />
-                                                    <TextBlock Margin="0,4,0,0"
-                                                               Text="{Binding DataArchiviazioneLabel}"
-                                                               Foreground="#6A7B80"
-                                                               FontSize="12" />
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
+                                <StackPanel Grid.Column="2"
+                                            Width="250">
+                                    <Button Content="Crea backup locale"
+                                            Command="{Binding CreateLocalBackupCommand}" />
+                                    <Button Content="Crea backup esterno"
+                                            Margin="0,10,0,0"
+                                            Command="{Binding CreateExternalBackupCommand}" />
+                                    <Button Content="Configura cartella esterna"
+                                            Margin="0,10,0,0"
+                                            Command="{Binding ConfigureExternalBackupDirectoryCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" />
+                                    <Button Content="Ripristina da backup"
+                                            Margin="0,10,0,0"
+                                            Command="{Binding RestoreBackupCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" />
+                                </StackPanel>
                             </Grid>
                         </Border>
 
-                        <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                        <Border Grid.Row="2" Style="{StaticResource CardStyle}">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -3037,216 +3055,69 @@
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
 
-                                <DockPanel LastChildFill="False">
-                                    <StackPanel DockPanel.Dock="Left">
-                                        <TextBlock Text="{Binding ArchivioTitolo}"
-                                                   FontSize="22"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="#17313E" />
-                                        <TextBlock Margin="0,4,0,0"
-                                                   Text="{Binding ArchivioPerId}"
-                                                   Foreground="#53646A" />
-                                    </StackPanel>
-
-                                    <StackPanel DockPanel.Dock="Right"
-                                                Orientation="Horizontal"
-                                                VerticalAlignment="Center">
-                                        <Button Content="Ripristina scheda"
-                                                Command="{Binding RestoreArchivioCommand}" />
-                                        <Button Content="Elimina in modo definitivo"
-                                                Command="{Binding DeleteArchivioDefinitivoCommand}"
-                                                Style="{StaticResource DangerButtonStyle}" />
-                                    </StackPanel>
-                                </DockPanel>
-
+                                <TextBlock Text="Backup e archivio"
+                                           FontSize="22"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
                                 <TextBlock Grid.Row="1"
-                                           Margin="0,12,0,0"
-                                           Text="Ripristina per riportare la scheda tra i dipendenti attivi. Usa l'eliminazione definitiva solo quando non serve piu alcun recupero."
+                                           Margin="0,10,0,0"
+                                           Text="Elenco delle schede eliminate dalla parte operativa e ancora recuperabili."
                                            Foreground="#53646A"
                                            TextWrapping="Wrap" />
 
-                                <Grid Grid.Row="2" Margin="0,18,0,0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="16" />
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="16" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
-
-                                    <Border Background="#EEF4EE"
-                                            CornerRadius="18"
-                                            Padding="16">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="1.2*" />
-                                                <ColumnDefinition Width="18" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <StackPanel>
-                                                <TextBlock Text="Dettaglio archivio"
-                                                           FontSize="18"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="#17313E" />
-                                                <TextBlock Margin="0,12,0,0"
-                                                           Text="{Binding ArchivioCodiceFiscale}"
-                                                           Foreground="#17313E"
-                                                           FontWeight="SemiBold" />
-                                                <TextBlock Margin="0,6,0,0"
-                                                           Text="{Binding ArchivioContatti}"
-                                                           Foreground="#53646A"
-                                                           TextWrapping="Wrap" />
-                                                <TextBlock Margin="0,6,0,0"
-                                                           Text="{Binding ArchivioDataArchiviazione}"
-                                                           Foreground="#6A7B80" />
-                                            </StackPanel>
-
-                                            <Grid Grid.Column="2">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="12" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-
-                                                <Border Background="#17313E"
-                                                        CornerRadius="16"
-                                                        Padding="12">
-                                                    <StackPanel>
-                                                        <TextBlock Text="Abilitazioni"
-                                                                   Foreground="#C9D7DA"
-                                                                   FontSize="13" />
-                                                        <TextBlock Text="{Binding ArchivioAbilitazioniTotali}"
-                                                                   Foreground="#FFF8EE"
-                                                                   FontSize="24"
-                                                                   FontWeight="SemiBold" />
+                                <DataGrid Grid.Row="2"
+                                          Margin="0,16,0,0"
+                                          ItemsSource="{Binding ArchivioItems}"
+                                          SelectedItem="{Binding SelectedArchivio}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          CanUserResizeColumns="False"
+                                          FrozenColumnCount="1"
+                                          IsReadOnly="True"
+                                          MinHeight="520"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                          HeadersVisibility="Column"
+                                          RowHeaderWidth="0">
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn Header="Azioni"
+                                                                Width="310">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button Content="Ripristina"
+                                                                Width="130"
+                                                                Padding="10,6"
+                                                                Command="{Binding DataContext.RestoreArchivioCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                CommandParameter="{Binding}" />
+                                                        <Button Content="Elimina"
+                                                                Width="120"
+                                                                Margin="12,0,0,0"
+                                                                Padding="10,6"
+                                                                Command="{Binding DataContext.DeleteArchivioDefinitivoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource DangerButtonStyle}" />
                                                     </StackPanel>
-                                                </Border>
-
-                                                <Border Grid.Column="2"
-                                                        Background="#DFE8F1"
-                                                        CornerRadius="16"
-                                                        Padding="12">
-                                                    <StackPanel>
-                                                        <TextBlock Text="Visite mediche"
-                                                                   Foreground="#53646A"
-                                                                   FontSize="13" />
-                                                        <TextBlock Text="{Binding ArchivioVisiteTotali}"
-                                                                   Foreground="#17313E"
-                                                                   FontSize="24"
-                                                                   FontWeight="SemiBold" />
-                                                    </StackPanel>
-                                                </Border>
-                                            </Grid>
-                                        </Grid>
-                                    </Border>
-
-                                    <Border Grid.Row="2"
-                                            Background="#FFFCF7"
-                                            CornerRadius="18"
-                                            Padding="16">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="*" />
-                                            </Grid.RowDefinitions>
-
-                                            <TextBlock Text="Anagrafica archiviata"
-                                                       FontSize="18"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="#17313E" />
-                                            <TextBlock Grid.Row="1"
-                                                       Margin="0,10,0,0"
-                                                       Text="{Binding ArchivioAnagraficaSintesi}"
-                                                       Foreground="#53646A"
-                                                       TextWrapping="Wrap" />
-
-                                            <DataGrid Grid.Row="2"
-                                                      Margin="0,16,0,0"
-                                                      ItemsSource="{Binding ArchivioAbilitazioni}"
-                                                      AutoGenerateColumns="False"
-                                                      CanUserAddRows="False"
-                                                      IsReadOnly="True"
-                                                      MinHeight="220"
-                                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                                      HeadersVisibility="Column"
-                                                      RowHeaderWidth="0">
-                                                <DataGrid.Columns>
-                                                    <DataGridTextColumn Header="Tipo"
-                                                                        Width="220"
-                                                                        Binding="{Binding TipoDescrizione}" />
-                                                    <DataGridTextColumn Header="Categoria"
-                                                                        Width="120"
-                                                                        Binding="{Binding Categoria}" />
-                                                    <DataGridTextColumn Header="Livello"
-                                                                        Width="110"
-                                                                        Binding="{Binding Livello}" />
-                                                    <DataGridTextColumn Header="Profondita"
-                                                                        Width="95"
-                                                                        Binding="{Binding ProfonditaMetri}" />
-                                                    <DataGridTextColumn Header="Conseguimento"
-                                                                        Width="120"
-                                                                        Binding="{Binding DataConseguimento}" />
-                                                    <DataGridTextColumn Header="Scadenza"
-                                                                        Width="120"
-                                                                        Binding="{Binding DataScadenza}" />
-                                                    <DataGridTextColumn Header="Note"
-                                                                        Width="*"
-                                                                        Binding="{Binding Note}" />
-                                                </DataGrid.Columns>
-                                            </DataGrid>
-                                        </Grid>
-                                    </Border>
-
-                                    <Border Grid.Row="4"
-                                            Background="#FFFCF7"
-                                            CornerRadius="18"
-                                            Padding="16">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="*" />
-                                            </Grid.RowDefinitions>
-
-                                            <TextBlock Text="Visite mediche archiviate"
-                                                       FontSize="18"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="#17313E" />
-
-                                            <DataGrid Grid.Row="1"
-                                                      Margin="0,16,0,0"
-                                                      ItemsSource="{Binding ArchivioVisiteMediche}"
-                                                      AutoGenerateColumns="False"
-                                                      CanUserAddRows="False"
-                                                      IsReadOnly="True"
-                                                      MinHeight="220"
-                                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                                      HeadersVisibility="Column"
-                                                      RowHeaderWidth="0">
-                                                <DataGrid.Columns>
-                                                    <DataGridTextColumn Header="Tipo visita"
-                                                                        Width="280"
-                                                                        Binding="{Binding TipoVisita}" />
-                                                    <DataGridTextColumn Header="Ultima visita"
-                                                                        Width="130"
-                                                                        Binding="{Binding DataUltimaVisita}" />
-                                                    <DataGridTextColumn Header="Scadenza"
-                                                                        Width="150"
-                                                                        Binding="{Binding DataScadenza}" />
-                                                    <DataGridTextColumn Header="Esito"
-                                                                        Width="150"
-                                                                        Binding="{Binding Esito}" />
-                                                    <DataGridTextColumn Header="Note"
-                                                                        Width="*"
-                                                                        Binding="{Binding Note}" />
-                                                </DataGrid.Columns>
-                                            </DataGrid>
-                                        </Grid>
-                                    </Border>
-                                </Grid>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="Cognome"
+                                                            Width="180"
+                                                            Binding="{Binding Cognome}" />
+                                        <DataGridTextColumn Header="Nome"
+                                                            Width="180"
+                                                            Binding="{Binding Nome}" />
+                                        <DataGridTextColumn Header="PerID"
+                                                            Width="80"
+                                                            Binding="{Binding PerIdOriginale}" />
+                                        <DataGridTextColumn Header="Codice fiscale"
+                                                            Width="170"
+                                                            Binding="{Binding CodiceFiscale}" />
+                                        <DataGridTextColumn Header="Archiviazione"
+                                                            Width="165"
+                                                            Binding="{Binding DataArchiviazione, StringFormat=dd/MM/yyyy HH:mm}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
                             </Grid>
                         </Border>
                     </Grid>
@@ -3621,60 +3492,6 @@
                                            Text="Prima area report realmente operativa: registro immersioni mensile derivato dai servizi salvati, con riepilogo per categoria di registro."
                                            Foreground="#53646A"
                                            TextWrapping="Wrap" />
-                                <Border Margin="0,16,0,0"
-                                        Background="#F4F8FB"
-                                        BorderBrush="#D7E1E8"
-                                        BorderThickness="1"
-                                        CornerRadius="16"
-                                        Padding="16">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="1.35*" />
-                                            <ColumnDefinition Width="18" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <StackPanel>
-                                            <TextBlock Text="Backup dati"
-                                                       FontSize="18"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="#17313E" />
-                                            <TextBlock Margin="0,8,0,0"
-                                                       Text="{Binding BackupDescrizione}"
-                                                       Foreground="#53646A"
-                                                       TextWrapping="Wrap" />
-                                            <TextBlock Margin="0,12,0,0"
-                                                       Text="{Binding BackupLocaleStato}"
-                                                       Foreground="#17313E"
-                                                       TextWrapping="Wrap" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       Text="{Binding BackupEsternoStato}"
-                                                       Foreground="#17313E"
-                                                       TextWrapping="Wrap" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       Text="{Binding BackupCartellaEsterna, StringFormat=Cartella esterna: {0}}"
-                                                       Foreground="#53646A"
-                                                       TextWrapping="Wrap" />
-                                        </StackPanel>
-
-                                        <StackPanel Grid.Column="2"
-                                                    Width="250">
-                                            <Button Content="Crea backup locale"
-                                                    Command="{Binding CreateLocalBackupCommand}" />
-                                            <Button Content="Crea backup esterno"
-                                                    Margin="0,10,0,0"
-                                                    Command="{Binding CreateExternalBackupCommand}" />
-                                            <Button Content="Configura cartella esterna"
-                                                    Margin="0,10,0,0"
-                                                    Command="{Binding ConfigureExternalBackupDirectoryCommand}"
-                                                    Style="{StaticResource SecondaryButtonStyle}" />
-                                            <Button Content="Ripristina da backup"
-                                                    Margin="0,10,0,0"
-                                                    Command="{Binding RestoreBackupCommand}"
-                                                    Style="{StaticResource SecondaryButtonStyle}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
                             </StackPanel>
                         </Border>
 
@@ -4522,11 +4339,11 @@
 
                                 <Border Style="{StaticResource WelcomeFeatureChipStyle}">
                                     <StackPanel>
-                                        <TextBlock Text="PERSONALE E ARCHIVIO"
+                                        <TextBlock Text="PERSONALE, BACKUP E ARCHIVIO"
                                                    Foreground="#FFF7DC"
                                                    FontWeight="SemiBold" />
                                         <TextBlock Margin="0,4,0,0"
-                                                   Text="Schede e storico operativo"
+                                                   Text="Schede, recuperi e copie dati"
                                                    Foreground="#A9C6E2"
                                                    FontSize="12" />
                                     </StackPanel>

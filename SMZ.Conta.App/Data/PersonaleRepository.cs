@@ -289,7 +289,9 @@ public sealed class PersonaleRepository
         int maxItems = 10,
         string searchText = "",
         string numeroServizio = "",
-        string dataServizio = "")
+        string dataServizio = "",
+        string dataInizio = "",
+        string dataFine = "")
     {
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
@@ -338,18 +340,24 @@ public sealed class PersonaleRepository
             WHERE ($search = '' OR COALESCE(lo.Descrizione, '') LIKE $searchLike)
               AND ($numeroServizio = '' OR COALESCE(s.NumeroOrdineServizio, '') LIKE $numeroServizioLike)
               AND ($dataServizio = '' OR s.DataServizio = $dataServizio)
+              AND ($dataInizio = '' OR s.DataServizio >= $dataInizio)
+              AND ($dataFine = '' OR s.DataServizio <= $dataFine)
             ORDER BY s.DataServizio DESC, s.ServizioGiornalieroId DESC
             LIMIT $maxItems;
             """;
         var search = searchText.Trim();
         var numero = numeroServizio.Trim();
         var data = dataServizio.Trim();
+        var inizio = dataInizio.Trim();
+        var fine = dataFine.Trim();
         command.Parameters.AddWithValue("$maxItems", maxItems);
         command.Parameters.AddWithValue("$search", search);
         command.Parameters.AddWithValue("$searchLike", $"%{search}%");
         command.Parameters.AddWithValue("$numeroServizio", numero);
         command.Parameters.AddWithValue("$numeroServizioLike", $"%{numero}%");
         command.Parameters.AddWithValue("$dataServizio", data);
+        command.Parameters.AddWithValue("$dataInizio", inizio);
+        command.Parameters.AddWithValue("$dataFine", fine);
 
         using var reader = command.ExecuteReader();
         var items = new List<ServizioGiornalieroSummary>();

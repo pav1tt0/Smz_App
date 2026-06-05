@@ -40,6 +40,42 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="MonthShortcutButtonStyle" TargetType="Button">
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Background" Value="#EEF3F8" />
+            <Setter Property="BorderBrush" Value="#C9D5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#24445B" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#DCE7F1" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#CFDDEA" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -48,7 +84,7 @@
                  ToolTip="{Binding ToolTip, ElementName=Root}"
                  Padding="10,8,38,8"
                  MaxLength="10"
-                 infra:DateInputBehavior.AutoFormat="True" />
+                 infra:DateInputBehavior.AutoFormat="{Binding AutoFormatText, ElementName=Root}" />
 
         <Button Click="CalendarButton_Click"
                 Style="{StaticResource CalendarButtonStyle}"
@@ -131,8 +167,25 @@
                     BorderThickness="1"
                     CornerRadius="14"
                     Padding="8">
-                <Calendar x:Name="CalendarHost"
-                          SelectedDatesChanged="CalendarHost_SelectedDatesChanged" />
+                <StackPanel>
+                    <Calendar x:Name="CalendarHost"
+                              SelectedDatesChanged="CalendarHost_SelectedDatesChanged" />
+                    <Button x:Name="UseDisplayedMonthButton"
+                            Margin="0,8,0,0"
+                            Content="Usa mese visualizzato"
+                            Click="UseDisplayedMonthButton_Click">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource MonthShortcutButtonStyle}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ShowMonthShortcut, ElementName=Root}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
             </Border>
         </Popup>
     </Grid>

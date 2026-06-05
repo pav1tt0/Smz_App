@@ -223,8 +223,8 @@ public sealed class MainWindowViewModel : ObservableObject
         _deleteDefinitivoCommand = new RelayCommand(EliminaPersonaleDefinitivamente, () => PerId > 0);
         _openSelectedPersonaleCommand = new RelayCommand(ApriSchedaSelezionata);
         _closeSchedaPersonaleCommand = new RelayCommand(() => IsSchedaPersonaleVisibile = false);
-        _restoreArchivioCommand = new RelayCommand(RipristinaArchivio, () => SelectedArchivio is not null);
-        _deleteArchivioDefinitivoCommand = new RelayCommand(EliminaArchivioDefinitivamente, () => SelectedArchivio is not null);
+        _restoreArchivioCommand = new RelayCommand(RipristinaArchivioDaParametro, () => SelectedArchivio is not null);
+        _deleteArchivioDefinitivoCommand = new RelayCommand(EliminaArchivioDefinitivamenteDaParametro, () => SelectedArchivio is not null);
         SaveAbilitazioneCommand = new RelayCommand(SalvaAbilitazioneInEditor);
         ClearAbilitazioneEditorCommand = new RelayCommand(PulisciEditorAbilitazione);
         RemoveAbilitazioneCommand = new RelayCommand(RimuoviAbilitazioneRiga);
@@ -367,8 +367,8 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string DashboardArchivioSintesi =>
         ArchivioItems.Count == 0
-            ? "Nessuna scheda eliminata recuperabile."
-            : $"{ArchivioItems.Count} schede eliminate ancora recuperabili.";
+            ? "Backup disponibili e nessuna scheda archiviata da recuperare."
+            : $"Backup disponibili e {ArchivioItems.Count} schede archiviate recuperabili.";
 
     public string DashboardStatoSintesi => ScadenzeScadute switch
     {
@@ -594,6 +594,9 @@ public sealed class MainWindowViewModel : ObservableObject
             }
         }
     }
+
+    public string ServiziDataSearchToolTip =>
+        "Cerca per data esatta oppure per mese. Esempi: 15/03/2026 o 03/2026.";
 
     public ObservableCollection<ContabilitaSmzSummary> ContabilitaSmzItems { get; }
 
@@ -2105,6 +2108,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         SezioneAttivaIndex = PersonalSectionIndex;
+        IsSchedaPersonaleVisibile = true;
     }
 
     private void ApriScadenzaDaParametro(object? parameter)
@@ -2281,16 +2285,32 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private void CaricaServiziSalvati(long? selectedServizioId = null)
     {
-        var dataFiltro = TryParseDate(ServiziDataSearchText);
-        var dataFiltroDb = dataFiltro?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? string.Empty;
+        var meseFiltro = TryParseMonthFilter(ServiziDataSearchText);
+        var dataFiltro = meseFiltro is null ? TryParseDate(ServiziDataSearchText) : null;
+        var dataFiltroDb = dataFiltro is not null
+            ? dataFiltro.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            : string.Empty;
+        var dataInizioDb = string.Empty;
+        var dataFineDb = string.Empty;
+        if (meseFiltro is not null)
+        {
+            var dataInizio = new DateOnly(meseFiltro.Value.Year, meseFiltro.Value.Month, 1);
+            var dataFine = dataInizio.AddMonths(1).AddDays(-1);
+            dataInizioDb = dataInizio.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            dataFineDb = dataFine.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        }
+
         var hasSearch = !string.IsNullOrWhiteSpace(ServiziSearchText)
             || !string.IsNullOrWhiteSpace(ServiziNumeroSearchText)
-            || !string.IsNullOrWhiteSpace(dataFiltroDb);
+            || !string.IsNullOrWhiteSpace(dataFiltroDb)
+            || !string.IsNullOrWhiteSpace(dataInizioDb);
         var items = _repository.GetServiziGiornalieriRecenti(
-            maxItems: hasSearch ? 50 : 10,
+            maxItems: hasSearch ? 100 : 10,
             searchText: ServiziSearchText,
             numeroServizio: ServiziNumeroSearchText,
-            dataServizio: dataFiltroDb);
+            dataServizio: dataFiltroDb,
+            dataInizio: dataInizioDb,
+            dataFine: dataFineDb);
         var selectedId = selectedServizioId ?? SelectedServizioSalvato?.ServizioGiornalieroId;
 
         ServiziSalvati.Clear();
@@ -3620,6 +3640,16 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private void RipristinaArchivioDaParametro(object? parameter)
+    {
+        if (parameter is PersonaleArchivioListItemViewModel archivio)
+        {
+            SelectedArchivio = archivio;
+        }
+
+        RipristinaArchivio();
+    }
+
     private void RipristinaArchivio()
     {
         if (SelectedArchivio is null)
@@ -3666,6 +3696,16 @@ public sealed class MainWindowViewModel : ObservableObject
             MessageBox.Show(ex.Message, "Ripristino archivio", MessageBoxButton.OK, MessageBoxImage.Warning);
             Stato = "Ripristino non riuscito";
         }
+    }
+
+    private void EliminaArchivioDefinitivamenteDaParametro(object? parameter)
+    {
+        if (parameter is PersonaleArchivioListItemViewModel archivio)
+        {
+            SelectedArchivio = archivio;
+        }
+
+        EliminaArchivioDefinitivamente();
     }
 
     private void EliminaArchivioDefinitivamente()
@@ -6669,6 +6709,37 @@ public sealed class MainWindowViewModel : ObservableObject
     private static DateOnly? TryParseDate(string value)
     {
         return DateOnly.TryParse(value, out var parsed) ? parsed : null;
+    }
+
+    private static (int Month, int Year)? TryParseMonthFilter(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalizedValue = value.Trim().Replace('-', '/').Replace('.', '/');
+        var parts = normalizedValue.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 2
+            && int.TryParse(parts[0], out var month)
+            && int.TryParse(parts[1], out var year)
+            && month is >= 1 and <= 12
+            && year is >= 1900 and <= 9999)
+        {
+            return (month, year);
+        }
+
+        var digits = new string(value.Where(char.IsDigit).ToArray());
+        if (digits.Length == 6
+            && int.TryParse(digits[..2], out month)
+            && int.TryParse(digits[2..], out year)
+            && month is >= 1 and <= 12
+            && year is >= 1900 and <= 9999)
+        {
+            return (month, year);
+        }
+
+        return null;
     }
 
     private static string Csv(object? value)

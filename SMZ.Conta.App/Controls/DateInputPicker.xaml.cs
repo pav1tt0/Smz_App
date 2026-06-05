@@ -19,6 +19,20 @@ public partial class DateInputPicker : UserControl
                 FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
                 OnTextChanged));
 
+    public static readonly DependencyProperty AutoFormatTextProperty =
+        DependencyProperty.Register(
+            nameof(AutoFormatText),
+            typeof(bool),
+            typeof(DateInputPicker),
+            new PropertyMetadata(true));
+
+    public static readonly DependencyProperty ShowMonthShortcutProperty =
+        DependencyProperty.Register(
+            nameof(ShowMonthShortcut),
+            typeof(bool),
+            typeof(DateInputPicker),
+            new PropertyMetadata(false));
+
     public DateInputPicker()
     {
         InitializeComponent();
@@ -29,6 +43,18 @@ public partial class DateInputPicker : UserControl
     {
         get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
+    }
+
+    public bool AutoFormatText
+    {
+        get => (bool)GetValue(AutoFormatTextProperty);
+        set => SetValue(AutoFormatTextProperty, value);
+    }
+
+    public bool ShowMonthShortcut
+    {
+        get => (bool)GetValue(ShowMonthShortcutProperty);
+        set => SetValue(ShowMonthShortcutProperty, value);
     }
 
     private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -62,6 +88,13 @@ public partial class DateInputPicker : UserControl
         {
             _isSynchronizing = false;
         }
+    }
+
+    private void UseDisplayedMonthButton_Click(object sender, RoutedEventArgs e)
+    {
+        Text = CalendarHost.DisplayDate.ToString("MM/yyyy", ItalianCulture);
+        CalendarHost.SelectedDate = null;
+        CalendarPopup.IsOpen = false;
     }
 
     private void SyncCalendarFromText()
