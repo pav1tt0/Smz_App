@@ -1300,7 +1300,7 @@
                                                     <TextBlock Text="Localita" Foreground="#50626A" />
                                                     <ComboBox Width="300"
                                                               HorizontalAlignment="Left"
-                                                              ItemsSource="{Binding LocalitaOperativeCatalogo}"
+                                                              ItemsSource="{Binding LocalitaOperativeServizioCatalogo}"
                                                               SelectedItem="{Binding ServizioLocalitaSelezionata}"
                                                               DisplayMemberPath="Descrizione" />
                                                 </StackPanel>

@@ -303,6 +303,7 @@ public sealed class MainWindowViewModel : ObservableObject
         OrariServizioFissiDisponibili = new ObservableCollection<string>(["", ..OrariServizioFissi]);
         CategorieRegistroCatalogo = new ObservableCollection<CategoriaRegistroItem>(cataloghiServizio.CategorieRegistro);
         LocalitaOperativeCatalogo = new ObservableCollection<LocalitaOperativa>(cataloghiServizio.LocalitaOperative);
+        LocalitaOperativeServizioCatalogo = new ObservableCollection<LocalitaOperativa>(BuildLocalitaOperativeServizioCatalogo(cataloghiServizio.LocalitaOperative));
         ScopiImmersioneCatalogo = new ObservableCollection<ScopoImmersioneItem>(cataloghiServizio.ScopiImmersione);
         UnitaNavaliCatalogo = new ObservableCollection<UnitaNavale>(BuildUnitaNavaliCatalogo(cataloghiServizio.UnitaNavali));
         UnitaNavaliGestioneCatalogo = new ObservableCollection<UnitaNavale>(cataloghiServizio.UnitaNavali);
@@ -326,7 +327,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ]);
 
         _filtroAbilitazione = FiltroAbilitazioni.FirstOrDefault();
-        _servizioLocalitaSelezionata = LocalitaOperativeCatalogo.FirstOrDefault();
+        _servizioLocalitaSelezionata = LocalitaOperativeServizioCatalogo.FirstOrDefault();
         _servizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault();
         _servizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault();
         InizializzaEditorTariffeContabili();
@@ -516,6 +517,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<CategoriaRegistroItem> CategorieRegistroCatalogo { get; }
 
     public ObservableCollection<LocalitaOperativa> LocalitaOperativeCatalogo { get; }
+
+    public ObservableCollection<LocalitaOperativa> LocalitaOperativeServizioCatalogo { get; }
 
     public ObservableCollection<ScopoImmersioneItem> ScopiImmersioneCatalogo { get; }
 
@@ -1067,11 +1070,14 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         yield return UnitaNavaleVuota;
 
-        foreach (var item in source)
+        foreach (var item in source.Where(item => item.Attiva))
         {
             yield return item;
         }
     }
+
+    private static IEnumerable<LocalitaOperativa> BuildLocalitaOperativeServizioCatalogo(IEnumerable<LocalitaOperativa> source) =>
+        source.Where(item => item.Attiva);
 
     public string ServizioCategoriaRegistroDescrizione
     {
@@ -3401,7 +3407,12 @@ public sealed class MainWindowViewModel : ObservableObject
                 LocalitaOperativeCatalogo.Add(item);
             }
 
-            ServizioLocalitaSelezionata = LocalitaOperativeCatalogo.First(existing => existing.LocalitaOperativaId == item.LocalitaOperativaId);
+            if (item.Attiva && !LocalitaOperativeServizioCatalogo.Any(existing => existing.LocalitaOperativaId == item.LocalitaOperativaId))
+            {
+                LocalitaOperativeServizioCatalogo.Add(item);
+            }
+
+            ServizioLocalitaSelezionata = LocalitaOperativeServizioCatalogo.First(existing => existing.LocalitaOperativaId == item.LocalitaOperativaId);
             NuovaLocalitaOperativa = string.Empty;
             Stato = $"Localita aggiunta: {item.Descrizione}";
         }
@@ -3511,7 +3522,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ServizioStraordinarioInizio = servizio.StraordinarioInizio;
         ServizioStraordinarioFine = servizio.StraordinarioFine;
         ServizioTipoSelezionato = NormalizeTipoServizio(servizio.TipoServizio, servizio.FuoriSede);
-        ServizioLocalitaSelezionata = LocalitaOperativeCatalogo.FirstOrDefault(item => item.LocalitaOperativaId == servizio.LocalitaOperativaId);
+        ServizioLocalitaSelezionata = LocalitaOperativeServizioCatalogo.FirstOrDefault(item => item.LocalitaOperativaId == servizio.LocalitaOperativaId);
         ServizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault(item => item.ScopoImmersioneId == servizio.ScopoImmersioneId);
         ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == servizio.UnitaNavaleId)
             ?? UnitaNavaliCatalogo.FirstOrDefault();
@@ -3647,7 +3658,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ServizioStraordinarioInizio = string.Empty;
         ServizioStraordinarioFine = string.Empty;
         ServizioTipoSelezionato = "InSede";
-        ServizioLocalitaSelezionata = LocalitaOperativeCatalogo.FirstOrDefault();
+        ServizioLocalitaSelezionata = LocalitaOperativeServizioCatalogo.FirstOrDefault();
         ServizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault();
         ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault();
         ServizioResponsabileSelezionato = null;
@@ -6445,6 +6456,7 @@ public sealed class MainWindowViewModel : ObservableObject
         var cataloghiServizio = _repository.GetCataloghiServizio();
         SostituisciCollection(CategorieRegistroCatalogo, cataloghiServizio.CategorieRegistro);
         SostituisciCollection(LocalitaOperativeCatalogo, cataloghiServizio.LocalitaOperative);
+        SostituisciCollection(LocalitaOperativeServizioCatalogo, BuildLocalitaOperativeServizioCatalogo(cataloghiServizio.LocalitaOperative));
         SostituisciCollection(ScopiImmersioneCatalogo, cataloghiServizio.ScopiImmersione);
         SostituisciCollection(UnitaNavaliCatalogo, BuildUnitaNavaliCatalogo(cataloghiServizio.UnitaNavali));
         SostituisciCollection(UnitaNavaliGestioneCatalogo, cataloghiServizio.UnitaNavali);
@@ -6456,8 +6468,8 @@ public sealed class MainWindowViewModel : ObservableObject
         SostituisciCollection(RegoleContabiliImmersioneCatalogo, cataloghiServizio.RegoleContabiliImmersione);
 
         _servizioLocalitaSelezionata = localitaId is null
-            ? LocalitaOperativeCatalogo.FirstOrDefault()
-            : LocalitaOperativeCatalogo.FirstOrDefault(item => item.LocalitaOperativaId == localitaId.Value) ?? LocalitaOperativeCatalogo.FirstOrDefault();
+            ? LocalitaOperativeServizioCatalogo.FirstOrDefault()
+            : LocalitaOperativeServizioCatalogo.FirstOrDefault(item => item.LocalitaOperativaId == localitaId.Value) ?? LocalitaOperativeServizioCatalogo.FirstOrDefault();
         _servizioScopoSelezionato = scopoId is null
             ? ScopiImmersioneCatalogo.FirstOrDefault()
             : ScopiImmersioneCatalogo.FirstOrDefault(item => item.ScopoImmersioneId == scopoId.Value) ?? ScopiImmersioneCatalogo.FirstOrDefault();
@@ -6577,8 +6589,6 @@ public sealed class MainWindowViewModel : ObservableObject
         AppendSnapshot(builder, "StraordinarioAttivo", ServizioStraordinarioAttivo ? "1" : "0");
         AppendSnapshot(builder, "StraordinarioInizio", ServizioStraordinarioInizio);
         AppendSnapshot(builder, "StraordinarioFine", ServizioStraordinarioFine);
-        AppendSnapshot(builder, "NuovaLocalita", NuovaLocalitaOperativa);
-        AppendSnapshot(builder, "NuovoMezzo", NuovaUnitaNavale);
         AppendSnapshot(builder, "Attivita", ServizioAttivitaSvolta);
         AppendSnapshot(builder, "Note", ServizioNote);
 
