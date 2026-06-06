@@ -285,6 +285,114 @@ public sealed class PersonaleRepository
         };
     }
 
+    public void UpdateLocalitaOperative(IEnumerable<LocalitaOperativa> items)
+    {
+        var localita = items
+            .Where(item => item.LocalitaOperativaId > 0)
+            .Select(item => new LocalitaOperativa
+            {
+                LocalitaOperativaId = item.LocalitaOperativaId,
+                Descrizione = item.Descrizione.Trim(),
+                Provincia = item.Provincia.Trim(),
+                Attiva = item.Attiva,
+                Ordine = item.Ordine,
+            })
+            .ToList();
+
+        if (localita.Any(item => string.IsNullOrWhiteSpace(item.Descrizione)))
+        {
+            throw new InvalidOperationException("Ogni localita deve avere una descrizione.");
+        }
+
+        var duplicata = localita
+            .GroupBy(item => item.Descrizione, StringComparer.CurrentCultureIgnoreCase)
+            .FirstOrDefault(group => group.Count() > 1);
+        if (duplicata is not null)
+        {
+            throw new InvalidOperationException($"Localita duplicata: {duplicata.Key}.");
+        }
+
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        foreach (var item in localita)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                UPDATE LocalitaOperative
+                SET Descrizione = $descrizione,
+                    Provincia = $provincia,
+                    Attiva = $attiva,
+                    Ordine = $ordine
+                WHERE LocalitaOperativaId = $id;
+                """;
+            command.Parameters.AddWithValue("$id", item.LocalitaOperativaId);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$provincia", string.IsNullOrWhiteSpace(item.Provincia) ? DBNull.Value : item.Provincia);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+    }
+
+    public void UpdateUnitaNavali(IEnumerable<UnitaNavale> items)
+    {
+        var unitaNavali = items
+            .Where(item => item.UnitaNavaleId > 0)
+            .Select(item => new UnitaNavale
+            {
+                UnitaNavaleId = item.UnitaNavaleId,
+                Descrizione = item.Descrizione.Trim(),
+                Sigla = item.Sigla.Trim(),
+                Attiva = item.Attiva,
+                Ordine = item.Ordine,
+            })
+            .ToList();
+
+        if (unitaNavali.Any(item => string.IsNullOrWhiteSpace(item.Descrizione)))
+        {
+            throw new InvalidOperationException("Ogni mezzo deve avere una descrizione.");
+        }
+
+        var duplicata = unitaNavali
+            .GroupBy(item => item.Descrizione, StringComparer.CurrentCultureIgnoreCase)
+            .FirstOrDefault(group => group.Count() > 1);
+        if (duplicata is not null)
+        {
+            throw new InvalidOperationException($"Mezzo duplicato: {duplicata.Key}.");
+        }
+
+        using var connection = OpenConnection();
+        using var transaction = connection.BeginTransaction();
+
+        foreach (var item in unitaNavali)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                UPDATE UnitaNavali
+                SET Descrizione = $descrizione,
+                    Sigla = $sigla,
+                    Attiva = $attiva,
+                    Ordine = $ordine
+                WHERE UnitaNavaleId = $id;
+                """;
+            command.Parameters.AddWithValue("$id", item.UnitaNavaleId);
+            command.Parameters.AddWithValue("$descrizione", item.Descrizione);
+            command.Parameters.AddWithValue("$sigla", string.IsNullOrWhiteSpace(item.Sigla) ? DBNull.Value : item.Sigla);
+            command.Parameters.AddWithValue("$attiva", item.Attiva ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", item.Ordine);
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+    }
+
     public List<ServizioGiornalieroSummary> GetServiziGiornalieriRecenti(
         int maxItems = 10,
         string searchText = "",

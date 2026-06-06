@@ -618,6 +618,21 @@
                                                            HorizontalAlignment="Center" />
                                             </StackPanel>
                                         </Button>
+
+                                        <Button Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="6"
+                                                Background="#F8FBFD"
+                                                BorderBrush="#7A94AC"
+                                                Foreground="#10274B"
+                                                Style="{StaticResource HomeCardButtonStyle}">
+                                            <StackPanel>
+                                                <TextBlock Text="IMPOSTAZIONI"
+                                                           HorizontalAlignment="Center" />
+                                                <TextBlock Text="OPERATIVE"
+                                                           Margin="0,4,0,0"
+                                                           HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
                                     </UniformGrid>
                                 </Border>
                             </StackPanel>
@@ -1315,44 +1330,6 @@
                                             </StackPanel>
 
                                             <Grid Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="3" Margin="0,10,0,0">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="300" />
-                                                    <ColumnDefinition Width="18" />
-                                                    <ColumnDefinition Width="220" />
-                                                </Grid.ColumnDefinitions>
-
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock Text="Nuova localita" Foreground="#50626A" />
-                                                    <DockPanel Margin="0,6,0,0" LastChildFill="True">
-                                                        <Button DockPanel.Dock="Right"
-                                                                Margin="10,0,0,0"
-                                                                MinWidth="96"
-                                                                Content="Aggiungi"
-                                                                Command="{Binding AddLocalitaOperativaCommand}"
-                                                                Style="{StaticResource SecondaryButtonStyle}" />
-                                                        <TextBox Text="{Binding NuovaLocalitaOperativa, UpdateSourceTrigger=PropertyChanged}"
-                                                                 MaxLength="80"
-                                                                 ToolTip="Aggiunge una localita permanente nel menu" />
-                                                    </DockPanel>
-                                                </StackPanel>
-
-                                                <StackPanel Grid.Column="2">
-                                                    <TextBlock Text="Nuovo mezzo / targa" Foreground="#50626A" />
-                                                    <DockPanel Margin="0,6,0,0" LastChildFill="True">
-                                                        <Button DockPanel.Dock="Right"
-                                                                Margin="10,0,0,0"
-                                                                MinWidth="96"
-                                                                Content="Aggiungi"
-                                                                Command="{Binding AddUnitaNavaleCommand}"
-                                                                Style="{StaticResource SecondaryButtonStyle}" />
-                                                        <TextBox Text="{Binding NuovaUnitaNavale, UpdateSourceTrigger=PropertyChanged}"
-                                                                 MaxLength="80"
-                                                                 ToolTip="Aggiunge un mezzo nautico permanente nel menu" />
-                                                    </DockPanel>
-                                                </StackPanel>
-                                            </Grid>
-
-                                            <Grid Grid.Row="3" Grid.ColumnSpan="5" Margin="0,10,0,0">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="18" />
@@ -3130,8 +3107,6 @@
                             <RowDefinition Height="18" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="18" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="18" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
@@ -3201,11 +3176,12 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
 
-                                <DockPanel LastChildFill="False">
-                                    <StackPanel DockPanel.Dock="Left">
+                                <DockPanel>
+                                    <StackPanel>
                                         <TextBlock Text="Contabilita SMZ immersioni"
                                                    FontSize="18"
                                                    FontWeight="SemiBold"
@@ -3215,17 +3191,6 @@
                                                    Foreground="#53646A"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
-
-                                    <Button DockPanel.Dock="Right"
-                                            Padding="10,4"
-                                            Content="{Binding ToggleTariffeContabiliLabel}"
-                                            Command="{Binding ToggleTariffeContabiliCommand}"
-                                            Background="Transparent"
-                                            BorderBrush="Transparent"
-                                            Foreground="#53646A"
-                                            FontSize="12"
-                                            FontWeight="SemiBold"
-                                            Cursor="Hand" />
                                 </DockPanel>
 
                                 <TextBlock Grid.Row="1"
@@ -3234,7 +3199,60 @@
                                            Foreground="#6A7B80"
                                            TextWrapping="Wrap" />
 
-                                <DataGrid Grid.Row="2"
+                                <WrapPanel Grid.Row="2"
+                                           Margin="0,14,0,0"
+                                           VerticalAlignment="Center">
+                                    <StackPanel Width="145"
+                                                Margin="0,0,10,8">
+                                        <TextBlock Text="Data"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#53646A" />
+                                        <ComboBox Margin="0,4,0,0"
+                                                  ItemsSource="{Binding ContabilitaSmzDateDisponibili}"
+                                                  SelectedItem="{Binding ContabilitaSmzFiltroData, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+
+                                    <StackPanel Width="150"
+                                                Margin="0,0,10,8">
+                                        <TextBlock Text="N. servizio"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#53646A" />
+                                        <ComboBox Margin="0,4,0,0"
+                                                  ItemsSource="{Binding ContabilitaSmzNumeriServizioDisponibili}"
+                                                  SelectedItem="{Binding ContabilitaSmzFiltroNumeroServizio, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+
+                                    <StackPanel Width="230"
+                                                Margin="0,0,10,8">
+                                        <TextBlock Text="Nominativo"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#53646A" />
+                                        <TextBox Margin="0,4,0,0"
+                                                 Text="{Binding ContabilitaSmzFiltroNominativo, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+
+                                    <StackPanel Width="150"
+                                                Margin="0,0,10,8">
+                                        <TextBlock Text="Apparato"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#53646A" />
+                                        <ComboBox Margin="0,4,0,0"
+                                                  ItemsSource="{Binding ContabilitaSmzApparatiDisponibili}"
+                                                  SelectedItem="{Binding ContabilitaSmzFiltroApparato, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+
+                                    <Button Margin="0,20,0,8"
+                                            Padding="10,4"
+                                            Content="Pulisci filtri"
+                                            Command="{Binding ClearContabilitaSmzFiltersCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" />
+                                </WrapPanel>
+
+                                <DataGrid Grid.Row="3"
                                           Margin="0,16,0,0"
                                           ItemsSource="{Binding ContabilitaSmzItems}"
                                           AutoGenerateColumns="False"
@@ -3289,72 +3307,7 @@
                             </Grid>
                         </Border>
 
-                        <Border Grid.Row="4"
-                                Style="{StaticResource CardStyle}"
-                                Visibility="{Binding MostraTariffeContabili, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-
-                                <DockPanel LastChildFill="False">
-                                    <StackPanel DockPanel.Dock="Left">
-                                        <TextBlock Text="Gestione tariffe"
-                                                   FontSize="16"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="#17313E" />
-                                        <TextBlock Margin="0,6,0,0"
-                                                   Text="{Binding TariffeContabiliStato}"
-                                                   Foreground="#53646A"
-                                                   TextWrapping="Wrap" />
-                                    </StackPanel>
-
-                                    <Button DockPanel.Dock="Right"
-                                            Content="Salva variazioni"
-                                            Command="{Binding SaveTariffeContabiliCommand}"
-                                            Style="{StaticResource SecondaryButtonStyle}" />
-                                </DockPanel>
-
-                                <TextBlock Grid.Row="1"
-                                           Margin="0,12,0,0"
-                                           Text="Questa sezione serve solo quando cambiano le tariffe operative. I valori salvati restano nel database e vengono usati nei calcoli successivi."
-                                           Foreground="#6A7B80"
-                                           TextWrapping="Wrap" />
-
-                                <DataGrid Grid.Row="2"
-                                          Margin="0,16,0,0"
-                                          ItemsSource="{Binding RegoleContabiliEditorItems}"
-                                          AutoGenerateColumns="False"
-                                          CanUserAddRows="False"
-                                          HeadersVisibility="Column"
-                                          RowHeaderWidth="0"
-                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                          MinHeight="260">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Apparato"
-                                                            Width="140"
-                                                            Binding="{Binding TipologiaDescrizione}" />
-                                        <DataGridTextColumn Header="Fascia"
-                                                            Width="90"
-                                                            Binding="{Binding FasciaDescrizione}" />
-                                        <DataGridTextColumn Header="Categoria"
-                                                            Width="110"
-                                                            Binding="{Binding CategoriaDescrizione}" />
-                                        <DataGridTextColumn Header="Tariffa"
-                                                            Width="100"
-                                                            Binding="{Binding Tariffa, UpdateSourceTrigger=PropertyChanged}" />
-                                        <DataGridCheckBoxColumn Header="Attiva"
-                                                                Width="80"
-                                                                Binding="{Binding Attiva, UpdateSourceTrigger=PropertyChanged}" />
-                                    </DataGrid.Columns>
-                                </DataGrid>
-                            </Grid>
-                        </Border>
-
-                        <Grid Grid.Row="6">
+                        <Grid Grid.Row="4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="18" />
@@ -3542,6 +3495,11 @@
                                     <Button Margin="12,20,0,0"
                                             Content="Aggiorna registro"
                                             Command="{Binding ReloadRegistroImmersioniCommand}" />
+
+                                    <Button Margin="12,20,0,0"
+                                            Content="Stampa registro"
+                                            Command="{Binding PrintRegistroImmersioniMensileCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" />
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -3763,6 +3721,251 @@
                                 </Grid>
                             </Border>
                         </Grid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Impostazioni">
+                    <Grid Margin="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Impostazioni operative"
+                                           FontSize="22"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+                                <TextBlock Margin="0,8,0,0"
+                                           Text="Cataloghi e tariffe sono separati dalle pagine operative per evitare modifiche accidentali durante l'uso quotidiano."
+                                           Foreground="#53646A"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <DockPanel LastChildFill="False">
+                                        <StackPanel DockPanel.Dock="Left">
+                                            <TextBlock Text="Localita operative"
+                                                       FontSize="18"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#17313E" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="Modifica descrizione, provincia, ordine e stato attivo delle localita usate nei servizi."
+                                                       Foreground="#53646A"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <Button DockPanel.Dock="Right"
+                                                Content="Salva localita"
+                                                Command="{Binding SaveLocalitaOperativeCommand}"
+                                                Style="{StaticResource AccentButtonStyle}" />
+                                    </DockPanel>
+
+                                    <DockPanel Grid.Row="1"
+                                               Margin="0,14,0,0"
+                                               LastChildFill="True">
+                                        <Button DockPanel.Dock="Right"
+                                                Margin="10,0,0,0"
+                                                MinWidth="96"
+                                                Content="Aggiungi"
+                                                Command="{Binding AddLocalitaOperativaCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                        <TextBox Text="{Binding NuovaLocalitaOperativa, UpdateSourceTrigger=PropertyChanged}"
+                                                 MaxLength="80"
+                                                 ToolTip="Aggiunge una localita permanente nel menu" />
+                                    </DockPanel>
+
+                                    <DataGrid Grid.Row="2"
+                                              Margin="0,16,0,0"
+                                              ItemsSource="{Binding LocalitaOperativeCatalogo}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              HeadersVisibility="Column"
+                                              RowHeaderWidth="0"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                              MinHeight="280">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="ID"
+                                                                Width="60"
+                                                                IsReadOnly="True"
+                                                                Binding="{Binding LocalitaOperativaId}" />
+                                            <DataGridTextColumn Header="Descrizione"
+                                                                Width="*"
+                                                                Binding="{Binding Descrizione, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTextColumn Header="Prov."
+                                                                Width="80"
+                                                                Binding="{Binding Provincia, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTextColumn Header="Ordine"
+                                                                Width="80"
+                                                                Binding="{Binding Ordine, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridCheckBoxColumn Header="Attiva"
+                                                                    Width="80"
+                                                                    Binding="{Binding Attiva, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Column="2"
+                                    Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <DockPanel LastChildFill="False">
+                                        <StackPanel DockPanel.Dock="Left">
+                                            <TextBlock Text="Mezzi nautici"
+                                                       FontSize="18"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#17313E" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="Modifica descrizione, sigla, ordine e stato attivo dei mezzi disponibili nel servizio giornaliero."
+                                                       Foreground="#53646A"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <Button DockPanel.Dock="Right"
+                                                Content="Salva mezzi"
+                                                Command="{Binding SaveUnitaNavaliCommand}"
+                                                Style="{StaticResource AccentButtonStyle}" />
+                                    </DockPanel>
+
+                                    <DockPanel Grid.Row="1"
+                                               Margin="0,14,0,0"
+                                               LastChildFill="True">
+                                        <Button DockPanel.Dock="Right"
+                                                Margin="10,0,0,0"
+                                                MinWidth="96"
+                                                Content="Aggiungi"
+                                                Command="{Binding AddUnitaNavaleCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
+                                        <TextBox Text="{Binding NuovaUnitaNavale, UpdateSourceTrigger=PropertyChanged}"
+                                                 MaxLength="80"
+                                                 ToolTip="Aggiunge un mezzo nautico permanente nel menu" />
+                                    </DockPanel>
+
+                                    <DataGrid Grid.Row="2"
+                                              Margin="0,16,0,0"
+                                              ItemsSource="{Binding UnitaNavaliGestioneCatalogo}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              HeadersVisibility="Column"
+                                              RowHeaderWidth="0"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                              MinHeight="280">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="ID"
+                                                                Width="60"
+                                                                IsReadOnly="True"
+                                                                Binding="{Binding UnitaNavaleId}" />
+                                            <DataGridTextColumn Header="Descrizione"
+                                                                Width="*"
+                                                                Binding="{Binding Descrizione, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTextColumn Header="Sigla"
+                                                                Width="90"
+                                                                Binding="{Binding Sigla, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTextColumn Header="Ordine"
+                                                                Width="80"
+                                                                Binding="{Binding Ordine, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridCheckBoxColumn Header="Attiva"
+                                                                    Width="80"
+                                                                    Binding="{Binding Attiva, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <Border Grid.Row="4"
+                                Style="{StaticResource CardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <DockPanel LastChildFill="False">
+                                    <StackPanel DockPanel.Dock="Left">
+                                        <TextBlock Text="Tariffe contabili"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E" />
+                                        <TextBlock Margin="0,6,0,0"
+                                                   Text="{Binding TariffeContabiliStato}"
+                                                   Foreground="#53646A"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+
+                                    <Button DockPanel.Dock="Right"
+                                            Content="Salva tariffe"
+                                            Command="{Binding SaveTariffeContabiliCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" />
+                                </DockPanel>
+
+                                <TextBlock Grid.Row="1"
+                                           Margin="0,12,0,0"
+                                           Text="Le tariffe salvate restano nel database e vengono usate nei calcoli contabili successivi."
+                                           Foreground="#6A7B80"
+                                           TextWrapping="Wrap" />
+
+                                <DataGrid Grid.Row="2"
+                                          Margin="0,16,0,0"
+                                          ItemsSource="{Binding RegoleContabiliEditorItems}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          HeadersVisibility="Column"
+                                          RowHeaderWidth="0"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                          MinHeight="260">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Apparato"
+                                                            Width="170"
+                                                            IsReadOnly="True"
+                                                            Binding="{Binding TipologiaDescrizione}" />
+                                        <DataGridTextColumn Header="Fascia"
+                                                            Width="110"
+                                                            IsReadOnly="True"
+                                                            Binding="{Binding FasciaDescrizione}" />
+                                        <DataGridTextColumn Header="Categoria"
+                                                            Width="130"
+                                                            IsReadOnly="True"
+                                                            Binding="{Binding CategoriaDescrizione}" />
+                                        <DataGridTextColumn Header="Tariffa"
+                                                            Width="110"
+                                                            Binding="{Binding Tariffa, UpdateSourceTrigger=PropertyChanged}" />
+                                        <DataGridCheckBoxColumn Header="Attiva"
+                                                                Width="90"
+                                                                Binding="{Binding Attiva, UpdateSourceTrigger=PropertyChanged}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
                     </Grid>
                 </TabItem>
             </TabControl>

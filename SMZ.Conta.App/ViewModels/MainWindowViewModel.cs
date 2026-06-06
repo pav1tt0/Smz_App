@@ -22,6 +22,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private const int ArchiveSectionIndex = 3;
     private const int AccountingSectionIndex = 4;
     private const int ReportsSectionIndex = 5;
+    private const int SettingsSectionIndex = 6;
     private static readonly PersonaleListItemViewModel OperatoreVuoto = new();
     private static readonly UnitaNavale UnitaNavaleVuota = new() { UnitaNavaleId = 0, Descrizione = string.Empty, Ordine = 0 };
     private static readonly string[] OrariServizioFissi =
@@ -38,6 +39,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly PersonaleRepository _repository = new();
     private readonly ServizioScambioService _servizioScambioService;
     private readonly ServizioGiornalieroPrintService _servizioGiornalieroPrintService;
+    private readonly RegistroImmersioniMensilePrintService _registroImmersioniMensilePrintService;
     private readonly RelayCommand _deleteCommand;
     private readonly RelayCommand _deleteDefinitivoCommand;
     private readonly RelayCommand _navigateSectionCommand;
@@ -63,10 +65,13 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _reloadServizioPersonaleCommand;
     private readonly RelayCommand _reloadContabilitaCommand;
     private readonly RelayCommand _reloadRegistroImmersioniCommand;
+    private readonly RelayCommand _printRegistroImmersioniMensileCommand;
     private readonly RelayCommand _saveElaborazioneMensileCommand;
     private readonly RelayCommand _exportContabilitaCsvCommand;
+    private readonly RelayCommand _clearContabilitaSmzFiltersCommand;
+    private readonly RelayCommand _saveLocalitaOperativeCommand;
+    private readonly RelayCommand _saveUnitaNavaliCommand;
     private readonly RelayCommand _saveTariffeContabiliCommand;
-    private readonly RelayCommand _toggleTariffeContabiliCommand;
     private readonly RelayCommand _restoreArchivioCommand;
     private readonly RelayCommand _deleteArchivioDefinitivoCommand;
     private readonly RelayCommand _saveAttagliamentoCommand;
@@ -165,7 +170,10 @@ public sealed class MainWindowViewModel : ObservableObject
     private int _contabilitaAnnoSelezionato;
     private ContabilitaMeseItem? _contabilitaMeseSelezionato;
     private bool _contabilitaSelezionePronta;
-    private bool _mostraTariffeContabili;
+    private string _contabilitaSmzFiltroData = string.Empty;
+    private string _contabilitaSmzFiltroNumeroServizio = string.Empty;
+    private string _contabilitaSmzFiltroNominativo = string.Empty;
+    private string _contabilitaSmzFiltroApparato = string.Empty;
     private bool _isWelcomeVisible = true;
     private bool _isWelcomeAudioEnabled = true;
     private bool _isSyncingValoriCondivisiImmersione;
@@ -176,12 +184,14 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _personaleEditorSnapshot = string.Empty;
     private string _servizioEditorSnapshot = string.Empty;
     private string _tariffeEditorSnapshot = string.Empty;
+    private readonly List<ContabilitaSmzSummary> _contabilitaSmzSource = [];
 
     public MainWindowViewModel()
     {
         _backupSettings = _backupService.LoadSettings();
         _servizioScambioService = new ServizioScambioService(_repository);
         _servizioGiornalieroPrintService = new ServizioGiornalieroPrintService(_repository);
+        _registroImmersioniMensilePrintService = new RegistroImmersioniMensilePrintService(_repository);
         var cataloghiServizio = _repository.GetCataloghiServizio();
 
         SearchCommand = new RelayCommand(CaricaElenco);
@@ -238,10 +248,13 @@ public sealed class MainWindowViewModel : ObservableObject
         _reloadServizioPersonaleCommand = new RelayCommand(() => InizializzaBozzaServizio(preserveSelections: true));
         _reloadContabilitaCommand = new RelayCommand(CaricaContabilitaMensile);
         _reloadRegistroImmersioniCommand = new RelayCommand(CaricaRegistroImmersioniMensile);
+        _printRegistroImmersioniMensileCommand = new RelayCommand(StampaRegistroImmersioniMensile);
         _saveElaborazioneMensileCommand = new RelayCommand(SalvaElaborazioneMensile);
         _exportContabilitaCsvCommand = new RelayCommand(EsportaContabilitaCsv);
+        _clearContabilitaSmzFiltersCommand = new RelayCommand(PulisciFiltriContabilitaSmz);
+        _saveLocalitaOperativeCommand = new RelayCommand(SalvaLocalitaOperative);
+        _saveUnitaNavaliCommand = new RelayCommand(SalvaUnitaNavali);
         _saveTariffeContabiliCommand = new RelayCommand(SalvaTariffeContabili);
-        _toggleTariffeContabiliCommand = new RelayCommand(ToggleTariffeContabili);
 
         Abilitazioni = new ObservableCollection<PersonaleAbilitazioneRowViewModel>();
         VisiteMediche = new ObservableCollection<VisitaMedicaRowViewModel>();
@@ -255,6 +268,9 @@ public sealed class MainWindowViewModel : ObservableObject
         ServizioSupportiOccasionaliBozza = new ObservableCollection<ServizioSupportoOccasionaleDraftViewModel>();
         ServiziSalvati = new ObservableCollection<ServizioGiornalieroSummary>();
         ContabilitaSmzItems = new ObservableCollection<ContabilitaSmzSummary>();
+        ContabilitaSmzDateDisponibili = new ObservableCollection<string>();
+        ContabilitaSmzNumeriServizioDisponibili = new ObservableCollection<string>();
+        ContabilitaSmzApparatiDisponibili = new ObservableCollection<string>();
         ContabilitaSanitariItems = new ObservableCollection<ContabilitaSanitarioSummary>();
         ContabilitaSupportiItems = new ObservableCollection<ContabilitaSupportoSummary>();
         RegistroImmersioniItems = new ObservableCollection<RegistroImmersioneRiga>();
@@ -289,6 +305,7 @@ public sealed class MainWindowViewModel : ObservableObject
         LocalitaOperativeCatalogo = new ObservableCollection<LocalitaOperativa>(cataloghiServizio.LocalitaOperative);
         ScopiImmersioneCatalogo = new ObservableCollection<ScopoImmersioneItem>(cataloghiServizio.ScopiImmersione);
         UnitaNavaliCatalogo = new ObservableCollection<UnitaNavale>(BuildUnitaNavaliCatalogo(cataloghiServizio.UnitaNavali));
+        UnitaNavaliGestioneCatalogo = new ObservableCollection<UnitaNavale>(cataloghiServizio.UnitaNavali);
         TipologieImmersioneOperativeCatalogo = new ObservableCollection<TipologiaImmersioneOperativa>(cataloghiServizio.TipologieImmersione);
         FasceProfonditaCatalogo = new ObservableCollection<FasciaProfondita>(cataloghiServizio.FasceProfondita);
         CategorieContabiliOreCatalogo = new ObservableCollection<CategoriaContabileOre>(cataloghiServizio.CategorieContabiliOre);
@@ -468,6 +485,10 @@ public sealed class MainWindowViewModel : ObservableObject
                     AggiornaAnniContabilitaDisponibili();
                     AggiornaDatiMensili();
                 }
+                else if (value == SettingsSectionIndex)
+                {
+                    InizializzaEditorTariffeContabili();
+                }
             }
         }
     }
@@ -499,6 +520,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<ScopoImmersioneItem> ScopiImmersioneCatalogo { get; }
 
     public ObservableCollection<UnitaNavale> UnitaNavaliCatalogo { get; }
+
+    public ObservableCollection<UnitaNavale> UnitaNavaliGestioneCatalogo { get; }
 
     public ObservableCollection<TipologiaImmersioneOperativa> TipologieImmersioneOperativeCatalogo { get; }
 
@@ -600,6 +623,12 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<ContabilitaSmzSummary> ContabilitaSmzItems { get; }
 
+    public ObservableCollection<string> ContabilitaSmzDateDisponibili { get; }
+
+    public ObservableCollection<string> ContabilitaSmzNumeriServizioDisponibili { get; }
+
+    public ObservableCollection<string> ContabilitaSmzApparatiDisponibili { get; }
+
     public ObservableCollection<ContabilitaSanitarioSummary> ContabilitaSanitariItems { get; }
 
     public ObservableCollection<ContabilitaSupportoSummary> ContabilitaSupportiItems { get; }
@@ -686,14 +715,50 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    public bool MostraTariffeContabili
+    public string ContabilitaSmzFiltroData
     {
-        get => _mostraTariffeContabili;
+        get => _contabilitaSmzFiltroData;
         set
         {
-            if (SetProperty(ref _mostraTariffeContabili, value))
+            if (SetProperty(ref _contabilitaSmzFiltroData, value ?? string.Empty))
             {
-                OnPropertyChanged(nameof(ToggleTariffeContabiliLabel));
+                ApplicaFiltriContabilitaSmz();
+            }
+        }
+    }
+
+    public string ContabilitaSmzFiltroNumeroServizio
+    {
+        get => _contabilitaSmzFiltroNumeroServizio;
+        set
+        {
+            if (SetProperty(ref _contabilitaSmzFiltroNumeroServizio, value ?? string.Empty))
+            {
+                ApplicaFiltriContabilitaSmz();
+            }
+        }
+    }
+
+    public string ContabilitaSmzFiltroNominativo
+    {
+        get => _contabilitaSmzFiltroNominativo;
+        set
+        {
+            if (SetProperty(ref _contabilitaSmzFiltroNominativo, value ?? string.Empty))
+            {
+                ApplicaFiltriContabilitaSmz();
+            }
+        }
+    }
+
+    public string ContabilitaSmzFiltroApparato
+    {
+        get => _contabilitaSmzFiltroApparato;
+        set
+        {
+            if (SetProperty(ref _contabilitaSmzFiltroApparato, value ?? string.Empty))
+            {
+                ApplicaFiltriContabilitaSmz();
             }
         }
     }
@@ -1091,9 +1156,17 @@ public sealed class MainWindowViewModel : ObservableObject
     public string ContabilitaSmzTotaleImportiDisplay => ContabilitaSmzTotaleImporti.ToString("0.##", CultureInfo.CurrentCulture);
 
     public string ContabilitaSmzStato =>
-        ContabilitaSmzItems.Count == 0
+        _contabilitaSmzSource.Count == 0
             ? "Nessuna riga contabile SMZ disponibile nel periodo selezionato."
+            : HasFiltriContabilitaSmzAttivi
+            ? $"{ContabilitaSmzItems.Count} righe visualizzate su {_contabilitaSmzSource.Count} nel periodo selezionato."
             : $"{ContabilitaSmzItems.Count} righe contabili disponibili nel periodo selezionato.";
+
+    public bool HasFiltriContabilitaSmzAttivi =>
+        !string.IsNullOrWhiteSpace(ContabilitaSmzFiltroData)
+        || !string.IsNullOrWhiteSpace(ContabilitaSmzFiltroNumeroServizio)
+        || !string.IsNullOrWhiteSpace(ContabilitaSmzFiltroNominativo)
+        || !string.IsNullOrWhiteSpace(ContabilitaSmzFiltroApparato);
 
     public string TariffeContabiliStato =>
         RegoleContabiliEditorItems.Count == 0
@@ -1101,8 +1174,6 @@ public sealed class MainWindowViewModel : ObservableObject
             : $"{RegoleContabiliEditorItems.Count} righe tariffarie modificabili dal database.";
 
     public int ContabilitaAnnoEffettivo => ContabilitaAnnoSelezionato > 0 ? ContabilitaAnnoSelezionato : DateTime.Today.Year;
-
-    public string ToggleTariffeContabiliLabel => MostraTariffeContabili ? "Chiudi tariffe" : "Gestisci tariffe";
 
     public int ContabilitaSanitariTotalePersone => ContabilitaSanitariItems.Count;
 
@@ -1291,13 +1362,19 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public RelayCommand ReloadRegistroImmersioniCommand => _reloadRegistroImmersioniCommand;
 
+    public RelayCommand PrintRegistroImmersioniMensileCommand => _printRegistroImmersioniMensileCommand;
+
     public RelayCommand SaveElaborazioneMensileCommand => _saveElaborazioneMensileCommand;
 
     public RelayCommand ExportContabilitaCsvCommand => _exportContabilitaCsvCommand;
 
-    public RelayCommand SaveTariffeContabiliCommand => _saveTariffeContabiliCommand;
+    public RelayCommand ClearContabilitaSmzFiltersCommand => _clearContabilitaSmzFiltersCommand;
 
-    public RelayCommand ToggleTariffeContabiliCommand => _toggleTariffeContabiliCommand;
+    public RelayCommand SaveLocalitaOperativeCommand => _saveLocalitaOperativeCommand;
+
+    public RelayCommand SaveUnitaNavaliCommand => _saveUnitaNavaliCommand;
+
+    public RelayCommand SaveTariffeContabiliCommand => _saveTariffeContabiliCommand;
 
     public IReadOnlyList<string> GetAreeConModificheNonSalvate()
     {
@@ -2433,11 +2510,10 @@ public sealed class MainWindowViewModel : ObservableObject
             : _repository.GetElaborazioneMensileSnapshot(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese)
                 ?? _repository.GetContabilitaGiornateImpiego(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese);
 
-        ContabilitaSmzItems.Clear();
-        foreach (var item in snapshot.SmzImmersioni)
-        {
-            ContabilitaSmzItems.Add(item);
-        }
+        _contabilitaSmzSource.Clear();
+        _contabilitaSmzSource.AddRange(snapshot.SmzImmersioni);
+        AggiornaOpzioniFiltriContabilitaSmz();
+        ApplicaFiltriContabilitaSmz();
 
         ContabilitaSanitariItems.Clear();
         foreach (var item in snapshot.Sanitari)
@@ -2452,6 +2528,145 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         AggiornaRiepilogoContabilita();
+    }
+
+    private void AggiornaOpzioniFiltriContabilitaSmz()
+    {
+        AggiornaFiltroContabilitaDisponibile(
+            ContabilitaSmzDateDisponibili,
+            _contabilitaSmzSource
+                .Select(item => item.DataServizioDescrizione)
+                .Distinct()
+                .OrderBy(item => DateOnly.ParseExact(item, "dd/MM/yyyy", CultureInfo.InvariantCulture)),
+            nameof(ContabilitaSmzFiltroData),
+            ref _contabilitaSmzFiltroData);
+
+        AggiornaFiltroContabilitaDisponibile(
+            ContabilitaSmzNumeriServizioDisponibili,
+            _contabilitaSmzSource
+                .Select(item => item.NumeroOrdineServizio)
+                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(item => item, StringComparer.CurrentCultureIgnoreCase),
+            nameof(ContabilitaSmzFiltroNumeroServizio),
+            ref _contabilitaSmzFiltroNumeroServizio);
+
+        AggiornaFiltroContabilitaDisponibile(
+            ContabilitaSmzApparatiDisponibili,
+            _contabilitaSmzSource
+                .Select(item => item.Apparato)
+                .Where(item => !string.IsNullOrWhiteSpace(item))
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(item => item, StringComparer.CurrentCultureIgnoreCase),
+            nameof(ContabilitaSmzFiltroApparato),
+            ref _contabilitaSmzFiltroApparato);
+    }
+
+    private void AggiornaFiltroContabilitaDisponibile(
+        ObservableCollection<string> target,
+        IEnumerable<string> values,
+        string propertyName,
+        ref string selectedValue)
+    {
+        const string emptyValue = "";
+
+        target.Clear();
+        target.Add(emptyValue);
+        foreach (var value in values)
+        {
+            target.Add(value);
+        }
+
+        var currentValue = selectedValue;
+        if (!string.IsNullOrWhiteSpace(currentValue)
+            && !target.Any(item => string.Equals(item, currentValue, StringComparison.CurrentCultureIgnoreCase)))
+        {
+            selectedValue = string.Empty;
+            OnPropertyChanged(propertyName);
+        }
+    }
+
+    private void ApplicaFiltriContabilitaSmz()
+    {
+        var data = ContabilitaSmzFiltroData.Trim();
+        var numeroServizio = ContabilitaSmzFiltroNumeroServizio.Trim();
+        var nominativo = ContabilitaSmzFiltroNominativo.Trim();
+        var apparato = ContabilitaSmzFiltroApparato.Trim();
+
+        var items = _contabilitaSmzSource.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(data))
+        {
+            items = items.Where(item => string.Equals(item.DataServizioDescrizione, data, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(numeroServizio))
+        {
+            items = items.Where(item => string.Equals(item.NumeroOrdineServizio, numeroServizio, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(nominativo))
+        {
+            items = items.Where(item => item.Nominativo.Contains(nominativo, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(apparato))
+        {
+            items = items.Where(item => string.Equals(item.Apparato, apparato, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        ContabilitaSmzItems.Clear();
+        foreach (var item in items
+                     .OrderBy(item => item.DataServizio)
+                     .ThenBy(item => item.NumeroOrdineServizio)
+                     .ThenBy(item => item.Cognome)
+                     .ThenBy(item => item.Nome)
+                     .ThenBy(item => item.Apparato)
+                     .ThenBy(item => item.FasciaProfondita))
+        {
+            ContabilitaSmzItems.Add(item);
+        }
+
+        AggiornaRiepilogoContabilita();
+        OnPropertyChanged(nameof(HasFiltriContabilitaSmzAttivi));
+    }
+
+    private void PulisciFiltriContabilitaSmz()
+    {
+        var changed = false;
+
+        if (!string.IsNullOrWhiteSpace(_contabilitaSmzFiltroData))
+        {
+            _contabilitaSmzFiltroData = string.Empty;
+            OnPropertyChanged(nameof(ContabilitaSmzFiltroData));
+            changed = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_contabilitaSmzFiltroNumeroServizio))
+        {
+            _contabilitaSmzFiltroNumeroServizio = string.Empty;
+            OnPropertyChanged(nameof(ContabilitaSmzFiltroNumeroServizio));
+            changed = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_contabilitaSmzFiltroNominativo))
+        {
+            _contabilitaSmzFiltroNominativo = string.Empty;
+            OnPropertyChanged(nameof(ContabilitaSmzFiltroNominativo));
+            changed = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_contabilitaSmzFiltroApparato))
+        {
+            _contabilitaSmzFiltroApparato = string.Empty;
+            OnPropertyChanged(nameof(ContabilitaSmzFiltroApparato));
+            changed = true;
+        }
+
+        if (changed)
+        {
+            ApplicaFiltriContabilitaSmz();
+        }
     }
 
     private void CaricaRegistroImmersioniMensile()
@@ -2503,6 +2718,7 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ContabilitaSmzTotaleOreDisplay));
         OnPropertyChanged(nameof(ContabilitaSmzTotaleImportiDisplay));
         OnPropertyChanged(nameof(ContabilitaSmzStato));
+        OnPropertyChanged(nameof(HasFiltriContabilitaSmzAttivi));
         OnPropertyChanged(nameof(ContabilitaSanitariTotalePersone));
         OnPropertyChanged(nameof(ContabilitaSanitariTotaleGiornate));
         OnPropertyChanged(nameof(ContabilitaSupportoTotalePersone));
@@ -2654,6 +2870,38 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private void SalvaLocalitaOperative()
+    {
+        try
+        {
+            _repository.UpdateLocalitaOperative(LocalitaOperativeCatalogo);
+            RicaricaCataloghiServizio(preserveSelections: true);
+            Stato = "Localita operative aggiornate.";
+            EseguiBackupLocaleSilenzioso("save-service-locations");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Localita operative", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Aggiornamento localita operative non riuscito.";
+        }
+    }
+
+    private void SalvaUnitaNavali()
+    {
+        try
+        {
+            _repository.UpdateUnitaNavali(UnitaNavaliGestioneCatalogo);
+            RicaricaCataloghiServizio(preserveSelections: true);
+            Stato = "Mezzi nautici aggiornati.";
+            EseguiBackupLocaleSilenzioso("save-service-vessels");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Mezzi nautici", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Aggiornamento mezzi nautici non riuscito.";
+        }
+    }
+
     private void SalvaTariffeContabili()
     {
         try
@@ -2684,7 +2932,6 @@ public sealed class MainWindowViewModel : ObservableObject
             }
 
             CaricaContabilitaMensile();
-            MostraTariffeContabili = false;
             RegistraSnapshotTariffeContabili();
             Stato = "Tariffe contabili aggiornate nel database.";
             EseguiBackupLocaleSilenzioso("save-accounting-rules");
@@ -2694,11 +2941,6 @@ public sealed class MainWindowViewModel : ObservableObject
             MessageBox.Show(ex.Message, "Tariffe contabili", MessageBoxButton.OK, MessageBoxImage.Warning);
             Stato = "Aggiornamento tariffe non riuscito.";
         }
-    }
-
-    private void ToggleTariffeContabili()
-    {
-        MostraTariffeContabili = !MostraTariffeContabili;
     }
 
     private void CreaBackupLocaleManuale()
@@ -2974,6 +3216,29 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private void StampaRegistroImmersioniMensile()
+    {
+        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        {
+            Stato = "Stampa registro non eseguita: seleziona mese e anno.";
+            return;
+        }
+
+        try
+        {
+            _registroImmersioniMensilePrintService.Print(
+                ContabilitaAnnoSelezionato,
+                ContabilitaMeseSelezionato.NumeroMese,
+                ContabilitaMeseSelezionato.Descrizione);
+            Stato = "Stampa registro immersioni inviata.";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Stampa registro immersioni", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Stampa registro immersioni non riuscita.";
+        }
+    }
+
     private void ApriServizioSelezionato()
     {
         if (SelectedServizioSalvato is null)
@@ -3155,6 +3420,11 @@ public sealed class MainWindowViewModel : ObservableObject
             if (!UnitaNavaliCatalogo.Any(existing => existing.UnitaNavaleId == item.UnitaNavaleId))
             {
                 UnitaNavaliCatalogo.Add(item);
+            }
+
+            if (!UnitaNavaliGestioneCatalogo.Any(existing => existing.UnitaNavaleId == item.UnitaNavaleId))
+            {
+                UnitaNavaliGestioneCatalogo.Add(item);
             }
 
             ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.First(existing => existing.UnitaNavaleId == item.UnitaNavaleId);
@@ -6149,22 +6419,7 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         DatabaseInitializer.EnsureDatabase();
 
-        var cataloghiServizio = _repository.GetCataloghiServizio();
-        SostituisciCollection(CategorieRegistroCatalogo, cataloghiServizio.CategorieRegistro);
-        SostituisciCollection(LocalitaOperativeCatalogo, cataloghiServizio.LocalitaOperative);
-        SostituisciCollection(ScopiImmersioneCatalogo, cataloghiServizio.ScopiImmersione);
-        SostituisciCollection(UnitaNavaliCatalogo, BuildUnitaNavaliCatalogo(cataloghiServizio.UnitaNavali));
-        SostituisciCollection(TipologieImmersioneOperativeCatalogo, cataloghiServizio.TipologieImmersione);
-        SostituisciCollection(FasceProfonditaCatalogo, cataloghiServizio.FasceProfondita);
-        SostituisciCollection(CategorieContabiliOreCatalogo, cataloghiServizio.CategorieContabiliOre);
-        SostituisciCollection(GruppiOperativiCatalogo, cataloghiServizio.GruppiOperativi);
-        SostituisciCollection(RuoliOperativiCatalogo, cataloghiServizio.RuoliOperativi);
-        SostituisciCollection(RegoleContabiliImmersioneCatalogo, cataloghiServizio.RegoleContabiliImmersione);
-
-        _servizioLocalitaSelezionata = LocalitaOperativeCatalogo.FirstOrDefault();
-        _servizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault();
-        _servizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault();
-
+        RicaricaCataloghiServizio(preserveSelections: false);
         RicaricaSuggerimentiRicerca();
         AggiornaSuggerimentiRicerca();
         CaricaElenco();
@@ -6174,13 +6429,46 @@ public sealed class MainWindowViewModel : ObservableObject
         CaricaContabilitaMensile();
         CaricaRegistroImmersioniMensile();
         AggiornaScadenziario();
-        InizializzaEditorTariffeContabili();
         InizializzaBozzaServizio(preserveSelections: false);
         NuovoServizioGiornaliero();
         IsSchedaServizioVisibile = false;
         NuovoPersonale();
-        MostraTariffeContabili = false;
         SezioneAttivaIndex = HomeSectionIndex;
+    }
+
+    private void RicaricaCataloghiServizio(bool preserveSelections)
+    {
+        var localitaId = preserveSelections ? ServizioLocalitaSelezionata?.LocalitaOperativaId : null;
+        var scopoId = preserveSelections ? ServizioScopoSelezionato?.ScopoImmersioneId : null;
+        var unitaId = preserveSelections ? ServizioUnitaNavaleSelezionata?.UnitaNavaleId : null;
+
+        var cataloghiServizio = _repository.GetCataloghiServizio();
+        SostituisciCollection(CategorieRegistroCatalogo, cataloghiServizio.CategorieRegistro);
+        SostituisciCollection(LocalitaOperativeCatalogo, cataloghiServizio.LocalitaOperative);
+        SostituisciCollection(ScopiImmersioneCatalogo, cataloghiServizio.ScopiImmersione);
+        SostituisciCollection(UnitaNavaliCatalogo, BuildUnitaNavaliCatalogo(cataloghiServizio.UnitaNavali));
+        SostituisciCollection(UnitaNavaliGestioneCatalogo, cataloghiServizio.UnitaNavali);
+        SostituisciCollection(TipologieImmersioneOperativeCatalogo, cataloghiServizio.TipologieImmersione);
+        SostituisciCollection(FasceProfonditaCatalogo, cataloghiServizio.FasceProfondita);
+        SostituisciCollection(CategorieContabiliOreCatalogo, cataloghiServizio.CategorieContabiliOre);
+        SostituisciCollection(GruppiOperativiCatalogo, cataloghiServizio.GruppiOperativi);
+        SostituisciCollection(RuoliOperativiCatalogo, cataloghiServizio.RuoliOperativi);
+        SostituisciCollection(RegoleContabiliImmersioneCatalogo, cataloghiServizio.RegoleContabiliImmersione);
+
+        _servizioLocalitaSelezionata = localitaId is null
+            ? LocalitaOperativeCatalogo.FirstOrDefault()
+            : LocalitaOperativeCatalogo.FirstOrDefault(item => item.LocalitaOperativaId == localitaId.Value) ?? LocalitaOperativeCatalogo.FirstOrDefault();
+        _servizioScopoSelezionato = scopoId is null
+            ? ScopiImmersioneCatalogo.FirstOrDefault()
+            : ScopiImmersioneCatalogo.FirstOrDefault(item => item.ScopoImmersioneId == scopoId.Value) ?? ScopiImmersioneCatalogo.FirstOrDefault();
+        _servizioUnitaNavaleSelezionata = unitaId is null
+            ? UnitaNavaliCatalogo.FirstOrDefault()
+            : UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == unitaId.Value) ?? UnitaNavaliCatalogo.FirstOrDefault();
+
+        OnPropertyChanged(nameof(ServizioLocalitaSelezionata));
+        OnPropertyChanged(nameof(ServizioScopoSelezionato));
+        OnPropertyChanged(nameof(ServizioUnitaNavaleSelezionata));
+        InizializzaEditorTariffeContabili();
     }
 
     private bool HasModifichePersonaleNonSalvate() => CapturePersonaleEditorSnapshot() != _personaleEditorSnapshot;
