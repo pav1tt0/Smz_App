@@ -11,7 +11,7 @@
 
         <Border Style="{DynamicResource CardStyle}">
             <StackPanel>
-                <TextBlock Text="Centro report"
+                <TextBlock Text="Stampe e Report"
                            FontSize="22"
                            FontWeight="SemiBold"
                            Foreground="#17313E" />

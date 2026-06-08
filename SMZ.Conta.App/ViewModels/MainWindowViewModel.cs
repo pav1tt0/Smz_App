@@ -3287,6 +3287,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         CaricaServizioGiornaliero(SelectedServizioSalvato.ServizioGiornalieroId);
+        SezioneAttivaIndex = ServicesSectionIndex;
         IsSchedaServizioVisibile = true;
     }
 
