@@ -16,6 +16,9 @@ Interventi gia' completati:
 - estratta la vista `Backup e archivio` in `BackupArchiveView`;
 - estratta la vista `Impostazioni` in `SettingsView`;
 - estratta la vista `Contabilita` in `ContabilitaView`;
+- riorganizzata la vista `Stampe e report` come `Centro report`;
+- spostata la stampa del servizio giornaliero nel `Centro report`;
+- rimossa la stampa diretta dalla scheda servizio giornaliero;
 - mantenuti invariati i binding al `MainWindowViewModel`;
 - verificata la build dopo ogni estrazione.
 
@@ -149,6 +152,8 @@ Possibili prossimi passi:
 
 - estrarre la vista `Servizio giornaliero`, con maggiore cautela perche' e' piu' grande;
 - estrarre eventualmente la vista `Scheda personale`, con cautela perche' contiene sotto-tab e molti form;
+- aggiungere report filtrabili predefiniti per personale, scadenze, contabilita, sanitari, supporti e fuori sede;
+- trasformare il dettaglio registro in una consultazione su richiesta piu' guidata;
 - individuare proprieta' e comandi legati alle impostazioni;
 - spostarli in una classe dedicata o in un servizio;
 - mantenere invariato il comportamento visibile;

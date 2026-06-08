@@ -46,6 +46,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _newServizioCommand;
     private readonly RelayCommand _saveServizioCommand;
     private readonly RelayCommand _printServizioCommand;
+    private readonly RelayCommand _printServizioSelezionatoCommand;
     private readonly RelayCommand _openServizioCommand;
     private readonly RelayCommand _openServizioFromListCommand;
     private readonly RelayCommand _closeSchedaServizioCommand;
@@ -209,6 +210,7 @@ public sealed class MainWindowViewModel : ObservableObject
         _newServizioCommand = new RelayCommand(NuovoServizioGiornaliero);
         _saveServizioCommand = new RelayCommand(SalvaServizioGiornaliero);
         _printServizioCommand = new RelayCommand(StampaServizioGiornaliero);
+        _printServizioSelezionatoCommand = new RelayCommand(StampaServizioSelezionato, () => SelectedServizioSalvato is not null);
         _openServizioCommand = new RelayCommand(ApriServizioSelezionato, () => SelectedServizioSalvato is not null);
         _openServizioFromListCommand = new RelayCommand(ApriServizioDaParametro);
         _closeSchedaServizioCommand = new RelayCommand(() => IsSchedaServizioVisibile = false);
@@ -680,6 +682,7 @@ public sealed class MainWindowViewModel : ObservableObject
             if (SetProperty(ref _selectedServizioSalvato, value))
             {
                 _openServizioCommand.RaiseCanExecuteChanged();
+                _printServizioSelezionatoCommand.RaiseCanExecuteChanged();
                 _duplicateServizioCommand.RaiseCanExecuteChanged();
                 _exportServizioPackageCommand.RaiseCanExecuteChanged();
                 _deleteServizioCommand.RaiseCanExecuteChanged();
@@ -1307,6 +1310,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand SaveServizioCommand => _saveServizioCommand;
 
     public RelayCommand PrintServizioCommand => _printServizioCommand;
+
+    public RelayCommand PrintServizioSelezionatoCommand => _printServizioSelezionatoCommand;
 
     public RelayCommand OpenServizioCommand => _openServizioCommand;
 
@@ -3218,6 +3223,28 @@ public sealed class MainWindowViewModel : ObservableObject
             var servizio = BuildServizioGiornalieroModel();
             _servizioGiornalieroPrintService.Print(servizio);
             Stato = "Stampa servizio inviata.";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Stampa servizio", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Stampa servizio non riuscita.";
+        }
+    }
+
+    private void StampaServizioSelezionato()
+    {
+        if (SelectedServizioSalvato is null)
+        {
+            Stato = "Stampa servizio non eseguita: seleziona un servizio.";
+            return;
+        }
+
+        try
+        {
+            var servizio = _repository.GetServizioGiornalieroById(SelectedServizioSalvato.ServizioGiornalieroId)
+                ?? throw new InvalidOperationException("Servizio selezionato non trovato.");
+            _servizioGiornalieroPrintService.Print(servizio);
+            Stato = $"Stampa servizio del {servizio.DataServizio:dd/MM/yyyy} inviata.";
         }
         catch (Exception ex)
         {

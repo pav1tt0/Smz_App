@@ -1120,9 +1120,6 @@
                                                 Style="{StaticResource SecondaryButtonStyle}" />
                                         <Button Content="Salva"
                                                 Command="{Binding SaveServizioCommand}" />
-                                        <Button Content="Stampa"
-                                                Command="{Binding PrintServizioCommand}"
-                                                Style="{StaticResource SecondaryButtonStyle}" />
                                     </WrapPanel>
 
                                     <StackPanel>
