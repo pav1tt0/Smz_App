@@ -15,6 +15,7 @@ Interventi gia' completati:
 - estratta la vista `Stampe e report` in `ReportsView`;
 - estratta la vista `Backup e archivio` in `BackupArchiveView`;
 - estratta la vista `Impostazioni` in `SettingsView`;
+- estratta la vista `Contabilita` in `ContabilitaView`;
 - mantenuti invariati i binding al `MainWindowViewModel`;
 - verificata la build dopo ogni estrazione.
 
@@ -146,8 +147,8 @@ Proseguire con una nuova estrazione XAML oppure iniziare una separazione prudent
 
 Possibili prossimi passi:
 
-- estrarre la vista `Contabilita`;
 - estrarre la vista `Servizio giornaliero`, con maggiore cautela perche' e' piu' grande;
+- estrarre eventualmente la vista `Scheda personale`, con cautela perche' contiene sotto-tab e molti form;
 - individuare proprieta' e comandi legati alle impostazioni;
 - spostarli in una classe dedicata o in un servizio;
 - mantenere invariato il comportamento visibile;
