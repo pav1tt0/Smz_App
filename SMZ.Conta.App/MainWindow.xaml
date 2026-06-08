@@ -1120,6 +1120,10 @@
                                                 Style="{StaticResource SecondaryButtonStyle}" />
                                         <Button Content="Salva"
                                                 Command="{Binding SaveServizioCommand}" />
+                                        <Button Content="Stampa servizio"
+                                                Command="{Binding PrintServizioCommand}"
+                                                Visibility="{Binding IsServizioApertoDaReport, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                Style="{StaticResource SecondaryButtonStyle}" />
                                     </WrapPanel>
 
                                     <StackPanel>

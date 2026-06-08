@@ -101,6 +101,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _isSearchSuggestionsOpen;
     private bool _isSchedaPersonaleVisibile;
     private bool _isSchedaServizioVisibile;
+    private bool _isServizioApertoDaReport;
     private AbilitazioneFilterOptionViewModel? _filtroAbilitazione;
     private string _filtroVisiteEntro = string.Empty;
     private int _sezioneAttivaIndex;
@@ -213,7 +214,7 @@ public sealed class MainWindowViewModel : ObservableObject
         _printServizioSelezionatoCommand = new RelayCommand(StampaServizioSelezionato, () => SelectedServizioSalvato is not null);
         _openServizioCommand = new RelayCommand(ApriServizioSelezionato, () => SelectedServizioSalvato is not null);
         _openServizioFromListCommand = new RelayCommand(ApriServizioDaParametro);
-        _closeSchedaServizioCommand = new RelayCommand(() => IsSchedaServizioVisibile = false);
+        _closeSchedaServizioCommand = new RelayCommand(ChiudiSchedaServizio);
         _duplicateServizioCommand = new RelayCommand(DuplicaServizioSelezionato, () => SelectedServizioSalvato is not null);
         _clearServiziSearchCommand = new RelayCommand(PulisciRicercaServizi);
         _exportServizioPackageCommand = new RelayCommand(EsportaPacchettoServizioSelezionato, () => SelectedServizioSalvato is not null);
@@ -1454,6 +1455,12 @@ public sealed class MainWindowViewModel : ObservableObject
                 OnPropertyChanged(nameof(IsElencoServiziVisibile));
             }
         }
+    }
+
+    public bool IsServizioApertoDaReport
+    {
+        get => _isServizioApertoDaReport;
+        set => SetProperty(ref _isServizioApertoDaReport, value);
     }
 
     public bool IsElencoServiziVisibile => !IsSchedaServizioVisibile;
@@ -3204,6 +3211,7 @@ public sealed class MainWindowViewModel : ObservableObject
             AggiornaDatiMensili();
             RegistraSnapshotServizio();
             IsSchedaServizioVisibile = false;
+            IsServizioApertoDaReport = false;
             Stato = isNuovoServizio
                 ? $"Servizio giornaliero salvato con ID {servizioGiornalieroId}."
                 : $"Servizio giornaliero #{servizioGiornalieroId} aggiornato.";
@@ -3288,6 +3296,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
         CaricaServizioGiornaliero(SelectedServizioSalvato.ServizioGiornalieroId);
         SezioneAttivaIndex = ServicesSectionIndex;
+        IsServizioApertoDaReport = true;
         IsSchedaServizioVisibile = true;
     }
 
@@ -3300,7 +3309,14 @@ public sealed class MainWindowViewModel : ObservableObject
 
         SelectedServizioSalvato = servizio;
         CaricaServizioGiornaliero(servizio.ServizioGiornalieroId);
+        IsServizioApertoDaReport = false;
         IsSchedaServizioVisibile = true;
+    }
+
+    private void ChiudiSchedaServizio()
+    {
+        IsSchedaServizioVisibile = false;
+        IsServizioApertoDaReport = false;
     }
 
     private void DuplicaServizioSelezionato()
@@ -3315,6 +3331,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
         _servizioGiornalieroId = 0;
         SelectedServizioSalvato = null;
+        IsServizioApertoDaReport = false;
         ServizioData = DateTime.Today.ToString("dd/MM/yyyy");
         ServizioNumeroOrdine = string.Empty;
         ServizioOrarioDerogaAttiva = false;
@@ -3686,6 +3703,7 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         _servizioGiornalieroId = 0;
         SelectedServizioSalvato = null;
+        IsServizioApertoDaReport = false;
         ServizioData = DateTime.Today.ToString("dd/MM/yyyy");
         ServizioNumeroOrdine = string.Empty;
         ServizioOrario = string.Empty;
