@@ -3500,6 +3500,11 @@
                                             Content="Stampa registro"
                                             Command="{Binding PrintRegistroImmersioniMensileCommand}"
                                             Style="{StaticResource SecondaryButtonStyle}" />
+
+                                    <Button Margin="8,20,0,0"
+                                            Content="Stampa compatta"
+                                            Command="{Binding PrintRegistroImmersioniMensileCompattoCommand}"
+                                            Style="{StaticResource SecondaryButtonStyle}" />
                                 </StackPanel>
                             </Grid>
                         </Border>

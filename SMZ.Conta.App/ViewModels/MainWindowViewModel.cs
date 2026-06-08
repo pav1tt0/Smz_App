@@ -66,6 +66,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _reloadContabilitaCommand;
     private readonly RelayCommand _reloadRegistroImmersioniCommand;
     private readonly RelayCommand _printRegistroImmersioniMensileCommand;
+    private readonly RelayCommand _printRegistroImmersioniMensileCompattoCommand;
     private readonly RelayCommand _saveElaborazioneMensileCommand;
     private readonly RelayCommand _exportContabilitaCsvCommand;
     private readonly RelayCommand _clearContabilitaSmzFiltersCommand;
@@ -248,7 +249,8 @@ public sealed class MainWindowViewModel : ObservableObject
         _reloadServizioPersonaleCommand = new RelayCommand(() => InizializzaBozzaServizio(preserveSelections: true));
         _reloadContabilitaCommand = new RelayCommand(CaricaContabilitaMensile);
         _reloadRegistroImmersioniCommand = new RelayCommand(CaricaRegistroImmersioniMensile);
-        _printRegistroImmersioniMensileCommand = new RelayCommand(StampaRegistroImmersioniMensile);
+        _printRegistroImmersioniMensileCommand = new RelayCommand(() => StampaRegistroImmersioniMensile(RegistroImmersioniMensilePrintLayout.Normale));
+        _printRegistroImmersioniMensileCompattoCommand = new RelayCommand(() => StampaRegistroImmersioniMensile(RegistroImmersioniMensilePrintLayout.Compatto));
         _saveElaborazioneMensileCommand = new RelayCommand(SalvaElaborazioneMensile);
         _exportContabilitaCsvCommand = new RelayCommand(EsportaContabilitaCsv);
         _clearContabilitaSmzFiltersCommand = new RelayCommand(PulisciFiltriContabilitaSmz);
@@ -1369,6 +1371,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public RelayCommand ReloadRegistroImmersioniCommand => _reloadRegistroImmersioniCommand;
 
     public RelayCommand PrintRegistroImmersioniMensileCommand => _printRegistroImmersioniMensileCommand;
+
+    public RelayCommand PrintRegistroImmersioniMensileCompattoCommand => _printRegistroImmersioniMensileCompattoCommand;
 
     public RelayCommand SaveElaborazioneMensileCommand => _saveElaborazioneMensileCommand;
 
@@ -3222,7 +3226,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void StampaRegistroImmersioniMensile()
+    private void StampaRegistroImmersioniMensile(RegistroImmersioniMensilePrintLayout layout)
     {
         if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
         {
@@ -3235,8 +3239,11 @@ public sealed class MainWindowViewModel : ObservableObject
             _registroImmersioniMensilePrintService.Print(
                 ContabilitaAnnoSelezionato,
                 ContabilitaMeseSelezionato.NumeroMese,
-                ContabilitaMeseSelezionato.Descrizione);
-            Stato = "Stampa registro immersioni inviata.";
+                ContabilitaMeseSelezionato.Descrizione,
+                layout);
+            Stato = layout == RegistroImmersioniMensilePrintLayout.Compatto
+                ? "Stampa registro immersioni compatta inviata."
+                : "Stampa registro immersioni inviata.";
         }
         catch (Exception ex)
         {

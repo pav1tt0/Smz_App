@@ -9,6 +9,12 @@ using SMZ.Conta.App.Models;
 
 namespace SMZ.Conta.App.Printing;
 
+public enum RegistroImmersioniMensilePrintLayout
+{
+    Normale,
+    Compatto,
+}
+
 public sealed class RegistroImmersioniMensilePrintService
 {
     private const double TableLineThickness = 0.8;
@@ -19,7 +25,11 @@ public sealed class RegistroImmersioniMensilePrintService
         _repository = repository;
     }
 
-    public void Print(int anno, int mese, string meseDescrizione)
+    public void Print(
+        int anno,
+        int mese,
+        string meseDescrizione,
+        RegistroImmersioniMensilePrintLayout layout = RegistroImmersioniMensilePrintLayout.Normale)
     {
         var righe = _repository.GetRegistroImmersioniMensile(anno, mese);
         var servizi = righe
@@ -41,10 +51,11 @@ public sealed class RegistroImmersioniMensilePrintService
             return;
         }
 
-        var document = BuildDocument(anno, meseDescrizione, servizi, righe);
+        var document = BuildDocument(anno, meseDescrizione, servizi, righe, layout);
+        var pagePadding = GetPagePadding(layout);
         document.PageWidth = dialog.PrintableAreaWidth;
         document.PageHeight = dialog.PrintableAreaHeight;
-        document.PagePadding = new Thickness(36);
+        document.PagePadding = pagePadding;
         document.ColumnWidth = document.PageWidth - document.PagePadding.Left - document.PagePadding.Right;
 
         dialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, $"Registro immersioni {meseDescrizione} {anno}");
@@ -54,15 +65,16 @@ public sealed class RegistroImmersioniMensilePrintService
         int anno,
         string meseDescrizione,
         IReadOnlyList<ServizioGiornaliero> servizi,
-        IReadOnlyList<RegistroImmersioneRiga> righe)
+        IReadOnlyList<RegistroImmersioneRiga> righe,
+        RegistroImmersioniMensilePrintLayout layout)
     {
         var cataloghi = _repository.GetCataloghiServizio();
         var persone = GetPersone(servizi);
         var document = new FlowDocument
         {
             FontFamily = new FontFamily("Calibri"),
-            FontSize = 8.5,
-            PagePadding = new Thickness(36),
+            FontSize = GetFontSize(layout),
+            PagePadding = GetPagePadding(layout),
         };
 
         AddCoverPage(document, anno, meseDescrizione);
@@ -91,6 +103,14 @@ public sealed class RegistroImmersioniMensilePrintService
 
         return document;
     }
+
+    private static double GetFontSize(RegistroImmersioniMensilePrintLayout layout) =>
+        layout == RegistroImmersioniMensilePrintLayout.Compatto ? 7.4 : 8.5;
+
+    private static Thickness GetPagePadding(RegistroImmersioniMensilePrintLayout layout) =>
+        layout == RegistroImmersioniMensilePrintLayout.Compatto
+            ? new Thickness(22, 20, 22, 20)
+            : new Thickness(36);
 
     private static void AddCoverPage(FlowDocument document, int anno, string meseDescrizione)
     {
@@ -200,8 +220,8 @@ public sealed class RegistroImmersioniMensilePrintService
         IReadOnlyDictionary<int, Personale> persone,
         CataloghiServizioSnapshot cataloghi)
     {
-        var table = CreateTable(95, 215, 70, 140, 75, 75);
-        AddHeaderRow(table, "QUAL.", "COGNOME E NOME", "PRESENZA", "TIPOLOGIA", "PROF. Mt.", "ORE IMM.");
+        var table = CreateTable(95, 255, 165, 75, 75);
+        AddHeaderRow(table, "QUAL.", "COGNOME E NOME", "TIPOLOGIA", "PROF. Mt.", "ORE IMM.");
 
         var righe = servizio.Partecipanti
             .Where(item => item.Presente)
@@ -210,13 +230,13 @@ public sealed class RegistroImmersioniMensilePrintService
 
         if (righe.Count == 0)
         {
-            AddRow(table, string.Empty, "Nessun personale SMZ presente", string.Empty, string.Empty, string.Empty, string.Empty);
+            AddRow(table, string.Empty, "Nessun personale SMZ presente", string.Empty, string.Empty, string.Empty);
             return table;
         }
 
         foreach (var row in righe)
         {
-            AddRow(table, row.Qualifica, row.Nominativo, row.Presenza, row.Tipologia, row.Profondita, row.Ore);
+            AddRow(table, row.Qualifica, row.Nominativo, row.Tipologia, row.Profondita, row.Ore);
         }
 
         return table;
@@ -244,7 +264,6 @@ public sealed class RegistroImmersioniMensilePrintService
             yield return new RegistroPrintPersonaleRow(
                 QualificaFormatter.AbbreviaPerVisualizzazione(persona.Qualifica),
                 persona.NominativoCompleto,
-                "X",
                 string.Empty,
                 string.Empty,
                 string.Empty);
@@ -259,7 +278,6 @@ public sealed class RegistroImmersioniMensilePrintService
             yield return new RegistroPrintPersonaleRow(
                 QualificaFormatter.AbbreviaPerVisualizzazione(persona.Qualifica),
                 persona.NominativoCompleto,
-                "X",
                 tipologia,
                 item.partecipazione.ProfonditaMetri?.ToString(CultureInfo.CurrentCulture) ?? string.Empty,
                 item.partecipazione.OreImmersione is { } ore ? ore.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty);
@@ -460,7 +478,6 @@ public sealed class RegistroImmersioniMensilePrintService
     private sealed record RegistroPrintPersonaleRow(
         string Qualifica,
         string Nominativo,
-        string Presenza,
         string Tipologia,
         string Profondita,
         string Ore);
