@@ -361,7 +361,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public string WelcomeSottotitolo =>
         "Accesso al gestionale operativo per personale, servizi giornalieri, immersioni, scadenze e contabilita.";
 
-    public string WelcomeCredits => "Sviluppato da Paolo Vittori";
+    public string WelcomeCredits => "© Nucleo SMZ La Spezia 2026 - Sviluppato da Paolo Vittori e Codex";
 
     public string WelcomeVersione => $"Versione {GetApplicationVersion()}";
 

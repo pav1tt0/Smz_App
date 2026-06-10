@@ -5,6 +5,7 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <AssemblyName>SMZ.App</AssemblyName>
     <Product>SMZ</Product>
+    <ApplicationIcon>Assets\logo_smz.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>

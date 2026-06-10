@@ -3768,9 +3768,6 @@
                                     Margin="0,0,0,10">
                             <TextBlock Text="{Binding WelcomeCredits}"
                                        Style="{StaticResource WelcomeMetaTextStyle}" />
-                            <TextBlock Margin="22,0,0,0"
-                                       Text="{Binding WelcomeVersione}"
-                                       Style="{StaticResource WelcomeMetaTextStyle}" />
                         </StackPanel>
                         </Grid>
                     </Viewbox>
