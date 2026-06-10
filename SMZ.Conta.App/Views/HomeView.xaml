@@ -1,0 +1,323 @@
+<UserControl x:Class="SMZ.Conta.App.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    <Grid Margin="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="12" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0">
+                            <TextBlock Text="MODULI PRINCIPALI"
+                                       Style="{DynamicResource HomeSectionLabelStyle}" />
+                            <TextBlock Margin="0,6,0,0"
+                                       Text="Accesso diretto alle aree usate ogni giorno dal nucleo."
+                                       FontSize="14"
+                                       Foreground="#A7C0DF" />
+                        </StackPanel>
+
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="MODULI OPERATIVI"
+                                           Style="{DynamicResource HomeSectionLabelStyle}" />
+                                <Border Margin="0,10,0,0"
+                                        Style="{DynamicResource HomeDarkPanelStyle}"
+                                        Padding="18">
+                                    <UniformGrid Columns="2"
+                                                 Rows="3">
+                                        <Button Margin="0,0,12,12"
+                                                Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="1"
+                                                Background="#F6FAFF"
+                                                BorderBrush="#5B84BD"
+                                                Foreground="#10274B"
+                                                Style="{DynamicResource HomeCardButtonStyle}">
+                                            <StackPanel>
+                                                <TextBlock Text="SERVIZIO"
+                                                           HorizontalAlignment="Center" />
+                                                <TextBlock Text="GIORNALIERO"
+                                                           Margin="0,4,0,0"
+                                                           HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button Margin="0,0,0,12"
+                                                Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="4"
+                                                Background="#F4FAFF"
+                                                BorderBrush="#3E7AA6"
+                                                Foreground="#10274B"
+                                                Style="{DynamicResource HomeCardButtonStyle}">
+                                            <TextBlock Text="CONTABILITA'"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                        </Button>
+
+                                        <Button Margin="0,0,12,12"
+                                                Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="5"
+                                                Background="#FBF8F1"
+                                                BorderBrush="#A77D3E"
+                                                Foreground="#10274B"
+                                                Style="{DynamicResource HomeCardButtonStyle}">
+                                            <StackPanel>
+                                                <TextBlock Text="STAMPE"
+                                                           HorizontalAlignment="Center" />
+                                                <TextBlock Text="E REPORT"
+                                                           Margin="0,4,0,0"
+                                                           HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button Margin="0,0,12,0"
+                                                Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="2"
+                                                Background="#F8FBFD"
+                                                BorderBrush="#7A94AC"
+                                                Foreground="#10274B"
+                                                Style="{DynamicResource HomeCardButtonStyle}">
+                                            <StackPanel>
+                                                <TextBlock Text="ANAGRAFICA"
+                                                           HorizontalAlignment="Center" />
+                                                <TextBlock Text="PERSONALE"
+                                                           Margin="0,4,0,0"
+                                                           HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="3"
+                                                Background="#F7FBF8"
+                                                BorderBrush="#6F8F77"
+                                                Foreground="#10274B"
+                                                Style="{DynamicResource HomeCardButtonStyle}">
+                                            <StackPanel>
+                                                <TextBlock Text="BACKUP E"
+                                                           HorizontalAlignment="Center" />
+                                                <TextBlock Text="ARCHIVIO"
+                                                           Margin="0,4,0,0"
+                                                           HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button Command="{Binding NavigateSectionCommand}"
+                                                CommandParameter="6"
+                                                Background="#F8FBFD"
+                                                BorderBrush="#7A94AC"
+                                                Foreground="#10274B"
+                                                Style="{DynamicResource HomeCardButtonStyle}">
+                                            <StackPanel>
+                                                <TextBlock Text="IMPOSTAZIONI"
+                                                           HorizontalAlignment="Center" />
+                                                <TextBlock Text="OPERATIVE"
+                                                           Margin="0,4,0,0"
+                                                           HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                    </UniformGrid>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="DASHBOARD OPERATIVA"
+                                           Style="{DynamicResource HomeSectionLabelStyle}" />
+                                <Border Margin="0,10,0,0"
+                                        Style="{DynamicResource HomeDarkPanelStyle}"
+                                        Padding="18">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="14" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="16" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding DashboardStatoSintesi}"
+                                                       FontSize="18"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#D7E5F7"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock Margin="0,6,0,0"
+                                                       Text="{Binding DashboardScadenzeSintesi}"
+                                                       Foreground="#7FA8DA"
+                                                       TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                        <Grid Grid.Row="2"
+                                              HorizontalAlignment="Stretch">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="10" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Background="#FFF7F6"
+                                                    BorderBrush="#A64A4A"
+                                                    BorderThickness="1"
+                                                    CornerRadius="10"
+                                                    Padding="14,12"
+                                                    MinHeight="76">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock Text="{Binding DashboardVisiteScadutePersonale}"
+                                                               FontSize="30"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#C84848"
+                                                               HorizontalAlignment="Center" />
+                                                    <TextBlock Grid.Row="1"
+                                                               Margin="0,4,0,0"
+                                                               Text="VISITE SCADUTE"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#6D3030"
+                                                               TextAlignment="Center"
+                                                               HorizontalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+
+                                            <Border Grid.Column="2"
+                                                    Background="#FFF9EA"
+                                                    BorderBrush="#B17A26"
+                                                    BorderThickness="1"
+                                                    CornerRadius="10"
+                                                    Padding="14,12"
+                                                    MinHeight="76">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock Text="{Binding DashboardVisiteInScadenzaPersonale}"
+                                                               FontSize="30"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#B17A26"
+                                                               HorizontalAlignment="Center" />
+                                                    <TextBlock Grid.Row="1"
+                                                               Margin="0,4,0,0"
+                                                               Text="IN SCADENZA"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#6C4B13"
+                                                               TextAlignment="Center"
+                                                               HorizontalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+
+                                        <StackPanel Grid.Row="4">
+                                            <TextBlock Text="PERSONALE CON CRITICITA'"
+                                                       FontSize="12"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#7FA8DA" />
+                                            <ItemsControl Margin="0,10,0,0"
+                                                          ItemsSource="{Binding DashboardCriticitaItems}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Button Margin="0,0,0,8"
+                                                                Padding="0"
+                                                                BorderThickness="0"
+                                                                Background="Transparent"
+                                                                Cursor="Hand"
+                                                                Command="{Binding DataContext.OpenScadenzaCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                CommandParameter="{Binding}">
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}">
+                                                                        <ContentPresenter />
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                            <Border Height="70"
+                                                                    Background="#12284C"
+                                                                    BorderBrush="#24406B"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="10"
+                                                                    Padding="12,8">
+                                                                <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="1.2*" />
+                                                                    <ColumnDefinition Width="14" />
+                                                                    <ColumnDefinition Width="1*" />
+                                                                    <ColumnDefinition Width="14" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <TextBlock Grid.Column="0"
+                                                                           Text="{Binding Nominativo}"
+                                                                           Foreground="#E4EEF9"
+                                                                           FontSize="15"
+                                                                           FontWeight="SemiBold"
+                                                                           VerticalAlignment="Center"
+                                                                           TextTrimming="CharacterEllipsis" />
+
+                                                                <StackPanel Grid.Column="2"
+                                                                            VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding Titolo}"
+                                                                               Foreground="#D7E5F7"
+                                                                               FontSize="12"
+                                                                               FontWeight="SemiBold"
+                                                                               TextAlignment="Right"
+                                                                               TextWrapping="Wrap" />
+                                                                    <TextBlock Margin="0,3,0,0"
+                                                                               Text="{Binding CriticitaDataText}"
+                                                                               Foreground="#BFD2EA"
+                                                                               FontSize="12"
+                                                                               TextAlignment="Right"
+                                                                               TextWrapping="Wrap" />
+                                                                </StackPanel>
+
+                                                                <Border Grid.Column="4"
+                                                                        Padding="12,6"
+                                                                        CornerRadius="6"
+                                                                        VerticalAlignment="Center">
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Setter Property="Background" Value="#D1A344" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsExpired}" Value="True">
+                                                                                    <Setter Property="Background" Value="#B94141" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <TextBlock Text="{Binding CriticitaBadgeText}"
+                                                                               FontSize="11"
+                                                                               FontWeight="SemiBold">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Foreground" Value="#5B430F" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsExpired}" Value="True">
+                                                                                        <Setter Property="Foreground" Value="#FFF7F3" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </Border>
+                                                                </Grid>
+                                                            </Border>
+                                                        </Button>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                    </Grid>
+</UserControl>
