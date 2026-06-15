@@ -10,6 +10,8 @@ public sealed class ServizioPartecipanteImmersioneDraftViewModel : ObservableObj
     private string _qualifica = string.Empty;
     private DateOnly? _dataDecorrenzaQualifica;
     private string _nominativo = string.Empty;
+    private bool _isEsterno;
+    private string _reparto = string.Empty;
     private bool _inImmersione;
     private TipologiaImmersioneOperativa? _tipologiaImmersioneOperativa;
     private string _profonditaMetri = string.Empty;
@@ -56,6 +58,24 @@ public sealed class ServizioPartecipanteImmersioneDraftViewModel : ObservableObj
         set
         {
             if (SetProperty(ref _nominativo, value))
+            {
+                OnPropertyChanged(nameof(NominativoConQualifica));
+            }
+        }
+    }
+
+    public bool IsEsterno
+    {
+        get => _isEsterno;
+        set => SetProperty(ref _isEsterno, value);
+    }
+
+    public string Reparto
+    {
+        get => _reparto;
+        set
+        {
+            if (SetProperty(ref _reparto, value))
             {
                 OnPropertyChanged(nameof(NominativoConQualifica));
             }
@@ -133,7 +153,10 @@ public sealed class ServizioPartecipanteImmersioneDraftViewModel : ObservableObj
         get
         {
             var qualifica = QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
-            return string.IsNullOrWhiteSpace(qualifica) ? Nominativo : $"{qualifica} - {Nominativo}";
+            var nominativo = IsEsterno && !string.IsNullOrWhiteSpace(Reparto)
+                ? $"{Nominativo} ({Reparto})"
+                : Nominativo;
+            return string.IsNullOrWhiteSpace(qualifica) ? nominativo : $"{qualifica} - {nominativo}";
         }
     }
 

@@ -424,24 +424,354 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Contabilita mensile">
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="18" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border Style="{DynamicResource CardStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.4*" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel>
+                                <TextBlock Text="{Binding ContabilitaPeriodoTitolo}"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+                                <TextBlock Margin="0,8,0,0"
+                                           Text="{Binding ContabilitaStato}"
+                                           Foreground="#53646A"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Text="{Binding ElaborazioneMensileStato}"
+                                           Foreground="#6A7B80"
+                                           FontSize="12"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Center">
+                                <StackPanel Width="170">
+                                    <TextBlock Text="Mese"
+                                               Foreground="#50626A" />
+                                    <ComboBox ItemsSource="{Binding ContabilitaMesiDisponibili}"
+                                              SelectedItem="{Binding ContabilitaMeseSelezionato}"
+                                              DisplayMemberPath="Descrizione" />
+                                </StackPanel>
+
+                                <StackPanel Width="110"
+                                            Margin="12,0,0,0">
+                                    <TextBlock Text="Anno"
+                                               Foreground="#50626A" />
+                                    <ComboBox ItemsSource="{Binding ContabilitaAnniDisponibili}"
+                                              SelectedItem="{Binding ContabilitaAnnoSelezionato, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+
+                                <Button Margin="12,20,0,0"
+                                        Content="Aggiorna"
+                                        Command="{Binding ReloadContabilitaCommand}" />
+
+                                <Button Margin="12,20,0,0"
+                                        Content="Esporta Excel"
+                                        Command="{Binding ExportContabilitaExcelCommand}"
+                                        Style="{DynamicResource SecondaryButtonStyle}" />
+
+                                <Button Margin="8,20,0,0"
+                                        Content="Esporta CSV"
+                                        Command="{Binding ExportContabilitaCsvCommand}"
+                                        Style="{DynamicResource SecondaryButtonStyle}" />
+
+                                <Button Margin="8,20,0,0"
+                                        Content="Stampa"
+                                        Command="{Binding PrintContabilitaMensileCommand}"
+                                        Style="{DynamicResource SecondaryButtonStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="2"
+                            Style="{DynamicResource CardStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="14" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel>
+                                <TextBlock Text="Riepilogo esportazione"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+                                <TextBlock Margin="0,8,0,0"
+                                           Text="{Binding ContabilitaSmzStato}"
+                                           Foreground="#53646A"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <DataGrid Grid.Row="2"
+                                      ItemsSource="{Binding ContabilitaSmzItems}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      RowHeaderWidth="0"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Data"
+                                                        Width="90"
+                                                        Binding="{Binding DataServizioDescrizione}" />
+                                    <DataGridTextColumn Header="Ordine"
+                                                        Width="105"
+                                                        Binding="{Binding NumeroOrdineServizio}" />
+                                    <DataGridTextColumn Header="PerID"
+                                                        Width="65"
+                                                        Binding="{Binding PerId}" />
+                                    <DataGridTextColumn Header="Qual."
+                                                        Width="85"
+                                                        Binding="{Binding QualificaDisplay}" />
+                                    <DataGridTextColumn Header="Cognome e nome"
+                                                        Width="210"
+                                                        Binding="{Binding Nominativo}" />
+                                    <DataGridTextColumn Header="Appar."
+                                                        Width="80"
+                                                        Binding="{Binding Apparato}" />
+                                    <DataGridTextColumn Header="Prof."
+                                                        Width="75"
+                                                        Binding="{Binding FasciaProfondita}" />
+                                    <DataGridTextColumn Header="ORE ORD"
+                                                        Width="75"
+                                                        Binding="{Binding OreOrdDisplay}" />
+                                    <DataGridTextColumn Header="ORE ADD"
+                                                        Width="75"
+                                                        Binding="{Binding OreAddDisplay}" />
+                                    <DataGridTextColumn Header="ORE SPER"
+                                                        Width="80"
+                                                        Binding="{Binding OreSperDisplay}" />
+                                    <DataGridTextColumn Header="ORE C.I."
+                                                        Width="75"
+                                                        Binding="{Binding OreCiDisplay}" />
+                                    <DataGridTextColumn Header="Importo"
+                                                        Width="85"
+                                                        Binding="{Binding ImportoDisplay}" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Altri report">
-                <Border Margin="8"
-                        Style="{DynamicResource CardStyle}">
-                    <StackPanel>
-                        <TextBlock Text="Report futuri"
-                                   FontSize="20"
-                                   FontWeight="SemiBold"
-                                   Foreground="#17313E" />
-                        <TextBlock Margin="0,10,0,0"
-                                   Text="Questa area e' pronta per report filtrabili su personale, scadenze, contabilita, sanitari, supporti e fuori sede."
-                                   Foreground="#53646A"
-                                   TextWrapping="Wrap" />
-                        <TextBlock Margin="0,14,0,0"
-                                   Text="La scelta consigliata e aggiungere report predefiniti e filtrabili, evitando per ora un generatore completamente libero di colonne e filtri."
-                                   Foreground="#6A7B80"
-                                   TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
+                <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="18" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="18" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border Style="{DynamicResource CardStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.4*" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel>
+                                <TextBlock Text="{Binding ReportPersonalePeriodoTitolo}"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+                                <TextBlock Margin="0,8,0,0"
+                                           Text="{Binding ReportPersonaleStato}"
+                                           Foreground="#53646A"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Text="Elenco mensile del personale impiegato: righe immersione, servizi senza immersione e supporti occasionali."
+                                           Foreground="#6A7B80"
+                                           FontSize="12"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Center">
+                                <StackPanel Width="170">
+                                    <TextBlock Text="Mese"
+                                               Foreground="#50626A" />
+                                    <ComboBox ItemsSource="{Binding ContabilitaMesiDisponibili}"
+                                              SelectedItem="{Binding ContabilitaMeseSelezionato}"
+                                              DisplayMemberPath="Descrizione" />
+                                </StackPanel>
+
+                                <StackPanel Width="110"
+                                            Margin="12,0,0,0">
+                                    <TextBlock Text="Anno"
+                                               Foreground="#50626A" />
+                                    <ComboBox ItemsSource="{Binding ContabilitaAnniDisponibili}"
+                                              SelectedItem="{Binding ContabilitaAnnoSelezionato, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+
+                                <StackPanel Width="220"
+                                            Margin="12,0,0,0">
+                                    <TextBlock Text="Nominativo / PerID"
+                                               Foreground="#50626A" />
+                                    <TextBox Text="{Binding ReportPersonaleFiltroNominativo, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+
+                                <Button Margin="12,20,0,0"
+                                        Content="Aggiorna"
+                                        Command="{Binding ReloadReportPersonaleCommand}" />
+
+                                <Button Margin="8,20,0,0"
+                                        Content="Pulisci"
+                                        Command="{Binding ClearReportPersonaleFiltersCommand}"
+                                        Style="{DynamicResource SecondaryButtonStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <UniformGrid Grid.Row="2"
+                                 Columns="4">
+                        <Border Margin="0,0,12,0"
+                                Background="#F4F8FB"
+                                CornerRadius="16"
+                                Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="Righe"
+                                           Foreground="#6A7B80" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Text="{Binding ReportPersonaleTotaleRighe}"
+                                           FontSize="24"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Margin="0,0,12,0"
+                                Background="#F4F8FB"
+                                CornerRadius="16"
+                                Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="Persone"
+                                           Foreground="#6A7B80" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Text="{Binding ReportPersonaleTotalePersone}"
+                                           FontSize="24"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Margin="0,0,12,0"
+                                Background="#F4F8FB"
+                                CornerRadius="16"
+                                Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="Immersioni"
+                                           Foreground="#6A7B80" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Text="{Binding ReportPersonaleTotaleImmersioni}"
+                                           FontSize="24"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#F4F8FB"
+                                CornerRadius="16"
+                                Padding="14">
+                            <StackPanel>
+                                <TextBlock Text="Ore immersione"
+                                           Foreground="#6A7B80" />
+                                <TextBlock Margin="0,6,0,0"
+                                           Text="{Binding ReportPersonaleTotaleOreDisplay}"
+                                           FontSize="24"
+                                           FontWeight="SemiBold"
+                                           Foreground="#17313E" />
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <Border Grid.Row="4"
+                            Style="{DynamicResource CardStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="14" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="Dettaglio personale"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Foreground="#17313E" />
+
+                            <DataGrid Grid.Row="2"
+                                      ItemsSource="{Binding ReportPersonaleItems}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      RowHeaderWidth="0"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Data"
+                                                        Width="85"
+                                                        Binding="{Binding DataServizioDescrizione}" />
+                                    <DataGridTextColumn Header="Ordine"
+                                                        Width="95"
+                                                        Binding="{Binding NumeroOrdineServizio}" />
+                                    <DataGridTextColumn Header="PerID"
+                                                        Width="65"
+                                                        Binding="{Binding PerIdDisplay}" />
+                                    <DataGridTextColumn Header="Qual."
+                                                        Width="80"
+                                                        Binding="{Binding QualificaDisplay}" />
+                                    <DataGridTextColumn Header="Nominativo"
+                                                        Width="190"
+                                                        Binding="{Binding Nominativo}" />
+                                    <DataGridTextColumn Header="Tipo"
+                                                        Width="90"
+                                                        Binding="{Binding TipoRiga}" />
+                                    <DataGridTextColumn Header="Gruppo / ruolo"
+                                                        Width="180"
+                                                        Binding="{Binding GruppoRuolo}" />
+                                    <DataGridTextColumn Header="Localita"
+                                                        Width="150"
+                                                        Binding="{Binding Localita}" />
+                                    <DataGridTextColumn Header="Scopo"
+                                                        Width="220"
+                                                        Binding="{Binding ScopoImmersione}" />
+                                    <DataGridTextColumn Header="Imm."
+                                                        Width="55"
+                                                        Binding="{Binding NumeroImmersioneDisplay}" />
+                                    <DataGridTextColumn Header="App."
+                                                        Width="80"
+                                                        Binding="{Binding Apparato}" />
+                                    <DataGridTextColumn Header="Prof."
+                                                        Width="70"
+                                                        Binding="{Binding ProfonditaDisplay}" />
+                                    <DataGridTextColumn Header="Ore"
+                                                        Width="60"
+                                                        Binding="{Binding OreImmersioneDisplay}" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
             </TabItem>
         </TabControl>
     </Grid>

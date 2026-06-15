@@ -76,7 +76,7 @@
                                             </StackPanel>
                                         </Button>
 
-                                        <Button Margin="0,0,12,0"
+                                        <Button Margin="0,0,0,12"
                                                 Command="{Binding NavigateSectionCommand}"
                                                 CommandParameter="2"
                                                 Background="#F8FBFD"
@@ -92,7 +92,8 @@
                                             </StackPanel>
                                         </Button>
 
-                                        <Button Command="{Binding NavigateSectionCommand}"
+                                        <Button Margin="0,0,12,0"
+                                                Command="{Binding NavigateSectionCommand}"
                                                 CommandParameter="3"
                                                 Background="#F7FBF8"
                                                 BorderBrush="#6F8F77"

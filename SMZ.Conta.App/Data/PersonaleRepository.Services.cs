@@ -33,6 +33,10 @@ public sealed partial class PersonaleRepository
                        WHERE sp.ServizioGiornalieroId = s.ServizioGiornalieroId
                    ) + (
                        SELECT COUNT(1)
+                       FROM ServizioOperatoriSubEsterni soe
+                       WHERE soe.ServizioGiornalieroId = s.ServizioGiornalieroId
+                   ) + (
+                       SELECT COUNT(1)
                        FROM ServizioSupportiOccasionali so
                        WHERE so.ServizioGiornalieroId = s.ServizioGiornalieroId
                    ) AS PartecipantiTotali,
@@ -41,6 +45,10 @@ public sealed partial class PersonaleRepository
                        FROM ServizioPartecipanti sp
                        WHERE sp.ServizioGiornalieroId = s.ServizioGiornalieroId
                          AND sp.Presente = 1
+                   ) + (
+                       SELECT COUNT(1)
+                       FROM ServizioOperatoriSubEsterni soe
+                       WHERE soe.ServizioGiornalieroId = s.ServizioGiornalieroId
                    ) + (
                        SELECT COUNT(1)
                        FROM ServizioSupportiOccasionali so

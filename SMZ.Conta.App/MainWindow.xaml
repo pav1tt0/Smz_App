@@ -196,8 +196,8 @@
             <Setter Property="Background" Value="#FFFFFF"/>
             <Setter Property="BorderBrush" Value="#C7D5E2"/>
             <Setter Property="Foreground" Value="#0F2E47"/>
-            <Setter Property="MinWidth" Value="240"/>
-            <Setter Property="MinHeight" Value="128"/>
+            <Setter Property="MinWidth" Value="200"/>
+            <Setter Property="MinHeight" Value="126"/>
             <Setter Property="Padding" Value="22,18"/>
             <Setter Property="Margin" Value="0"/>
             <Setter Property="FontSize" Value="18"/>

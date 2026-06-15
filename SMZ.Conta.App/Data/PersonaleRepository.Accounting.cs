@@ -27,6 +27,43 @@ public sealed partial class PersonaleRepository
         return GetRegistroImmersioniMensile(connection, dataInizio, dataFine);
     }
 
+    public List<ReportPersonaleMensileRiga> GetReportPersonaleMensile(int anno, int mese)
+    {
+        using var connection = OpenConnection();
+        var dataInizio = new DateOnly(anno, mese, 1);
+        var dataFine = dataInizio.AddMonths(1).AddDays(-1);
+
+        var righe = GetRegistroImmersioniMensile(connection, dataInizio, dataFine)
+            .Select(item => new ReportPersonaleMensileRiga
+            {
+                ServizioGiornalieroId = item.ServizioGiornalieroId,
+                DataServizio = item.DataServizio,
+                NumeroOrdineServizio = item.NumeroOrdineServizio,
+                PerId = item.PerId,
+                Qualifica = item.Qualifica,
+                Nominativo = item.Nominativo,
+                TipoRiga = "Immersione",
+                Localita = item.Localita,
+                ScopoImmersione = item.ScopoImmersione,
+                NumeroImmersione = item.NumeroImmersione,
+                Apparato = item.Apparato,
+                ProfonditaMetri = item.ProfonditaMetri,
+                OreImmersione = item.OreImmersione,
+            })
+            .ToList();
+
+        righe.AddRange(GetReportPersonaleServizi(connection, dataInizio, dataFine));
+        righe.AddRange(GetReportPersonaleSupporti(connection, dataInizio, dataFine));
+
+        return righe
+            .OrderBy(item => item.DataServizio)
+            .ThenBy(item => item.NumeroOrdineServizio)
+            .ThenBy(item => item.Nominativo)
+            .ThenBy(item => item.TipoRiga)
+            .ThenBy(item => item.NumeroImmersione ?? 0)
+            .ToList();
+    }
+
     public ElaborazioneMensileInfo? GetElaborazioneMensileInfo(int anno, int mese)
     {
         using var connection = OpenConnection();

@@ -6,12 +6,12 @@
     </UserControl.Resources>
 
     <Grid Visibility="{Binding IsWelcomeVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-        <Border Background="#F207111D"
+        <Border Background="#E807111D"
                 CornerRadius="28" />
 
         <Border Margin="12"
                 CornerRadius="30"
-                Background="#FF07111D"
+                Background="#FF102131"
                 ClipToBounds="True">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="44"
@@ -23,8 +23,8 @@
 
             <Grid>
                 <Border Background="{DynamicResource HomePhotoBrush}"
-                        Opacity="0.38" />
-                <Rectangle Fill="#BC07111D" />
+                        Opacity="0.58" />
+                <Rectangle Fill="#8A07111D" />
 
                 <Canvas IsHitTestVisible="False"
                         Opacity="0.28">
@@ -44,6 +44,122 @@
                             </DrawingBrush>
                         </Rectangle.OpacityMask>
                     </Rectangle>
+                </Canvas>
+
+                <Canvas IsHitTestVisible="False"
+                        ClipToBounds="True"
+                        Opacity="0.78">
+                    <Canvas.Triggers>
+                        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="BubbleOne"
+                                                     Storyboard.TargetProperty="(Canvas.Top)"
+                                                     From="760"
+                                                     To="-80"
+                                                     Duration="0:0:15" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BubbleOne"
+                                                                   Storyboard.TargetProperty="Opacity">
+                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:2" Value="0.54" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:12" Value="0.42" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:15" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+
+                                    <DoubleAnimation Storyboard.TargetName="BubbleTwo"
+                                                     Storyboard.TargetProperty="(Canvas.Top)"
+                                                     From="830"
+                                                     To="-70"
+                                                     BeginTime="0:0:2"
+                                                     Duration="0:0:18" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BubbleTwo"
+                                                                   Storyboard.TargetProperty="Opacity"
+                                                                   BeginTime="0:0:2">
+                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:2" Value="0.44" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:15" Value="0.34" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:18" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+
+                                    <DoubleAnimation Storyboard.TargetName="BubbleThree"
+                                                     Storyboard.TargetProperty="(Canvas.Top)"
+                                                     From="790"
+                                                     To="-60"
+                                                     BeginTime="0:0:4"
+                                                     Duration="0:0:13" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BubbleThree"
+                                                                   Storyboard.TargetProperty="Opacity"
+                                                                   BeginTime="0:0:4">
+                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="0.48" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:10" Value="0.36" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:13" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+
+                                    <DoubleAnimation Storyboard.TargetName="BubbleFour"
+                                                     Storyboard.TargetProperty="(Canvas.Top)"
+                                                     From="860"
+                                                     To="-90"
+                                                     BeginTime="0:0:6"
+                                                     Duration="0:0:20" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BubbleFour"
+                                                                   Storyboard.TargetProperty="Opacity"
+                                                                   BeginTime="0:0:6">
+                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:2" Value="0.38" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:17" Value="0.28" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:20" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+
+                                    <DoubleAnimation Storyboard.TargetName="BubbleFive"
+                                                     Storyboard.TargetProperty="(Canvas.Top)"
+                                                     From="820"
+                                                     To="-65"
+                                                     BeginTime="0:0:9"
+                                                     Duration="0:0:16" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BubbleFive"
+                                                                   Storyboard.TargetProperty="Opacity"
+                                                                   BeginTime="0:0:9">
+                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="0.5" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:13" Value="0.32" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:16" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Canvas.Triggers>
+
+                    <Ellipse x:Name="BubbleOne"
+                             Style="{DynamicResource WelcomeBubbleStyle}"
+                             Width="30"
+                             Height="30"
+                             Canvas.Left="190"
+                             Canvas.Top="760" />
+                    <Ellipse x:Name="BubbleTwo"
+                             Style="{DynamicResource WelcomeBubbleStyle}"
+                             Width="18"
+                             Height="18"
+                             Canvas.Left="420"
+                             Canvas.Top="830" />
+                    <Ellipse x:Name="BubbleThree"
+                             Style="{DynamicResource WelcomeBubbleStyle}"
+                             Width="24"
+                             Height="24"
+                             Canvas.Left="1120"
+                             Canvas.Top="790" />
+                    <Ellipse x:Name="BubbleFour"
+                             Style="{DynamicResource WelcomeBubbleStyle}"
+                             Width="36"
+                             Height="36"
+                             Canvas.Left="1320"
+                             Canvas.Top="860" />
+                    <Ellipse x:Name="BubbleFive"
+                             Style="{DynamicResource WelcomeBubbleStyle}"
+                             Width="14"
+                             Height="14"
+                             Canvas.Left="820"
+                             Canvas.Top="820" />
                 </Canvas>
 
                 <Ellipse Width="860"
@@ -153,10 +269,12 @@
                             </StackPanel>
 
                             <Grid Grid.Column="1"
-                                  VerticalAlignment="Center">
-                                <StackPanel HorizontalAlignment="Center">
-                                    <Border Width="392"
-                                            Height="392"
+                                  VerticalAlignment="Center"
+                                  Margin="34,34,0,0">
+                                <StackPanel HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+                                    <Border Width="430"
+                                            Height="430"
                                             Padding="0">
                                         <Border.Effect>
                                             <DropShadowEffect BlurRadius="34"
@@ -170,8 +288,8 @@
                                     </Border>
 
                                     <Button Margin="0,28,0,0"
-                                            Width="300"
-                                            Height="74"
+                                            Width="330"
+                                            Height="78"
                                             Content="Entra nel gestionale"
                                             Command="{Binding EnterAppCommand}"
                                             IsDefault="True"
@@ -211,25 +329,6 @@
 
                             <StackPanel Grid.Row="2"
                                         Margin="0,0,44,0">
-                                <TextBlock Text="PERSONALE"
-                                           Foreground="#F1CF62"
-                                           FontSize="18"
-                                           FontWeight="Black" />
-                                <TextBlock Margin="0,16,0,0"
-                                           Text="{Binding DashboardDipendentiTotali, StringFormat={}{0} operatori registrati}"
-                                           Foreground="#FFFDF7"
-                                           FontSize="20"
-                                           FontWeight="Bold" />
-                                <TextBlock Margin="0,12,0,0"
-                                           Text="{Binding DashboardVisiteInScadenzaPersonale, StringFormat={}{0} visite da monitorare}"
-                                           Foreground="#B8CADB"
-                                           FontSize="15"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="2"
-                                        Grid.Column="2"
-                                        Margin="44,0,44,0">
                                 <TextBlock Text="SERVIZI GIORNALIERI"
                                            Foreground="#F1CF62"
                                            FontSize="18"
@@ -244,6 +343,25 @@
                                            Foreground="#B8CADB"
                                            FontSize="15"
                                            LineHeight="23"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="2"
+                                        Grid.Column="2"
+                                        Margin="44,0,44,0">
+                                <TextBlock Text="PERSONALE"
+                                           Foreground="#F1CF62"
+                                           FontSize="18"
+                                           FontWeight="Black" />
+                                <TextBlock Margin="0,16,0,0"
+                                           Text="{Binding DashboardDipendentiTotali, StringFormat={}{0} operatori registrati}"
+                                           Foreground="#FFFDF7"
+                                           FontSize="20"
+                                           FontWeight="Bold" />
+                                <TextBlock Margin="0,12,0,0"
+                                           Text="{Binding DashboardVisiteInScadenzaPersonale, StringFormat={}{0} visite da monitorare}"
+                                           Foreground="#B8CADB"
+                                           FontSize="15"
                                            TextWrapping="Wrap" />
                             </StackPanel>
 

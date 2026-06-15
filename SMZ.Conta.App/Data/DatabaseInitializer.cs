@@ -422,6 +422,48 @@ public static class DatabaseInitializer
             CREATE INDEX IF NOT EXISTS IX_ServizioPartecipantiImmersioni_ServizioPartecipanteId
                 ON ServizioPartecipantiImmersioni (ServizioPartecipanteId);
 
+            CREATE TABLE IF NOT EXISTS ServizioOperatoriSubEsterni (
+                ServizioOperatoreSubEsternoId INTEGER PRIMARY KEY AUTOINCREMENT,
+                ServizioGiornalieroId INTEGER NOT NULL,
+                PerId INTEGER NOT NULL,
+                Qualifica TEXT NULL,
+                Nominativo TEXT NOT NULL,
+                Reparto TEXT NOT NULL,
+                GruppoOperativoId INTEGER NOT NULL,
+                Note TEXT NULL,
+                FOREIGN KEY (ServizioGiornalieroId) REFERENCES ServiziGiornalieri (ServizioGiornalieroId) ON DELETE CASCADE,
+                FOREIGN KEY (GruppoOperativoId) REFERENCES GruppiOperativi (GruppoOperativoId) ON DELETE RESTRICT
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_ServizioOperatoriSubEsterni_ServizioGiornalieroId
+                ON ServizioOperatoriSubEsterni (ServizioGiornalieroId);
+
+            CREATE INDEX IF NOT EXISTS IX_ServizioOperatoriSubEsterni_PerId
+                ON ServizioOperatoriSubEsterni (PerId);
+
+            CREATE TABLE IF NOT EXISTS ServizioOperatoriSubEsterniImmersioni (
+                ServizioOperatoreSubEsternoImmersioneId INTEGER PRIMARY KEY AUTOINCREMENT,
+                ServizioImmersioneId INTEGER NOT NULL,
+                ServizioOperatoreSubEsternoId INTEGER NOT NULL,
+                TipologiaImmersioneOperativaId INTEGER NULL,
+                ProfonditaMetri INTEGER NULL,
+                FasciaProfonditaId INTEGER NULL,
+                OreImmersione REAL NULL,
+                CategoriaContabileOreId INTEGER NULL,
+                Note TEXT NULL,
+                FOREIGN KEY (ServizioImmersioneId) REFERENCES ServizioImmersioni (ServizioImmersioneId) ON DELETE CASCADE,
+                FOREIGN KEY (ServizioOperatoreSubEsternoId) REFERENCES ServizioOperatoriSubEsterni (ServizioOperatoreSubEsternoId) ON DELETE CASCADE,
+                FOREIGN KEY (TipologiaImmersioneOperativaId) REFERENCES TipologieImmersioneOperative (TipologiaImmersioneOperativaId) ON DELETE RESTRICT,
+                FOREIGN KEY (FasciaProfonditaId) REFERENCES FasceProfondita (FasciaProfonditaId) ON DELETE RESTRICT,
+                FOREIGN KEY (CategoriaContabileOreId) REFERENCES CategorieContabiliOre (CategoriaContabileOreId) ON DELETE RESTRICT
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_ServizioOperatoriSubEsterniImmersioni_ImmersioneId
+                ON ServizioOperatoriSubEsterniImmersioni (ServizioImmersioneId);
+
+            CREATE INDEX IF NOT EXISTS IX_ServizioOperatoriSubEsterniImmersioni_OperatoreId
+                ON ServizioOperatoriSubEsterniImmersioni (ServizioOperatoreSubEsternoId);
+
             CREATE TABLE IF NOT EXISTS ServizioSupportiOccasionali (
                 ServizioSupportoOccasionaleId INTEGER PRIMARY KEY AUTOINCREMENT,
                 ServizioGiornalieroId INTEGER NOT NULL,

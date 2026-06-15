@@ -159,7 +159,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void SincronizzaPartecipazioniImmersioneBozza()
     {
-        var operatoriSmzPresenti = GetOperatoriSmzPresentiOrdinati();
+        var operatoriSubPresenti = GetOperatoriSubPresentiOrdinati();
 
         foreach (var immersione in ServizioImmersioniBozza)
         {
@@ -167,9 +167,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var orderedRows = new List<ServizioPartecipanteImmersioneDraftViewModel>();
             var direttorePerId = GetPerIdOperatoreSelezionato(immersione.DirettoreImmersione);
 
-            foreach (var operatore in operatoriSmzPresenti)
+            foreach (var operatore in operatoriSubPresenti)
             {
-                if (direttorePerId == operatore.PerId)
+                if (!operatore.IsEsterno && direttorePerId == operatore.PerId)
                 {
                     continue;
                 }
@@ -180,6 +180,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     row.Qualifica = operatore.Qualifica;
                     row.DataDecorrenzaQualifica = operatore.DataDecorrenzaQualifica;
                     row.Nominativo = operatore.Nominativo;
+                    row.IsEsterno = operatore.IsEsterno;
+                    row.Reparto = operatore.Reparto;
                     orderedRows.Add(row);
                     continue;
                 }
@@ -191,6 +193,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     Qualifica = operatore.Qualifica,
                     DataDecorrenzaQualifica = operatore.DataDecorrenzaQualifica,
                     Nominativo = operatore.Nominativo,
+                    IsEsterno = operatore.IsEsterno,
+                    Reparto = operatore.Reparto,
                 };
                 row.PropertyChanged += ServizioPartecipazioneImmersione_PropertyChanged;
                 orderedRows.Add(row);
@@ -232,6 +236,40 @@ public sealed partial class MainWindowViewModel : ObservableObject
             .ThenBy(item => item.Nome)
             .ToList();
 
+    private List<OperatoreSubServizioDraft> GetOperatoriSubPresentiOrdinati()
+    {
+        var interni = GetOperatoriSmzPresentiOrdinati()
+            .Select(item => new OperatoreSubServizioDraft(
+                item.PerId,
+                item.Qualifica,
+                item.DataDecorrenzaQualifica,
+                item.Nominativo,
+                IsEsterno: false,
+                Reparto: string.Empty,
+                Ordine: QualificaFormatter.GetGerarchiaOrdine(item.Qualifica, item.IsProfiloSanitario, item.RuoloSanitario),
+                CognomeNome: $"{item.Cognome} {item.Nome}".Trim()));
+
+        var esterni = ServizioOperatoriSubEsterniBozza
+            .Select(item => (item, perId: ParseIntSilenzioso(item.PerId)))
+            .Where(item => item.perId is > 0 && IsOperatoreSubEsternoCompilato(item.item))
+            .Select(item => new OperatoreSubServizioDraft(
+                item.perId!.Value,
+                item.item.Qualifica,
+                null,
+                item.item.Nominativo.Trim(),
+                IsEsterno: true,
+                Reparto: item.item.Reparto.Trim(),
+                Ordine: QualificaFormatter.GetGerarchiaOrdine(item.item.Qualifica, isSanitario: false, ruoloSanitario: string.Empty) + 10_000,
+                CognomeNome: item.item.Nominativo.Trim()));
+
+        return interni
+            .Concat(esterni)
+            .OrderBy(item => item.Ordine)
+            .ThenBy(item => item.IsEsterno)
+            .ThenBy(item => item.CognomeNome)
+            .ToList();
+    }
+
     private void SincronizzaPartecipazioniContabiliUnicheBozza(bool aggiornaDaPartecipazioni)
     {
         if (_isSyncingPartecipazioniUniche)
@@ -243,7 +281,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             var existing = ServizioPartecipazioniContabiliUnicheBozza.ToDictionary(item => item.PerId);
-            var operatoriSmzPresenti = GetOperatoriSmzPresentiOrdinati();
+            var operatoriSmzPresenti = GetOperatoriSubPresentiOrdinati();
             var orderedRows = new List<ServizioPartecipanteImmersioneUnicoDraftViewModel>();
 
             foreach (var operatore in operatoriSmzPresenti)
@@ -257,7 +295,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 row.Qualifica = operatore.Qualifica;
                 row.DataDecorrenzaQualifica = operatore.DataDecorrenzaQualifica;
                 row.Nominativo = operatore.Nominativo;
-                row.RuoliImmersione = BuildRuoliImmersioneDisplay(operatore.PerId);
+                row.IsEsterno = operatore.IsEsterno;
+                row.Reparto = operatore.Reparto;
+                row.RuoliImmersione = operatore.IsEsterno ? "Altro reparto" : BuildRuoliImmersioneDisplay(operatore.PerId);
                 if (aggiornaDaPartecipazioni)
                 {
                     PopolaRigaUnicaDaPartecipazioni(row);
@@ -679,6 +719,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
             or nameof(ServizioSupportoOccasionaleDraftViewModel.Contatti)
             or nameof(ServizioSupportoOccasionaleDraftViewModel.Note))
         {
+            AggiornaRiepilogoBozzaServizio();
+        }
+    }
+
+    private void ServizioOperatoreSubEsterno_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ServizioOperatoreSubEsternoDraftViewModel.PerId)
+            or nameof(ServizioOperatoreSubEsternoDraftViewModel.Nominativo)
+            or nameof(ServizioOperatoreSubEsternoDraftViewModel.Qualifica)
+            or nameof(ServizioOperatoreSubEsternoDraftViewModel.Reparto)
+            or nameof(ServizioOperatoreSubEsternoDraftViewModel.GruppoOperativo)
+            or nameof(ServizioOperatoreSubEsternoDraftViewModel.Note))
+        {
+            SincronizzaPartecipazioniImmersioneBozza();
             AggiornaRiepilogoBozzaServizio();
         }
     }
@@ -1135,6 +1189,29 @@ public sealed partial class MainWindowViewModel : ObservableObject
         || row.Presente
         || !string.IsNullOrWhiteSpace(row.Contatti)
         || !string.IsNullOrWhiteSpace(row.Note);
+
+    private int ContaOperatoriSubEsterniBozza() =>
+        ServizioOperatoriSubEsterniBozza.Count(IsOperatoreSubEsternoCompilato);
+
+    private static bool IsOperatoreSubEsternoCompilato(ServizioOperatoreSubEsternoDraftViewModel row) =>
+        !string.IsNullOrWhiteSpace(row.PerId)
+        || !string.IsNullOrWhiteSpace(row.Nominativo)
+        || !string.IsNullOrWhiteSpace(row.Qualifica)
+        || !string.IsNullOrWhiteSpace(row.Reparto)
+        || !string.IsNullOrWhiteSpace(row.Note);
+
+    private static int? ParseIntSilenzioso(string value) =>
+        int.TryParse(value, out var parsed) ? parsed : null;
+
+    private sealed record OperatoreSubServizioDraft(
+        int PerId,
+        string Qualifica,
+        DateOnly? DataDecorrenzaQualifica,
+        string Nominativo,
+        bool IsEsterno,
+        string Reparto,
+        long Ordine,
+        string CognomeNome);
 
     private static bool IsPartecipazioneImmersioneCompilata(ServizioPartecipanteImmersioneDraftViewModel row) =>
         row.InImmersione

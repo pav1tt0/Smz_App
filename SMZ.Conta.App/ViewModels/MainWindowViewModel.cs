@@ -59,6 +59,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _addUnitaNavaleCommand;
     private readonly RelayCommand _addSupportoOccasionaleCommand;
     private readonly RelayCommand _removeSupportoOccasionaleCommand;
+    private readonly RelayCommand _addOperatoreSubEsternoCommand;
+    private readonly RelayCommand _removeOperatoreSubEsternoCommand;
     private readonly RelayCommand _addImmersioneCommand;
     private readonly RelayCommand _removeImmersioneCommand;
     private readonly RelayCommand _openSelectedPersonaleCommand;
@@ -66,11 +68,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _reloadServizioPersonaleCommand;
     private readonly RelayCommand _reloadContabilitaCommand;
     private readonly RelayCommand _reloadRegistroImmersioniCommand;
+    private readonly RelayCommand _reloadReportPersonaleCommand;
     private readonly RelayCommand _printRegistroImmersioniMensileCommand;
     private readonly RelayCommand _printRegistroImmersioniMensileCompattoCommand;
+    private readonly RelayCommand _printContabilitaMensileCommand;
     private readonly RelayCommand _saveElaborazioneMensileCommand;
     private readonly RelayCommand _exportContabilitaCsvCommand;
+    private readonly RelayCommand _exportContabilitaExcelCommand;
     private readonly RelayCommand _clearContabilitaSmzFiltersCommand;
+    private readonly RelayCommand _clearReportPersonaleFiltersCommand;
     private readonly RelayCommand _saveLocalitaOperativeCommand;
     private readonly RelayCommand _saveUnitaNavaliCommand;
     private readonly RelayCommand _saveTariffeContabiliCommand;
@@ -177,6 +183,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string _contabilitaSmzFiltroNumeroServizio = string.Empty;
     private string _contabilitaSmzFiltroNominativo = string.Empty;
     private string _contabilitaSmzFiltroApparato = string.Empty;
+    private string _reportPersonaleFiltroNominativo = string.Empty;
     private bool _isWelcomeVisible = true;
     private bool _isWelcomeAudioEnabled = true;
     private bool _isSyncingValoriCondivisiImmersione;
@@ -184,10 +191,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private ElaborazioneMensileInfo? _elaborazioneMensileInfo;
     private ServizioGiornalieroSummary? _selectedServizioSalvato;
     private ServizioSupportoOccasionaleDraftViewModel? _selectedSupportoOccasionale;
+    private ServizioOperatoreSubEsternoDraftViewModel? _selectedOperatoreSubEsterno;
     private string _personaleEditorSnapshot = string.Empty;
     private string _servizioEditorSnapshot = string.Empty;
     private string _tariffeEditorSnapshot = string.Empty;
     private readonly List<ContabilitaSmzSummary> _contabilitaSmzSource = [];
+    private readonly List<ReportPersonaleMensileRiga> _reportPersonaleSource = [];
 
     public MainWindowViewModel()
     {
@@ -224,6 +233,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _addUnitaNavaleCommand = new RelayCommand(AggiungiUnitaNavale);
         _addSupportoOccasionaleCommand = new RelayCommand(AggiungiSupportoOccasionale);
         _removeSupportoOccasionaleCommand = new RelayCommand(RimuoviSupportoOccasionale, () => SelectedSupportoOccasionale is not null);
+        _addOperatoreSubEsternoCommand = new RelayCommand(AggiungiOperatoreSubEsterno);
+        _removeOperatoreSubEsternoCommand = new RelayCommand(RimuoviOperatoreSubEsterno, () => SelectedOperatoreSubEsterno is not null);
         _addImmersioneCommand = new RelayCommand(AggiungiImmersione);
         _removeImmersioneCommand = new RelayCommand(RimuoviImmersione);
         NewCommand = new RelayCommand(() =>
@@ -252,11 +263,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _reloadServizioPersonaleCommand = new RelayCommand(() => InizializzaBozzaServizio(preserveSelections: true));
         _reloadContabilitaCommand = new RelayCommand(CaricaContabilitaMensile);
         _reloadRegistroImmersioniCommand = new RelayCommand(CaricaRegistroImmersioniMensile);
+        _reloadReportPersonaleCommand = new RelayCommand(CaricaReportPersonaleMensile);
         _printRegistroImmersioniMensileCommand = new RelayCommand(() => StampaRegistroImmersioniMensile(RegistroImmersioniMensilePrintLayout.Normale));
         _printRegistroImmersioniMensileCompattoCommand = new RelayCommand(() => StampaRegistroImmersioniMensile(RegistroImmersioniMensilePrintLayout.Compatto));
+        _printContabilitaMensileCommand = new RelayCommand(StampaContabilitaMensile);
         _saveElaborazioneMensileCommand = new RelayCommand(SalvaElaborazioneMensile);
         _exportContabilitaCsvCommand = new RelayCommand(EsportaContabilitaCsv);
+        _exportContabilitaExcelCommand = new RelayCommand(EsportaContabilitaExcel);
         _clearContabilitaSmzFiltersCommand = new RelayCommand(PulisciFiltriContabilitaSmz);
+        _clearReportPersonaleFiltersCommand = new RelayCommand(PulisciFiltriReportPersonale);
         _saveLocalitaOperativeCommand = new RelayCommand(SalvaLocalitaOperative);
         _saveUnitaNavaliCommand = new RelayCommand(SalvaUnitaNavali);
         _saveTariffeContabiliCommand = new RelayCommand(SalvaTariffeContabili);
@@ -270,6 +285,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ServizioPartecipantiBozza = new ObservableCollection<ServizioPartecipanteDraftViewModel>();
         ServizioImmersioniBozza = new ObservableCollection<ServizioImmersioneDraftViewModel>();
         ServizioPartecipazioniContabiliUnicheBozza = new ObservableCollection<ServizioPartecipanteImmersioneUnicoDraftViewModel>();
+        ServizioOperatoriSubEsterniBozza = new ObservableCollection<ServizioOperatoreSubEsternoDraftViewModel>();
         ServizioSupportiOccasionaliBozza = new ObservableCollection<ServizioSupportoOccasionaleDraftViewModel>();
         ServiziSalvati = new ObservableCollection<ServizioGiornalieroSummary>();
         ContabilitaSmzItems = new ObservableCollection<ContabilitaSmzSummary>();
@@ -280,6 +296,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ContabilitaSupportiItems = new ObservableCollection<ContabilitaSupportoSummary>();
         RegistroImmersioniItems = new ObservableCollection<RegistroImmersioneRiga>();
         RegistroImmersioniCategorieItems = new ObservableCollection<RegistroImmersioneCategoriaSummary>();
+        ReportPersonaleItems = new ObservableCollection<ReportPersonaleMensileRiga>();
         RegoleContabiliEditorItems = new ObservableCollection<RegolaContabileEditorRowViewModel>();
         ContabilitaMesiDisponibili = new ObservableCollection<ContabilitaMeseItem>(
         [
@@ -588,6 +605,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<ServizioSupportoOccasionaleDraftViewModel> ServizioSupportiOccasionaliBozza { get; }
 
+    public ObservableCollection<ServizioOperatoreSubEsternoDraftViewModel> ServizioOperatoriSubEsterniBozza { get; }
+
     public ObservableCollection<ServizioGiornalieroSummary> ServiziSalvati { get; }
 
     public string ServiziSearchText
@@ -644,6 +663,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<RegistroImmersioneRiga> RegistroImmersioniItems { get; }
 
     public ObservableCollection<RegistroImmersioneCategoriaSummary> RegistroImmersioniCategorieItems { get; }
+
+    public ObservableCollection<ReportPersonaleMensileRiga> ReportPersonaleItems { get; }
 
     public ObservableCollection<RegolaContabileEditorRowViewModel> RegoleContabiliEditorItems { get; }
 
@@ -703,6 +724,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    public ServizioOperatoreSubEsternoDraftViewModel? SelectedOperatoreSubEsterno
+    {
+        get => _selectedOperatoreSubEsterno;
+        set
+        {
+            if (SetProperty(ref _selectedOperatoreSubEsterno, value))
+            {
+                _removeOperatoreSubEsternoCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
     public ObservableCollection<TipoVisitaMedica> TipiVisitaMedicaCatalogo { get; } =
         new(CatalogoVisiteMediche.Tutte);
 
@@ -715,6 +748,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
                 OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
+                OnPropertyChanged(nameof(ReportPersonalePeriodoTitolo));
 
                 if (_contabilitaSelezionePronta)
                 {
@@ -772,6 +806,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    public string ReportPersonaleFiltroNominativo
+    {
+        get => _reportPersonaleFiltroNominativo;
+        set
+        {
+            if (SetProperty(ref _reportPersonaleFiltroNominativo, value ?? string.Empty))
+            {
+                ApplicaFiltriReportPersonale();
+            }
+        }
+    }
+
     public int ContabilitaAnnoSelezionato
     {
         get => _contabilitaAnnoSelezionato;
@@ -782,6 +828,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 OnPropertyChanged(nameof(ContabilitaAnnoEffettivo));
                 OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
                 OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
+                OnPropertyChanged(nameof(ReportPersonalePeriodoTitolo));
 
                 if (_contabilitaSelezionePronta)
                 {
@@ -1100,10 +1147,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     public int ServizioPartecipantiTotali =>
-        ContaPartecipantiInterniBozza() + ContaSupportiOccasionaliBozza();
+        ContaPartecipantiInterniBozza() + ContaOperatoriSubEsterniBozza() + ContaSupportiOccasionaliBozza();
 
     public int ServizioPresentiTotali =>
-        ContaPresentiInterniBozza() + ContaSupportiOccasionaliPresentiBozza();
+        ContaPresentiInterniBozza() + ContaOperatoriSubEsterniBozza() + ContaSupportiOccasionaliPresentiBozza();
 
     public int ServizioImmersioniCompilate => ServizioImmersioniBozza.Count(item =>
         item.DirettoreImmersione is not null
@@ -1209,6 +1256,35 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ContabilitaMeseSelezionato is null
             ? $"Registro immersioni {ContabilitaAnnoEffettivo}"
             : $"Registro immersioni {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoEffettivo}";
+
+    public string ReportPersonalePeriodoTitolo =>
+        ContabilitaMeseSelezionato is null
+            ? $"Report personale {ContabilitaAnnoEffettivo}"
+            : $"Report personale {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoEffettivo}";
+
+    public string ReportPersonaleStato =>
+        _reportPersonaleSource.Count == 0
+            ? "Nessun servizio o immersione registrato per il personale nel periodo selezionato."
+            : HasFiltriReportPersonaleAttivi
+                ? $"{ReportPersonaleItems.Count} righe visualizzate su {_reportPersonaleSource.Count} nel periodo selezionato."
+                : $"{ReportPersonaleItems.Count} righe personale disponibili nel periodo selezionato.";
+
+    public int ReportPersonaleTotaleRighe => ReportPersonaleItems.Count;
+
+    public int ReportPersonaleTotalePersone => ReportPersonaleItems
+        .Select(item => item.PerId?.ToString() ?? item.Nominativo)
+        .Where(item => !string.IsNullOrWhiteSpace(item))
+        .Distinct(StringComparer.CurrentCultureIgnoreCase)
+        .Count();
+
+    public int ReportPersonaleTotaleImmersioni => ReportPersonaleItems
+        .Count(item => string.Equals(item.TipoRiga, "Immersione", StringComparison.OrdinalIgnoreCase));
+
+    public decimal ReportPersonaleTotaleOre => ReportPersonaleItems.Sum(item => item.OreImmersione);
+
+    public string ReportPersonaleTotaleOreDisplay => ReportPersonaleTotaleOre.ToString("0.##", CultureInfo.CurrentCulture);
+
+    public bool HasFiltriReportPersonaleAttivi => !string.IsNullOrWhiteSpace(ReportPersonaleFiltroNominativo);
 
     public int RegistroImmersioniTotaleRighe => RegistroImmersioniItems.Count;
 
@@ -1334,6 +1410,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public RelayCommand RemoveSupportoOccasionaleCommand => _removeSupportoOccasionaleCommand;
 
+    public RelayCommand AddOperatoreSubEsternoCommand => _addOperatoreSubEsternoCommand;
+
+    public RelayCommand RemoveOperatoreSubEsternoCommand => _removeOperatoreSubEsternoCommand;
+
     public RelayCommand NewCommand { get; }
 
     public RelayCommand SaveCommand { get; }
@@ -1376,15 +1456,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public RelayCommand ReloadRegistroImmersioniCommand => _reloadRegistroImmersioniCommand;
 
+    public RelayCommand ReloadReportPersonaleCommand => _reloadReportPersonaleCommand;
+
     public RelayCommand PrintRegistroImmersioniMensileCommand => _printRegistroImmersioniMensileCommand;
 
     public RelayCommand PrintRegistroImmersioniMensileCompattoCommand => _printRegistroImmersioniMensileCompattoCommand;
+
+    public RelayCommand PrintContabilitaMensileCommand => _printContabilitaMensileCommand;
 
     public RelayCommand SaveElaborazioneMensileCommand => _saveElaborazioneMensileCommand;
 
     public RelayCommand ExportContabilitaCsvCommand => _exportContabilitaCsvCommand;
 
+    public RelayCommand ExportContabilitaExcelCommand => _exportContabilitaExcelCommand;
+
     public RelayCommand ClearContabilitaSmzFiltersCommand => _clearContabilitaSmzFiltersCommand;
+
+    public RelayCommand ClearReportPersonaleFiltersCommand => _clearReportPersonaleFiltersCommand;
 
     public RelayCommand SaveLocalitaOperativeCommand => _saveLocalitaOperativeCommand;
 

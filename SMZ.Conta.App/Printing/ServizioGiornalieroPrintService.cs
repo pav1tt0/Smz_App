@@ -141,6 +141,26 @@ public sealed class ServizioGiornalieroPrintService
                 ore > 0 ? ore.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty);
         }
 
+        foreach (var operatore in servizio.OperatoriSubEsterni.OrderBy(item => item.Nominativo))
+        {
+            var immersioni = servizio.Immersioni
+                .SelectMany(immersione => immersione.PartecipazioniEsterne.Select(partecipazione => (immersione, partecipazione)))
+                .Where(item => item.partecipazione.ServizioOperatoreSubEsternoId == operatore.ServizioOperatoreSubEsternoId)
+                .ToList();
+            var apparato = immersioni
+                .Select(item => cataloghi.TipologieImmersione.FirstOrDefault(tipo => tipo.TipologiaImmersioneOperativaId == item.partecipazione.TipologiaImmersioneOperativaId)?.Descrizione)
+                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? string.Empty;
+            var ore = immersioni.Sum(item => item.partecipazione.OreImmersione ?? 0m);
+
+            AddRow(
+                table,
+                QualificaFormatter.AbbreviaPerVisualizzazione(operatore.Qualifica),
+                $"{operatore.Nominativo} ({operatore.Reparto})",
+                BuildMansioneEsterna(servizio, operatore.ServizioOperatoreSubEsternoId),
+                apparato,
+                ore > 0 ? ore.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty);
+        }
+
         return table;
     }
 
@@ -149,12 +169,13 @@ public sealed class ServizioGiornalieroPrintService
         var table = CreateTable(120, 100, 100, 140, 100, 100);
         AddHeaderRow(table, "Straordinario", "Presenze", "Ore imm.", "Fuori sede", "C.I.", "Ord. Pub.");
         var oreImmersione = servizio.Immersioni
-            .SelectMany(item => item.Partecipazioni)
-            .Sum(item => item.OreImmersione ?? 0m);
+            .Sum(item =>
+                item.Partecipazioni.Sum(partecipazione => partecipazione.OreImmersione ?? 0m)
+                + item.PartecipazioniEsterne.Sum(partecipazione => partecipazione.OreImmersione ?? 0m));
         AddRow(
             table,
             servizio.StraordinarioAttivo ? $"{servizio.StraordinarioInizio}-{servizio.StraordinarioFine}" : string.Empty,
-            servizio.Partecipanti.Count(item => item.Presente).ToString(CultureInfo.CurrentCulture),
+            (servizio.Partecipanti.Count(item => item.Presente) + servizio.OperatoriSubEsterni.Count).ToString(CultureInfo.CurrentCulture),
             oreImmersione > 0 ? oreImmersione.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty,
             servizio.FuoriSede ? "SI" : string.Empty,
             string.Empty,
@@ -204,6 +225,15 @@ public sealed class ServizioGiornalieroPrintService
             .Select(immersione => $"Imm. {immersione.NumeroImmersione}");
         ruoli.AddRange(immersioniEffettuate);
         return ruoli.Count == 0 ? "Presente" : string.Join(", ", ruoli);
+    }
+
+    private static string BuildMansioneEsterna(ServizioGiornaliero servizio, long servizioOperatoreSubEsternoId)
+    {
+        var immersioniEffettuate = servizio.Immersioni
+            .Where(immersione => immersione.PartecipazioniEsterne.Any(partecipazione => partecipazione.ServizioOperatoreSubEsternoId == servizioOperatoreSubEsternoId))
+            .Select(immersione => $"Imm. {immersione.NumeroImmersione}");
+        var result = string.Join(", ", immersioniEffettuate);
+        return string.IsNullOrWhiteSpace(result) ? "Presente" : result;
     }
 
     private static int ResolvePerId(ServizioPartecipanteImmersione partecipazione, ServizioGiornaliero servizio)

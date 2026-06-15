@@ -645,6 +645,85 @@
 
                                     <DockPanel Margin="0,24,0,0" LastChildFill="False">
                                         <TextBlock DockPanel.Dock="Left"
+                                                   Text="Operatori sub altri reparti"
+                                                   FontSize="19"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#17313E"
+                                                   VerticalAlignment="Center" />
+                                        <StackPanel DockPanel.Dock="Right"
+                                                    Orientation="Horizontal">
+                                            <Button Content="Aggiungi operatore"
+                                                    Command="{Binding AddOperatoreSubEsternoCommand}"
+                                                    Style="{DynamicResource SecondaryButtonStyle}" />
+                                            <Button Content="Rimuovi selezionato"
+                                                    Command="{Binding RemoveOperatoreSubEsternoCommand}"
+                                                    Style="{DynamicResource DangerButtonStyle}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="Operatori SMZ o OSSALC di altri reparti inseriti solo per questo servizio. Una volta compilati compaiono tra i presenti immersione."
+                                               Foreground="#53646A"
+                                               TextWrapping="Wrap" />
+
+                                    <DataGrid Margin="0,16,0,0"
+                                              Style="{DynamicResource ServizioWheelDataGridStyle}"
+                                              ItemsSource="{Binding ServizioOperatoriSubEsterniBozza}"
+                                              SelectedItem="{Binding SelectedOperatoreSubEsterno}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              HeadersVisibility="Column"
+                                              RowHeaderWidth="0"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                              ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="PerID"
+                                                                Width="100"
+                                                                Binding="{Binding PerId, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTemplateColumn Header="Qualifica"
+                                                                    Width="150">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding QualificaDisplay}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                                <DataGridTemplateColumn.CellEditingTemplate>
+                                                    <DataTemplate>
+                                                        <ComboBox ItemsSource="{Binding DataContext.QualificheDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  Text="{Binding Qualifica, UpdateSourceTrigger=PropertyChanged}"
+                                                                  IsEditable="True"
+                                                                  IsTextSearchEnabled="True" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellEditingTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTextColumn Header="Nominativo"
+                                                                Width="220"
+                                                                Binding="{Binding Nominativo, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTextColumn Header="Reparto"
+                                                                Width="180"
+                                                                Binding="{Binding Reparto, UpdateSourceTrigger=PropertyChanged}" />
+                                            <DataGridTemplateColumn Header="Gruppo"
+                                                                    Width="150">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding GruppoOperativo.Codice}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                                <DataGridTemplateColumn.CellEditingTemplate>
+                                                    <DataTemplate>
+                                                        <ComboBox ItemsSource="{Binding DataContext.GruppiOperativiCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  SelectedItem="{Binding GruppoOperativo, UpdateSourceTrigger=PropertyChanged}"
+                                                                  DisplayMemberPath="Codice" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellEditingTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTextColumn Header="Note"
+                                                                Width="*"
+                                                                Binding="{Binding Note, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+
+                                    <DockPanel Margin="0,24,0,0" LastChildFill="False">
+                                        <TextBlock DockPanel.Dock="Left"
                                                    Text="Assistenza SMZ"
                                                    FontSize="19"
                                                    FontWeight="SemiBold"

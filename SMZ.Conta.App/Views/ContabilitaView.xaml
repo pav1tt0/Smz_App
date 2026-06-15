@@ -62,10 +62,6 @@
                                             Command="{Binding SaveElaborazioneMensileCommand}"
                                             Style="{DynamicResource AccentButtonStyle}" />
 
-                                    <Button Margin="12,20,0,0"
-                                            Content="Esporta CSV"
-                                            Command="{Binding ExportContabilitaCsvCommand}"
-                                            Style="{DynamicResource SecondaryButtonStyle}" />
                                 </StackPanel>
                             </Grid>
                         </Border>

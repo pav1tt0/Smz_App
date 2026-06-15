@@ -138,6 +138,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     NormalizeSnapshotValue(row.Note)));
         }
 
+        foreach (var row in ServizioOperatoriSubEsterniBozza)
+        {
+            AppendSnapshot(
+                builder,
+                "OperatoreSubEsterno",
+                string.Join("|",
+                    NormalizeSnapshotValue(row.PerId),
+                    NormalizeSnapshotValue(row.Qualifica),
+                    NormalizeSnapshotValue(row.Nominativo),
+                    NormalizeSnapshotValue(row.Reparto),
+                    row.GruppoOperativo?.GruppoOperativoId.ToString() ?? string.Empty,
+                    NormalizeSnapshotValue(row.Note)));
+        }
+
         foreach (var immersione in ServizioImmersioniBozza)
         {
             AppendSnapshot(
@@ -159,6 +173,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                     string.Join("|",
                         immersione.NumeroImmersione.ToString(),
                         partecipazione.PerId.ToString(),
+                        partecipazione.IsEsterno ? "1" : "0",
                         partecipazione.InImmersione ? "1" : "0",
                         partecipazione.TipologiaImmersioneOperativa?.TipologiaImmersioneOperativaId.ToString() ?? string.Empty,
                         NormalizeSnapshotValue(partecipazione.ProfonditaMetri),

@@ -132,6 +132,46 @@ public sealed partial class PersonaleRepository
         return items;
     }
 
+    private static List<ServizioOperatoreSubEsterno> GetServizioOperatoriSubEsterni(SqliteConnection connection, long servizioGiornalieroId)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT ServizioOperatoreSubEsternoId,
+                   ServizioGiornalieroId,
+                   PerId,
+                   Qualifica,
+                   Nominativo,
+                   Reparto,
+                   GruppoOperativoId,
+                   Note
+            FROM ServizioOperatoriSubEsterni
+            WHERE ServizioGiornalieroId = $servizioGiornalieroId
+            ORDER BY ServizioOperatoreSubEsternoId;
+            """;
+        command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+
+        using var reader = command.ExecuteReader();
+        var items = new List<ServizioOperatoreSubEsterno>();
+
+        while (reader.Read())
+        {
+            items.Add(new ServizioOperatoreSubEsterno
+            {
+                ServizioOperatoreSubEsternoId = reader.GetInt64(0),
+                ServizioGiornalieroId = reader.GetInt64(1),
+                PerId = reader.GetInt32(2),
+                Qualifica = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                Nominativo = reader.GetString(4),
+                Reparto = reader.GetString(5),
+                GruppoOperativoId = reader.GetInt32(6),
+                Note = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+            });
+        }
+
+        return items;
+    }
+
     private static List<ServizioPartecipanteImmersione> GetServizioPartecipantiImmersioni(
         SqliteConnection connection,
         long servizioGiornalieroId)
@@ -177,6 +217,51 @@ public sealed partial class PersonaleRepository
         return items;
     }
 
+    private static List<ServizioOperatoreSubEsternoImmersione> GetServizioOperatoriSubEsterniImmersioni(
+        SqliteConnection connection,
+        long servizioGiornalieroId)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT sei.ServizioOperatoreSubEsternoImmersioneId,
+                   sei.ServizioImmersioneId,
+                   sei.ServizioOperatoreSubEsternoId,
+                   sei.TipologiaImmersioneOperativaId,
+                   sei.ProfonditaMetri,
+                   sei.FasciaProfonditaId,
+                   sei.OreImmersione,
+                   sei.CategoriaContabileOreId,
+                   sei.Note
+            FROM ServizioOperatoriSubEsterniImmersioni sei
+            INNER JOIN ServizioImmersioni si ON si.ServizioImmersioneId = sei.ServizioImmersioneId
+            WHERE si.ServizioGiornalieroId = $servizioGiornalieroId
+            ORDER BY si.NumeroImmersione, sei.ServizioOperatoreSubEsternoImmersioneId;
+            """;
+        command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+
+        using var reader = command.ExecuteReader();
+        var items = new List<ServizioOperatoreSubEsternoImmersione>();
+
+        while (reader.Read())
+        {
+            items.Add(new ServizioOperatoreSubEsternoImmersione
+            {
+                ServizioOperatoreSubEsternoImmersioneId = reader.GetInt64(0),
+                ServizioImmersioneId = reader.GetInt64(1),
+                ServizioOperatoreSubEsternoId = reader.GetInt64(2),
+                TipologiaImmersioneOperativaId = reader.IsDBNull(3) ? null : reader.GetInt32(3),
+                ProfonditaMetri = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+                FasciaProfonditaId = reader.IsDBNull(5) ? null : reader.GetInt32(5),
+                OreImmersione = reader.IsDBNull(6) ? null : Convert.ToDecimal(reader.GetDouble(6)),
+                CategoriaContabileOreId = reader.IsDBNull(7) ? null : reader.GetInt32(7),
+                Note = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+            });
+        }
+
+        return items;
+    }
+
     private static void DeleteServizioChildRows(SqliteConnection connection, SqliteTransaction transaction, long servizioGiornalieroId)
     {
         using var deleteSupporti = connection.CreateCommand();
@@ -184,6 +269,12 @@ public sealed partial class PersonaleRepository
         deleteSupporti.CommandText = "DELETE FROM ServizioSupportiOccasionali WHERE ServizioGiornalieroId = $servizioGiornalieroId;";
         deleteSupporti.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
         deleteSupporti.ExecuteNonQuery();
+
+        using var deleteOperatoriEsterni = connection.CreateCommand();
+        deleteOperatoriEsterni.Transaction = transaction;
+        deleteOperatoriEsterni.CommandText = "DELETE FROM ServizioOperatoriSubEsterni WHERE ServizioGiornalieroId = $servizioGiornalieroId;";
+        deleteOperatoriEsterni.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+        deleteOperatoriEsterni.ExecuteNonQuery();
 
         using var deleteImmersioni = connection.CreateCommand();
         deleteImmersioni.Transaction = transaction;
@@ -238,6 +329,54 @@ public sealed partial class PersonaleRepository
             command.Parameters.AddWithValue("$note", DbText(partecipante.Note));
             var servizioPartecipanteId = Convert.ToInt64(command.ExecuteScalar());
             map[partecipante.PerId] = servizioPartecipanteId;
+        }
+
+        return map;
+    }
+
+    private static Dictionary<int, long> InsertServizioOperatoriSubEsterni(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        long servizioGiornalieroId,
+        IEnumerable<ServizioOperatoreSubEsterno> operatori)
+    {
+        var map = new Dictionary<int, long>();
+
+        foreach (var operatore in operatori)
+        {
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                """
+                INSERT INTO ServizioOperatoriSubEsterni (
+                    ServizioGiornalieroId,
+                    PerId,
+                    Qualifica,
+                    Nominativo,
+                    Reparto,
+                    GruppoOperativoId,
+                    Note
+                )
+                VALUES (
+                    $servizioGiornalieroId,
+                    $perId,
+                    $qualifica,
+                    $nominativo,
+                    $reparto,
+                    $gruppoOperativoId,
+                    $note
+                );
+                SELECT last_insert_rowid();
+                """;
+            command.Parameters.AddWithValue("$servizioGiornalieroId", servizioGiornalieroId);
+            command.Parameters.AddWithValue("$perId", operatore.PerId);
+            command.Parameters.AddWithValue("$qualifica", DbText(operatore.Qualifica));
+            command.Parameters.AddWithValue("$nominativo", operatore.Nominativo.Trim());
+            command.Parameters.AddWithValue("$reparto", operatore.Reparto.Trim());
+            command.Parameters.AddWithValue("$gruppoOperativoId", operatore.GruppoOperativoId);
+            command.Parameters.AddWithValue("$note", DbText(operatore.Note));
+            var servizioOperatoreSubEsternoId = Convert.ToInt64(command.ExecuteScalar());
+            map[operatore.PerId] = servizioOperatoreSubEsternoId;
         }
 
         return map;
@@ -356,6 +495,65 @@ public sealed partial class PersonaleRepository
                     """;
                 command.Parameters.AddWithValue("$servizioImmersioneId", servizioImmersioneId);
                 command.Parameters.AddWithValue("$servizioPartecipanteId", servizioPartecipanteId);
+                command.Parameters.AddWithValue("$tipologiaImmersioneOperativaId", partecipazione.TipologiaImmersioneOperativaId is null ? DBNull.Value : partecipazione.TipologiaImmersioneOperativaId.Value);
+                command.Parameters.AddWithValue("$profonditaMetri", partecipazione.ProfonditaMetri is null ? DBNull.Value : partecipazione.ProfonditaMetri.Value);
+                command.Parameters.AddWithValue("$fasciaProfonditaId", partecipazione.FasciaProfonditaId is null ? DBNull.Value : partecipazione.FasciaProfonditaId.Value);
+                command.Parameters.AddWithValue("$oreImmersione", partecipazione.OreImmersione is null ? DBNull.Value : Convert.ToDouble(partecipazione.OreImmersione.Value));
+                command.Parameters.AddWithValue("$categoriaContabileOreId", partecipazione.CategoriaContabileOreId is null ? DBNull.Value : partecipazione.CategoriaContabileOreId.Value);
+                command.Parameters.AddWithValue("$note", DbText(partecipazione.Note));
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    private static void InsertServizioOperatoriSubEsterniImmersioni(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        IEnumerable<ServizioImmersione> immersioni,
+        IReadOnlyDictionary<int, long> immersioniMap,
+        IReadOnlyDictionary<int, long> operatoriEsterniMap)
+    {
+        foreach (var immersione in immersioni)
+        {
+            if (!immersioniMap.TryGetValue(immersione.NumeroImmersione, out var servizioImmersioneId))
+            {
+                continue;
+            }
+
+            foreach (var partecipazione in immersione.PartecipazioniEsterne)
+            {
+                if (!operatoriEsterniMap.TryGetValue((int)partecipazione.ServizioOperatoreSubEsternoId, out var servizioOperatoreSubEsternoId))
+                {
+                    continue;
+                }
+
+                using var command = connection.CreateCommand();
+                command.Transaction = transaction;
+                command.CommandText =
+                    """
+                    INSERT INTO ServizioOperatoriSubEsterniImmersioni (
+                        ServizioImmersioneId,
+                        ServizioOperatoreSubEsternoId,
+                        TipologiaImmersioneOperativaId,
+                        ProfonditaMetri,
+                        FasciaProfonditaId,
+                        OreImmersione,
+                        CategoriaContabileOreId,
+                        Note
+                    )
+                    VALUES (
+                        $servizioImmersioneId,
+                        $servizioOperatoreSubEsternoId,
+                        $tipologiaImmersioneOperativaId,
+                        $profonditaMetri,
+                        $fasciaProfonditaId,
+                        $oreImmersione,
+                        $categoriaContabileOreId,
+                        $note
+                    );
+                    """;
+                command.Parameters.AddWithValue("$servizioImmersioneId", servizioImmersioneId);
+                command.Parameters.AddWithValue("$servizioOperatoreSubEsternoId", servizioOperatoreSubEsternoId);
                 command.Parameters.AddWithValue("$tipologiaImmersioneOperativaId", partecipazione.TipologiaImmersioneOperativaId is null ? DBNull.Value : partecipazione.TipologiaImmersioneOperativaId.Value);
                 command.Parameters.AddWithValue("$profonditaMetri", partecipazione.ProfonditaMetri is null ? DBNull.Value : partecipazione.ProfonditaMetri.Value);
                 command.Parameters.AddWithValue("$fasciaProfonditaId", partecipazione.FasciaProfonditaId is null ? DBNull.Value : partecipazione.FasciaProfonditaId.Value);

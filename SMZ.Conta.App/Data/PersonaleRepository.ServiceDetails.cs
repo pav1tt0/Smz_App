@@ -61,10 +61,13 @@ public sealed partial class PersonaleRepository
 
         servizio.Partecipanti = GetServizioPartecipanti(connection, servizioGiornalieroId);
         servizio.Immersioni = GetServizioImmersioni(connection, servizioGiornalieroId);
+        servizio.OperatoriSubEsterni = GetServizioOperatoriSubEsterni(connection, servizioGiornalieroId);
         servizio.SupportiOccasionali = GetServizioSupportiOccasionali(connection, servizioGiornalieroId);
         var partecipazioniImmersione = GetServizioPartecipantiImmersioni(connection, servizioGiornalieroId);
+        var partecipazioniEsterneImmersione = GetServizioOperatoriSubEsterniImmersioni(connection, servizioGiornalieroId);
         var immersioniById = servizio.Immersioni.ToDictionary(item => item.ServizioImmersioneId);
         var partecipantiById = servizio.Partecipanti.ToDictionary(item => item.ServizioPartecipanteId);
+        var operatoriEsterniById = servizio.OperatoriSubEsterni.ToDictionary(item => item.ServizioOperatoreSubEsternoId);
 
         foreach (var partecipazione in partecipazioniImmersione)
         {
@@ -76,6 +79,19 @@ public sealed partial class PersonaleRepository
             if (partecipantiById.TryGetValue(partecipazione.ServizioPartecipanteId, out var partecipante))
             {
                 partecipante.Immersioni.Add(partecipazione);
+            }
+        }
+
+        foreach (var partecipazione in partecipazioniEsterneImmersione)
+        {
+            if (immersioniById.TryGetValue(partecipazione.ServizioImmersioneId, out var immersione))
+            {
+                immersione.PartecipazioniEsterne.Add(partecipazione);
+            }
+
+            if (operatoriEsterniById.TryGetValue(partecipazione.ServizioOperatoreSubEsternoId, out var operatoreEsterno))
+            {
+                operatoreEsterno.Immersioni.Add(partecipazione);
             }
         }
 
@@ -171,6 +187,7 @@ public sealed partial class PersonaleRepository
         }
 
         var partecipantiMap = InsertServizioPartecipanti(connection, transaction, servizioGiornalieroId, servizio.Partecipanti);
+        var operatoriEsterniMap = InsertServizioOperatoriSubEsterni(connection, transaction, servizioGiornalieroId, servizio.OperatoriSubEsterni);
         var immersioniMap = InsertServizioImmersioni(
             connection,
             transaction,
@@ -179,6 +196,7 @@ public sealed partial class PersonaleRepository
             servizio.LocalitaOperativaId,
             servizio.ScopoImmersioneId);
         InsertServizioPartecipantiImmersioni(connection, transaction, servizio.Immersioni, immersioniMap, partecipantiMap);
+        InsertServizioOperatoriSubEsterniImmersioni(connection, transaction, servizio.Immersioni, immersioniMap, operatoriEsterniMap);
         InsertServizioSupportiOccasionali(connection, transaction, servizioGiornalieroId, servizio.SupportiOccasionali);
 
         transaction.Commit();

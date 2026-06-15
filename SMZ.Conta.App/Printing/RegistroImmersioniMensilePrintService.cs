@@ -226,6 +226,7 @@ public sealed class RegistroImmersioniMensilePrintService
         var righe = servizio.Partecipanti
             .Where(item => item.Presente)
             .SelectMany(partecipante => BuildPartecipanteRows(servizio, partecipante, persone, cataloghi))
+            .Concat(servizio.OperatoriSubEsterni.SelectMany(operatore => BuildOperatoreEsternoRows(servizio, operatore, cataloghi)))
             .ToList();
 
         if (righe.Count == 0)
@@ -278,6 +279,42 @@ public sealed class RegistroImmersioniMensilePrintService
             yield return new RegistroPrintPersonaleRow(
                 QualificaFormatter.AbbreviaPerVisualizzazione(persona.Qualifica),
                 persona.NominativoCompleto,
+                tipologia,
+                item.partecipazione.ProfonditaMetri?.ToString(CultureInfo.CurrentCulture) ?? string.Empty,
+                item.partecipazione.OreImmersione is { } ore ? ore.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty);
+        }
+    }
+
+    private static IEnumerable<RegistroPrintPersonaleRow> BuildOperatoreEsternoRows(
+        ServizioGiornaliero servizio,
+        ServizioOperatoreSubEsterno operatore,
+        CataloghiServizioSnapshot cataloghi)
+    {
+        var partecipazioni = servizio.Immersioni
+            .SelectMany(immersione => immersione.PartecipazioniEsterne
+                .Where(item => item.ServizioOperatoreSubEsternoId == operatore.ServizioOperatoreSubEsternoId)
+                .Select(item => (immersione, partecipazione: item)))
+            .ToList();
+
+        if (partecipazioni.Count == 0)
+        {
+            yield return new RegistroPrintPersonaleRow(
+                QualificaFormatter.AbbreviaPerVisualizzazione(operatore.Qualifica),
+                $"{operatore.Nominativo} ({operatore.Reparto})",
+                string.Empty,
+                string.Empty,
+                string.Empty);
+            yield break;
+        }
+
+        foreach (var item in partecipazioni)
+        {
+            var tipologia = cataloghi.TipologieImmersione
+                .FirstOrDefault(tipo => tipo.TipologiaImmersioneOperativaId == item.partecipazione.TipologiaImmersioneOperativaId)
+                ?.Descrizione ?? string.Empty;
+            yield return new RegistroPrintPersonaleRow(
+                QualificaFormatter.AbbreviaPerVisualizzazione(operatore.Qualifica),
+                $"{operatore.Nominativo} ({operatore.Reparto})",
                 tipologia,
                 item.partecipazione.ProfonditaMetri?.ToString(CultureInfo.CurrentCulture) ?? string.Empty,
                 item.partecipazione.OreImmersione is { } ore ? ore.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty);

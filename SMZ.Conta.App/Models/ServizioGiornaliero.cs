@@ -38,6 +38,8 @@ public sealed class ServizioGiornaliero
 
     public List<ServizioPartecipante> Partecipanti { get; set; } = [];
 
+    public List<ServizioOperatoreSubEsterno> OperatoriSubEsterni { get; set; } = [];
+
     public List<ServizioSupportoOccasionale> SupportiOccasionali { get; set; } = [];
 }
 
@@ -68,6 +70,8 @@ public sealed class ServizioImmersione
     public string Note { get; set; } = string.Empty;
 
     public List<ServizioPartecipanteImmersione> Partecipazioni { get; set; } = [];
+
+    public List<ServizioOperatoreSubEsternoImmersione> PartecipazioniEsterne { get; set; } = [];
 }
 
 public sealed class ServizioPartecipante
@@ -125,6 +129,48 @@ public sealed class ServizioSupportoOccasionale
     public bool Presente { get; set; }
 
     public string Contatti { get; set; } = string.Empty;
+
+    public string Note { get; set; } = string.Empty;
+}
+
+public sealed class ServizioOperatoreSubEsterno
+{
+    public long ServizioOperatoreSubEsternoId { get; set; }
+
+    public long ServizioGiornalieroId { get; set; }
+
+    public int PerId { get; set; }
+
+    public string Qualifica { get; set; } = string.Empty;
+
+    public string Nominativo { get; set; } = string.Empty;
+
+    public string Reparto { get; set; } = string.Empty;
+
+    public int GruppoOperativoId { get; set; }
+
+    public string Note { get; set; } = string.Empty;
+
+    public List<ServizioOperatoreSubEsternoImmersione> Immersioni { get; set; } = [];
+}
+
+public sealed class ServizioOperatoreSubEsternoImmersione
+{
+    public long ServizioOperatoreSubEsternoImmersioneId { get; set; }
+
+    public long ServizioImmersioneId { get; set; }
+
+    public long ServizioOperatoreSubEsternoId { get; set; }
+
+    public int? TipologiaImmersioneOperativaId { get; set; }
+
+    public int? ProfonditaMetri { get; set; }
+
+    public int? FasciaProfonditaId { get; set; }
+
+    public decimal? OreImmersione { get; set; }
+
+    public int? CategoriaContabileOreId { get; set; }
 
     public string Note { get; set; } = string.Empty;
 }

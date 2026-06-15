@@ -2,10 +2,16 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Printing;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
 using Microsoft.Win32;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Infrastructure;
@@ -32,6 +38,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ContabilitaMeseSelezionato));
         OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
         OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
+        OnPropertyChanged(nameof(ReportPersonalePeriodoTitolo));
     }
 
     private void InizializzaEditorTariffeContabili()
@@ -96,6 +103,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         CaricaContabilitaMensile();
         CaricaRegistroImmersioniMensile();
+        CaricaReportPersonaleMensile();
     }
 
     private void CaricaContabilitaMensile()
@@ -344,6 +352,68 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(RegistroImmersioniCategorieStato));
     }
 
+    private void CaricaReportPersonaleMensile()
+    {
+        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        {
+            return;
+        }
+
+        _reportPersonaleSource.Clear();
+        _reportPersonaleSource.AddRange(_repository.GetReportPersonaleMensile(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese));
+        ApplicaFiltriReportPersonale();
+    }
+
+    private void ApplicaFiltriReportPersonale()
+    {
+        var nominativo = ReportPersonaleFiltroNominativo.Trim();
+        var items = _reportPersonaleSource.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(nominativo))
+        {
+            items = items.Where(item =>
+                item.Nominativo.Contains(nominativo, StringComparison.CurrentCultureIgnoreCase)
+                || item.PerIdDisplay.Contains(nominativo, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        ReportPersonaleItems.Clear();
+        foreach (var item in items
+                     .OrderBy(item => item.DataServizio)
+                     .ThenBy(item => item.NumeroOrdineServizio)
+                     .ThenBy(item => item.Nominativo)
+                     .ThenBy(item => item.TipoRiga)
+                     .ThenBy(item => item.NumeroImmersione ?? 0))
+        {
+            ReportPersonaleItems.Add(item);
+        }
+
+        AggiornaRiepilogoReportPersonale();
+    }
+
+    private void PulisciFiltriReportPersonale()
+    {
+        if (string.IsNullOrWhiteSpace(_reportPersonaleFiltroNominativo))
+        {
+            return;
+        }
+
+        _reportPersonaleFiltroNominativo = string.Empty;
+        OnPropertyChanged(nameof(ReportPersonaleFiltroNominativo));
+        ApplicaFiltriReportPersonale();
+    }
+
+    private void AggiornaRiepilogoReportPersonale()
+    {
+        OnPropertyChanged(nameof(ReportPersonalePeriodoTitolo));
+        OnPropertyChanged(nameof(ReportPersonaleStato));
+        OnPropertyChanged(nameof(ReportPersonaleTotaleRighe));
+        OnPropertyChanged(nameof(ReportPersonaleTotalePersone));
+        OnPropertyChanged(nameof(ReportPersonaleTotaleImmersioni));
+        OnPropertyChanged(nameof(ReportPersonaleTotaleOre));
+        OnPropertyChanged(nameof(ReportPersonaleTotaleOreDisplay));
+        OnPropertyChanged(nameof(HasFiltriReportPersonaleAttivi));
+    }
+
     private void EntraNellApp()
     {
         IsWelcomeVisible = false;
@@ -471,6 +541,486 @@ public sealed partial class MainWindowViewModel : ObservableObject
             Stato = "Export contabilita CSV non riuscito.";
         }
     }
+
+    private void EsportaContabilitaExcel()
+    {
+        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(DatabasePaths.ExportDirectory);
+
+            var fileName = $"contabilita-mensile-{ContabilitaAnnoSelezionato:D4}-{ContabilitaMeseSelezionato.NumeroMese:D2}.xlsx";
+            var filePath = Path.Combine(DatabasePaths.ExportDirectory, fileName);
+            WriteContabilitaExcelXlsx(filePath);
+
+            Stato = $"Export Excel creato: {filePath}";
+            MessageBox.Show(
+                $"Export Excel contabilita creato in:\n{filePath}",
+                "Export contabilita Excel",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Export contabilita Excel", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Export contabilita Excel non riuscito.";
+        }
+    }
+
+    private void WriteContabilitaExcelXlsx(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+
+        using var archive = ZipFile.Open(filePath, ZipArchiveMode.Create);
+        AddZipEntry(archive, "[Content_Types].xml", BuildXlsxContentTypes());
+        AddZipEntry(archive, "_rels/.rels", BuildXlsxRootRelationships());
+        AddZipEntry(archive, "xl/workbook.xml", BuildXlsxWorkbook());
+        AddZipEntry(archive, "xl/_rels/workbook.xml.rels", BuildXlsxWorkbookRelationships());
+        AddZipEntry(archive, "xl/styles.xml", BuildXlsxStyles());
+        AddZipEntry(archive, "xl/worksheets/sheet1.xml", BuildContabilitaWorksheetXml());
+    }
+
+    private string BuildContabilitaWorksheetXml()
+    {
+        var rows = BuildContabilitaWorksheetRows();
+        var builder = new StringBuilder();
+        builder.AppendLine("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>""");
+        builder.AppendLine("""<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">""");
+        builder.AppendLine("""<sheetViews><sheetView workbookViewId="0"/></sheetViews>""");
+        builder.AppendLine("""<sheetFormatPr defaultRowHeight="15"/>""");
+        builder.AppendLine("""<cols><col min="1" max="1" width="12" customWidth="1"/><col min="2" max="2" width="28" customWidth="1"/><col min="3" max="5" width="10" customWidth="1"/><col min="6" max="12" width="12" customWidth="1"/></cols>""");
+        builder.AppendLine("<sheetData>");
+        foreach (var row in rows)
+        {
+            builder.AppendLine(row);
+        }
+
+        builder.AppendLine("</sheetData>");
+        builder.AppendLine("""<mergeCells count="5"><mergeCell ref="A1:L1"/><mergeCell ref="A2:L2"/><mergeCell ref="A3:L3"/><mergeCell ref="A5:L5"/><mergeCell ref="A6:L6"/></mergeCells>""");
+        builder.AppendLine("""<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>""");
+        builder.AppendLine("</worksheet>");
+        return builder.ToString();
+    }
+
+    private List<string> BuildContabilitaWorksheetRows()
+    {
+        var rows = new List<string>();
+        var rowIndex = 1;
+        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(1, 1, "POLIZIA DI STATO", 1)]));
+        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(2, 1, "Centro Nautico e Sommozzatori", 2)]));
+        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(3, 1, "Nucleo Sommozzatori", 2)]));
+        rows.Add(BuildXlsxRow(rowIndex++, []));
+        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(5, 1, "D I C H I A R A Z I O N E", 3)]));
+        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(6, 1, $"Indennita di rischio per operatori subacquei - {ContabilitaPeriodoTitolo}", 2)]));
+        rows.Add(BuildXlsxRow(rowIndex++, []));
+        rows.Add(BuildXlsxRow(rowIndex++, BuildHeaderCells(rowIndex - 1)));
+
+        var groups = ContabilitaSmzItems
+            .GroupBy(item => new { item.PerId, item.Cognome, item.Nome, item.Qualifica })
+            .OrderBy(group => group.Key.Cognome)
+            .ThenBy(group => group.Key.Nome)
+            .ToList();
+
+        if (groups.Count == 0)
+        {
+            rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex, 1, "Nessuna riga contabile SMZ nel periodo selezionato.", 5)]));
+            return rows;
+        }
+
+        decimal totaleGenerale = 0;
+        foreach (var group in groups)
+        {
+            var righeOperatore = BuildRigheMensiliOperatore(group)
+                .Where(HasValoriContabili)
+                .ToList();
+            if (righeOperatore.Count == 0)
+            {
+                continue;
+            }
+
+            var totaleOperatore = righeOperatore.Sum(item => item.Importo);
+            totaleGenerale += totaleOperatore;
+            for (var index = 0; index < righeOperatore.Count; index++)
+            {
+                var riga = righeOperatore[index];
+                var cells = new List<string>
+                {
+                    TextCell(rowIndex, 1, index == 0 ? QualificaFormatter.AbbreviaPerVisualizzazione(group.Key.Qualifica) : string.Empty, 5),
+                    TextCell(rowIndex, 2, index == 0 ? $"{group.Key.Cognome} {group.Key.Nome}".Trim() : string.Empty, 5),
+                    TextCell(rowIndex, 3, riga.Apparato, 5),
+                    TextCell(rowIndex, 4, riga.FasciaProfondita, 5),
+                    NumberCell(rowIndex, 5, riga.Tariffa, 6, blankZero: false),
+                    NumberCell(rowIndex, 6, riga.OreOrd, 6),
+                    NumberCell(rowIndex, 7, riga.OreAdd, 6),
+                    NumberCell(rowIndex, 8, riga.OreSper, 6),
+                    NumberCell(rowIndex, 9, riga.OreCi, 6),
+                    NumberCell(rowIndex, 10, riga.Importo, 6),
+                    NumberCell(rowIndex, 11, 0m, 6),
+                    NumberCell(rowIndex, 12, index == righeOperatore.Count - 1 ? totaleOperatore : 0m, 6),
+                };
+                rows.Add(BuildXlsxRow(rowIndex++, cells));
+            }
+        }
+
+        rows.Add(BuildXlsxRow(rowIndex, new List<string>
+        {
+            BlankCell(rowIndex, 1, 7),
+            TextCell(rowIndex, 2, "TOTALE GENERALE", 7),
+            BlankCell(rowIndex, 3, 7),
+            BlankCell(rowIndex, 4, 7),
+            BlankCell(rowIndex, 5, 7),
+            NumberCell(rowIndex, 6, ContabilitaSmzItems.Sum(item => item.OreOrd), 8),
+            NumberCell(rowIndex, 7, ContabilitaSmzItems.Sum(item => item.OreAdd), 8),
+            NumberCell(rowIndex, 8, ContabilitaSmzItems.Sum(item => item.OreSper), 8),
+            NumberCell(rowIndex, 9, ContabilitaSmzItems.Sum(item => item.OreCi), 8),
+            NumberCell(rowIndex, 10, totaleGenerale, 8),
+            NumberCell(rowIndex, 11, 0m, 8),
+            NumberCell(rowIndex, 12, totaleGenerale, 8),
+        }));
+        return rows;
+    }
+
+    private static List<string> BuildHeaderCells(int rowIndex)
+    {
+        var headers = new[] { "Qual", "Cognome e Nome", "Appar.", "Prof.", "Tariffa", "ORE ORD", "ORE ADD", "ORE SPER", "ORE C.I.", "Importo", "Med. Rag.", "TOTALE" };
+        return headers
+            .Select((header, index) => TextCell(rowIndex, index + 1, header, 4))
+            .ToList();
+    }
+
+    private static IEnumerable<ContabilitaMensileOperatoreRow> BuildRigheMensiliOperatore(IEnumerable<ContabilitaSmzSummary> items)
+    {
+        var source = items.ToList();
+        foreach (var template in GetRigheTariffarieMensili())
+        {
+            var matches = source
+                .Where(item =>
+                    string.Equals(NormalizeApparatoContabile(item.Apparato), template.Apparato, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(item.FasciaProfondita, template.FasciaProfondita, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            var oreOrd = matches.Sum(item => item.OreOrd);
+            var oreAdd = matches.Sum(item => item.OreAdd);
+            var oreSper = matches.Sum(item => item.OreSper);
+            var oreCi = matches.Sum(item => item.OreCi);
+            var importo = matches.Count == 0
+                ? 0m
+                : matches.Sum(item => item.Importo);
+
+            yield return new ContabilitaMensileOperatoreRow(
+                template.Apparato,
+                template.FasciaProfondita,
+                template.Tariffa,
+                oreOrd,
+                oreAdd,
+                oreSper,
+                oreCi,
+                importo);
+        }
+    }
+
+    private static IEnumerable<ContabilitaMensileTariffaRow> GetRigheTariffarieMensili()
+    {
+        yield return new ContabilitaMensileTariffaRow("A.R.O.", "00/12", 30m);
+        yield return new ContabilitaMensileTariffaRow("A.R.A.", "00/12", 5m);
+        yield return new ContabilitaMensileTariffaRow("A.R.A.", "13/25", 10m);
+        yield return new ContabilitaMensileTariffaRow("A.R.A.", "26/40", 20m);
+        yield return new ContabilitaMensileTariffaRow("A.R.A.", "41/55", 28m);
+        yield return new ContabilitaMensileTariffaRow("A.R.A.", "56/80", 38m);
+        yield return new ContabilitaMensileTariffaRow("A.R.M.", "00/12", 10m);
+        yield return new ContabilitaMensileTariffaRow("A.R.M.", "13/25", 15m);
+        yield return new ContabilitaMensileTariffaRow("A.R.M.", "26/40", 18m);
+        yield return new ContabilitaMensileTariffaRow("A.R.M.", "41/55", 24m);
+        yield return new ContabilitaMensileTariffaRow("C.I.", "00/12", 2.48m);
+        yield return new ContabilitaMensileTariffaRow("C.I.", "13/25", 2.48m);
+        yield return new ContabilitaMensileTariffaRow("C.I.", "26/40", 2.48m);
+        yield return new ContabilitaMensileTariffaRow("C.I.", "41/55", 2.48m);
+    }
+
+    private static string NormalizeApparatoContabile(string apparato)
+    {
+        if (apparato.Contains("A.R.A", StringComparison.OrdinalIgnoreCase)
+            || apparato.Contains("ASAS", StringComparison.OrdinalIgnoreCase))
+        {
+            return "A.R.A.";
+        }
+
+        if (apparato.Contains("A.R.O", StringComparison.OrdinalIgnoreCase))
+        {
+            return "A.R.O.";
+        }
+
+        if (apparato.Contains("A.R.M", StringComparison.OrdinalIgnoreCase))
+        {
+            return "A.R.M.";
+        }
+
+        if (apparato.Contains("C.I", StringComparison.OrdinalIgnoreCase))
+        {
+            return "C.I.";
+        }
+
+        return apparato.Trim();
+    }
+
+    private void StampaContabilitaMensile()
+    {
+        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var dialog = new PrintDialog
+            {
+                PrintTicket = { PageOrientation = PageOrientation.Landscape },
+            };
+
+            if (dialog.ShowDialog() != true)
+            {
+                Stato = "Stampa contabilita annullata.";
+                return;
+            }
+
+            var document = BuildContabilitaPrintDocument();
+            document.PageWidth = dialog.PrintableAreaWidth;
+            document.PageHeight = dialog.PrintableAreaHeight;
+            document.PagePadding = new Thickness(28);
+            document.ColumnWidth = document.PageWidth - document.PagePadding.Left - document.PagePadding.Right;
+            dialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, $"Contabilita {ContabilitaPeriodoTitolo}");
+            Stato = "Stampa contabilita inviata alla stampante.";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Stampa contabilita", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Stampa contabilita non riuscita.";
+        }
+    }
+
+    private FlowDocument BuildContabilitaPrintDocument()
+    {
+        var document = new FlowDocument
+        {
+            FontFamily = new FontFamily("Calibri"),
+            FontSize = 8.5,
+            PagePadding = new Thickness(28),
+        };
+
+        document.Blocks.Add(new Paragraph(new Run($"CONTABILITA MENSILE IMMERSIONI - {ContabilitaPeriodoTitolo.ToUpper(CultureInfo.CurrentCulture)}"))
+        {
+            FontSize = 15,
+            FontWeight = FontWeights.Bold,
+            TextAlignment = TextAlignment.Center,
+            Margin = new Thickness(0, 0, 0, 12),
+        });
+        document.Blocks.Add(BuildContabilitaPrintTable());
+        return document;
+    }
+
+    private Table BuildContabilitaPrintTable()
+    {
+        var table = new Table { CellSpacing = 0 };
+        foreach (var width in new[] { 58d, 76d, 42d, 62d, 150d, 58d, 58d, 50d, 48d, 48d, 48d, 48d, 62d })
+        {
+            table.Columns.Add(new TableColumn { Width = new GridLength(width) });
+        }
+
+        table.RowGroups.Add(new TableRowGroup());
+        AddPrintHeader(table, "Data", "Ordine", "PerID", "Qual.", "Cognome e nome", "Appar.", "Prof.", "Tariffa", "ORD", "ADD", "SPER", "C.I.", "Importo");
+        foreach (var item in ContabilitaSmzItems)
+        {
+            AddPrintRow(
+                table,
+                item.DataServizioDescrizione,
+                item.NumeroOrdineServizio,
+                item.PerId.ToString(CultureInfo.CurrentCulture),
+                item.QualificaDisplay,
+                item.Nominativo,
+                item.Apparato,
+                item.FasciaProfondita,
+                item.TariffaDisplay,
+                item.OreOrdDisplay,
+                item.OreAddDisplay,
+                item.OreSperDisplay,
+                item.OreCiDisplay,
+                item.ImportoDisplay);
+        }
+
+        AddPrintRow(table, string.Empty, string.Empty, string.Empty, string.Empty, "TOTALI", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, ContabilitaSmzTotaleOreDisplay, ContabilitaSmzTotaleImportiDisplay);
+        return table;
+    }
+
+    private static void AddPrintHeader(Table table, params string[] values)
+    {
+        var row = new TableRow { FontWeight = FontWeights.Bold, Background = Brushes.WhiteSmoke };
+        foreach (var value in values)
+        {
+            row.Cells.Add(CreatePrintCell(value));
+        }
+
+        table.RowGroups[0].Rows.Add(row);
+    }
+
+    private static void AddPrintRow(Table table, params string[] values)
+    {
+        var row = new TableRow();
+        foreach (var value in values)
+        {
+            row.Cells.Add(CreatePrintCell(value));
+        }
+
+        table.RowGroups[0].Rows.Add(row);
+    }
+
+    private static TableCell CreatePrintCell(string value) =>
+        new(new Paragraph(new Run(value)) { Margin = new Thickness(2) })
+        {
+            BorderBrush = Brushes.Black,
+            BorderThickness = new Thickness(0.5),
+            Padding = new Thickness(2),
+        };
+
+    private static bool HasValoriContabili(ContabilitaMensileOperatoreRow riga) =>
+        riga.OreOrd != 0m
+        || riga.OreAdd != 0m
+        || riga.OreSper != 0m
+        || riga.OreCi != 0m
+        || riga.Importo != 0m;
+
+    private static void AddZipEntry(ZipArchive archive, string name, string content)
+    {
+        var entry = archive.CreateEntry(name, CompressionLevel.Optimal);
+        using var stream = entry.Open();
+        using var writer = new StreamWriter(stream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        writer.Write(content.TrimStart());
+    }
+
+    private static string BuildXlsxContentTypes() =>
+        """
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+          <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+          <Default Extension="xml" ContentType="application/xml"/>
+          <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+          <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+          <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+        </Types>
+        """;
+
+    private static string BuildXlsxRootRelationships() =>
+        """
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+        </Relationships>
+        """;
+
+    private static string BuildXlsxWorkbook() =>
+        """
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+          <sheets>
+            <sheet name="Mensile" sheetId="1" r:id="rId1"/>
+          </sheets>
+        </workbook>
+        """;
+
+    private static string BuildXlsxWorkbookRelationships() =>
+        """
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+          <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+        </Relationships>
+        """;
+
+    private static string BuildXlsxStyles() =>
+        """
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+          <fonts count="3">
+            <font><sz val="10"/><name val="Calibri"/></font>
+            <font><b/><sz val="14"/><name val="Calibri"/></font>
+            <font><b/><sz val="10"/><name val="Calibri"/></font>
+          </fonts>
+          <fills count="3">
+            <fill><patternFill patternType="none"/></fill>
+            <fill><patternFill patternType="gray125"/></fill>
+            <fill><patternFill patternType="solid"><fgColor rgb="FFD9EAF7"/><bgColor indexed="64"/></patternFill></fill>
+          </fills>
+          <borders count="2">
+            <border><left/><right/><top/><bottom/><diagonal/></border>
+            <border><left style="thin"><color auto="1"/></left><right style="thin"><color auto="1"/></right><top style="thin"><color auto="1"/></top><bottom style="thin"><color auto="1"/></bottom><diagonal/></border>
+          </borders>
+          <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+          <cellXfs count="9">
+            <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+            <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf>
+            <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf>
+            <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf>
+            <xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf>
+            <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0"/>
+            <xf numFmtId="2" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="right"/></xf>
+            <xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0"/>
+            <xf numFmtId="2" fontId="2" fillId="2" borderId="1" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="right"/></xf>
+          </cellXfs>
+          <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+        </styleSheet>
+        """;
+
+    private static string BuildXlsxRow(int rowIndex, IEnumerable<string> cells) =>
+        $"<row r=\"{rowIndex}\">{string.Concat(cells)}</row>";
+
+    private static string TextCell(int rowIndex, int columnIndex, string value, int styleIndex) =>
+        string.IsNullOrWhiteSpace(value)
+            ? BlankCell(rowIndex, columnIndex, styleIndex)
+            : $"<c r=\"{CellRef(rowIndex, columnIndex)}\" s=\"{styleIndex}\" t=\"inlineStr\"><is><t>{Xml(value)}</t></is></c>";
+
+    private static string NumberCell(int rowIndex, int columnIndex, decimal value, int styleIndex, bool blankZero = true) =>
+        blankZero && value == 0m
+            ? BlankCell(rowIndex, columnIndex, styleIndex)
+            : $"<c r=\"{CellRef(rowIndex, columnIndex)}\" s=\"{styleIndex}\"><v>{value.ToString("0.##", CultureInfo.InvariantCulture)}</v></c>";
+
+    private static string BlankCell(int rowIndex, int columnIndex, int styleIndex) =>
+        $"<c r=\"{CellRef(rowIndex, columnIndex)}\" s=\"{styleIndex}\"/>";
+
+    private static string CellRef(int rowIndex, int columnIndex) => $"{ColumnName(columnIndex)}{rowIndex}";
+
+    private static string ColumnName(int columnIndex)
+    {
+        var dividend = columnIndex;
+        var columnName = string.Empty;
+        while (dividend > 0)
+        {
+            var modulo = (dividend - 1) % 26;
+            columnName = Convert.ToChar('A' + modulo) + columnName;
+            dividend = (dividend - modulo) / 26;
+        }
+
+        return columnName;
+    }
+
+    private static string Xml(string value) => WebUtility.HtmlEncode(value);
+
+    private sealed record ContabilitaMensileTariffaRow(string Apparato, string FasciaProfondita, decimal Tariffa);
+
+    private sealed record ContabilitaMensileOperatoreRow(
+        string Apparato,
+        string FasciaProfondita,
+        decimal Tariffa,
+        decimal OreOrd,
+        decimal OreAdd,
+        decimal OreSper,
+        decimal OreCi,
+        decimal Importo);
 
     private void SalvaLocalitaOperative()
     {

@@ -269,6 +269,21 @@ public sealed partial class MainWindowViewModel : ObservableObject
         AggiornaRiepilogoBozzaServizio();
     }
 
+    private void AggiungiOperatoreSubEsterno()
+    {
+        var item = new ServizioOperatoreSubEsternoDraftViewModel
+        {
+            GruppoOperativo = TrovaGruppoOperativo(1),
+        };
+
+        item.PropertyChanged += ServizioOperatoreSubEsterno_PropertyChanged;
+        ServizioOperatoriSubEsterniBozza.Add(item);
+        SelectedOperatoreSubEsterno = item;
+        SincronizzaPartecipazioniImmersioneBozza();
+        AggiornaRiepilogoBozzaServizio();
+    }
+
+
     private void AggiungiLocalitaOperativa()
     {
         try
@@ -333,6 +348,21 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SelectedSupportoOccasionale = null;
         AggiornaRiepilogoBozzaServizio();
     }
+
+    private void RimuoviOperatoreSubEsterno()
+    {
+        if (SelectedOperatoreSubEsterno is null)
+        {
+            return;
+        }
+
+        SelectedOperatoreSubEsterno.PropertyChanged -= ServizioOperatoreSubEsterno_PropertyChanged;
+        ServizioOperatoriSubEsterniBozza.Remove(SelectedOperatoreSubEsterno);
+        SelectedOperatoreSubEsterno = null;
+        SincronizzaPartecipazioniImmersioneBozza();
+        AggiornaRiepilogoBozzaServizio();
+    }
+
 
     private void EliminaServizioSelezionato()
     {
@@ -452,9 +482,27 @@ public sealed partial class MainWindowViewModel : ObservableObject
             CreaImmersioniBozzaDefault();
         }
 
+        ServizioOperatoriSubEsterniBozza.Clear();
+        foreach (var operatore in servizio.OperatoriSubEsterni)
+        {
+            var item = new ServizioOperatoreSubEsternoDraftViewModel
+            {
+                PerId = operatore.PerId.ToString(),
+                Qualifica = operatore.Qualifica,
+                Nominativo = operatore.Nominativo,
+                Reparto = operatore.Reparto,
+                GruppoOperativo = TrovaGruppoOperativo(operatore.GruppoOperativoId),
+                Note = operatore.Note,
+            };
+
+            item.PropertyChanged += ServizioOperatoreSubEsterno_PropertyChanged;
+            ServizioOperatoriSubEsterniBozza.Add(item);
+        }
+
         SincronizzaPartecipazioniImmersioneBozza();
 
         var perIdByServizioPartecipanteId = servizio.Partecipanti.ToDictionary(item => item.ServizioPartecipanteId, item => item.PerId);
+        var perIdByServizioOperatoreEsternoId = servizio.OperatoriSubEsterni.ToDictionary(item => item.ServizioOperatoreSubEsternoId, item => item.PerId);
         foreach (var immersione in servizio.Immersioni)
         {
             var immersioneBozza = ServizioImmersioniBozza.FirstOrDefault(item => item.NumeroImmersione == immersione.NumeroImmersione);
@@ -486,7 +534,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 AggiornaCalcoliPartecipazioneImmersione(partecipazioneBozza);
             }
 
-            if (immersione.Partecipazioni.Count > 0)
+            foreach (var partecipazione in immersione.PartecipazioniEsterne)
+            {
+                if (!perIdByServizioOperatoreEsternoId.TryGetValue(partecipazione.ServizioOperatoreSubEsternoId, out var perId))
+                {
+                    continue;
+                }
+
+                var partecipazioneBozza = immersioneBozza.Partecipazioni.FirstOrDefault(item => item.PerId == perId && item.IsEsterno);
+                if (partecipazioneBozza is null)
+                {
+                    continue;
+                }
+
+                partecipazioneBozza.InImmersione = true;
+                partecipazioneBozza.TipologiaImmersioneOperativa = TipologieImmersioneOperativeCatalogo.FirstOrDefault(item => item.TipologiaImmersioneOperativaId == partecipazione.TipologiaImmersioneOperativaId);
+                partecipazioneBozza.ProfonditaMetri = partecipazione.ProfonditaMetri?.ToString() ?? string.Empty;
+                partecipazioneBozza.FasciaProfondita = FasceProfonditaCatalogo.FirstOrDefault(item => item.FasciaProfonditaId == partecipazione.FasciaProfonditaId);
+                partecipazioneBozza.OreImmersione = FormatDecimal(partecipazione.OreImmersione);
+                partecipazioneBozza.CategoriaContabileOre = CategorieContabiliOreCatalogo.FirstOrDefault(item => item.CategoriaContabileOreId == partecipazione.CategoriaContabileOreId);
+                partecipazioneBozza.Note = partecipazione.Note;
+                AggiornaCalcoliPartecipazioneImmersione(partecipazioneBozza);
+            }
+
+            if (immersione.Partecipazioni.Count > 0 || immersione.PartecipazioniEsterne.Count > 0)
             {
                 immersioneBozza.ProfonditaCondivisaInizializzata = true;
                 immersioneBozza.OreCondiviseInizializzate = true;
@@ -511,7 +582,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         SelectedSupportoOccasionale = null;
+        SelectedOperatoreSubEsterno = null;
 
+        SincronizzaPartecipazioniImmersioneBozza();
         SincronizzaPartecipazioniContabiliUnicheBozza(aggiornaDaPartecipazioni: true);
         AggiornaContestoServizio();
         AggiornaRiepilogoBozzaServizio();
@@ -572,6 +645,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         ServizioSupportiOccasionaliBozza.Clear();
         SelectedSupportoOccasionale = null;
+
+        foreach (var operatore in ServizioOperatoriSubEsterniBozza)
+        {
+            operatore.PropertyChanged -= ServizioOperatoreSubEsterno_PropertyChanged;
+        }
+
+        ServizioOperatoriSubEsterniBozza.Clear();
+        SelectedOperatoreSubEsterno = null;
 
         AggiornaContestoServizio();
         AggiornaRiepilogoBozzaServizio();

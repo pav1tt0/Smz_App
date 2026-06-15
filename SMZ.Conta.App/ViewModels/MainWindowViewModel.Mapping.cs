@@ -349,14 +349,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         var partecipanti = BuildServizioPartecipanti();
+        var operatoriSubEsterni = BuildOperatoriSubEsterni();
         var supportiOccasionali = BuildSupportiOccasionali();
 
-        if (partecipanti.Count == 0 && supportiOccasionali.Count == 0)
+        if (partecipanti.Count == 0 && operatoriSubEsterni.Count == 0 && supportiOccasionali.Count == 0)
         {
             throw new InvalidOperationException("Inserisci almeno un partecipante o una Assistenza SMZ nel servizio.");
         }
 
-        var immersioni = BuildServizioImmersioni(partecipanti);
+        var immersioni = BuildServizioImmersioni(partecipanti, operatoriSubEsterni);
 
         return new ServizioGiornaliero
         {
@@ -377,6 +378,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             AttivitaSvolta = ServizioAttivitaSvolta.Trim(),
             Note = ServizioNote.Trim(),
             Partecipanti = partecipanti,
+            OperatoriSubEsterni = operatoriSubEsterni,
             Immersioni = immersioni,
             SupportiOccasionali = supportiOccasionali,
         };
@@ -444,23 +446,87 @@ public sealed partial class MainWindowViewModel : ObservableObject
         return items;
     }
 
-    private List<ServizioImmersione> BuildServizioImmersioni(IReadOnlyCollection<ServizioPartecipante> partecipanti)
+    private List<ServizioOperatoreSubEsterno> BuildOperatoriSubEsterni()
+    {
+        var items = new List<ServizioOperatoreSubEsterno>();
+        var perIds = new HashSet<int>();
+
+        foreach (var row in ServizioOperatoriSubEsterniBozza)
+        {
+            if (!IsOperatoreSubEsternoCompilato(row))
+            {
+                continue;
+            }
+
+            var perId = ParseNullableInt(row.PerId, "PerID operatore sub esterno");
+            if (perId is null || perId <= 0)
+            {
+                throw new InvalidOperationException("Per ogni operatore sub esterno il PerID ministeriale e obbligatorio.");
+            }
+
+            if (!perIds.Add(perId.Value))
+            {
+                throw new InvalidOperationException($"PerID esterno duplicato nel servizio: {perId.Value}.");
+            }
+
+            if (ServizioPartecipantiBozza.Any(item => item.PerId == perId.Value && item.Presente))
+            {
+                throw new InvalidOperationException($"PerID {perId.Value}: l'operatore e gia presente tra il personale interno.");
+            }
+
+            if (string.IsNullOrWhiteSpace(row.Nominativo))
+            {
+                throw new InvalidOperationException("Per ogni operatore sub esterno il nominativo e obbligatorio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(row.Reparto))
+            {
+                throw new InvalidOperationException($"{row.Nominativo}: indicare il reparto di appartenenza.");
+            }
+
+            if (row.GruppoOperativo is null)
+            {
+                throw new InvalidOperationException($"{row.Nominativo}: selezionare il gruppo operativo.");
+            }
+
+            items.Add(new ServizioOperatoreSubEsterno
+            {
+                PerId = perId.Value,
+                Qualifica = row.Qualifica.Trim(),
+                Nominativo = row.Nominativo.Trim(),
+                Reparto = row.Reparto.Trim(),
+                GruppoOperativoId = row.GruppoOperativo.GruppoOperativoId,
+                Note = row.Note.Trim(),
+            });
+        }
+
+        return items;
+    }
+
+    private List<ServizioImmersione> BuildServizioImmersioni(
+        IReadOnlyCollection<ServizioPartecipante> partecipanti,
+        IReadOnlyCollection<ServizioOperatoreSubEsterno> operatoriSubEsterni)
     {
         var items = new List<ServizioImmersione>();
         var presentiPerId = partecipanti
             .Where(item => item.Presente)
             .Select(item => item.PerId)
             .ToHashSet();
+        var esterniPerId = operatoriSubEsterni
+            .Select(item => item.PerId)
+            .ToHashSet();
 
         foreach (var row in ServizioImmersioniBozza)
         {
-            var partecipazioniImmersione = BuildServizioPartecipazioniImmersione(row, presentiPerId);
+            var partecipazioniImmersione = BuildServizioPartecipazioniImmersione(row, presentiPerId, isEsterno: false);
+            var partecipazioniEsterneImmersione = BuildServizioPartecipazioniImmersioneEsterne(row, esterniPerId);
             var includeRow = row.DirettoreImmersione is not null
                 || row.OperatoreSoccorso is not null
                 || row.AssistenteBlsd is not null
                 || row.AssistenteSanitario is not null
                 || !string.IsNullOrWhiteSpace(row.Note)
-                || partecipazioniImmersione.Count > 0;
+                || partecipazioniImmersione.Count > 0
+                || partecipazioniEsterneImmersione.Count > 0;
 
             if (!includeRow)
             {
@@ -485,6 +551,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 ScopoImmersioneId = ServizioScopoSelezionato?.ScopoImmersioneId,
                 Note = row.Note.Trim(),
                 Partecipazioni = partecipazioniImmersione,
+                PartecipazioniEsterne = partecipazioniEsterneImmersione,
             });
         }
 
@@ -493,11 +560,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private List<ServizioPartecipanteImmersione> BuildServizioPartecipazioniImmersione(
         ServizioImmersioneDraftViewModel immersione,
-        IReadOnlySet<int> presentiPerId)
+        IReadOnlySet<int> presentiPerId,
+        bool isEsterno)
     {
         var items = new List<ServizioPartecipanteImmersione>();
 
-        foreach (var row in immersione.Partecipazioni)
+        foreach (var row in immersione.Partecipazioni.Where(item => item.IsEsterno == isEsterno))
         {
             if (IsDirettoreImmersione(immersione, row.PerId))
             {
@@ -550,6 +618,72 @@ public sealed partial class MainWindowViewModel : ObservableObject
             items.Add(new ServizioPartecipanteImmersione
             {
                 ServizioPartecipanteId = row.PerId,
+                TipologiaImmersioneOperativaId = row.TipologiaImmersioneOperativa.TipologiaImmersioneOperativaId,
+                ProfonditaMetri = profondita,
+                FasciaProfonditaId = fascia.FasciaProfonditaId,
+                OreImmersione = ore,
+                CategoriaContabileOreId = row.CategoriaContabileOre.CategoriaContabileOreId,
+                Note = row.Note.Trim(),
+            });
+        }
+
+        return items;
+    }
+
+    private List<ServizioOperatoreSubEsternoImmersione> BuildServizioPartecipazioniImmersioneEsterne(
+        ServizioImmersioneDraftViewModel immersione,
+        IReadOnlySet<int> esterniPerId)
+    {
+        var items = new List<ServizioOperatoreSubEsternoImmersione>();
+
+        foreach (var row in immersione.Partecipazioni.Where(item => item.IsEsterno))
+        {
+            var includeRow = IsPartecipazioneImmersioneCompilata(row);
+            if (!includeRow)
+            {
+                continue;
+            }
+
+            if (!esterniPerId.Contains(row.PerId))
+            {
+                throw new InvalidOperationException($"Immersione {immersione.NumeroImmersione}: {row.Nominativo} non risulta tra gli operatori sub esterni del servizio.");
+            }
+
+            if (row.TipologiaImmersioneOperativa is null)
+            {
+                throw new InvalidOperationException($"Immersione {immersione.NumeroImmersione}: selezionare l'apparato per {row.Nominativo}.");
+            }
+
+            var profondita = ParseNullableInt(row.ProfonditaMetri, $"Immersione {immersione.NumeroImmersione} - profondita {row.Nominativo}");
+            ValidaProfonditaPerTipologia(
+                row.TipologiaImmersioneOperativa,
+                profondita,
+                $"Immersione {immersione.NumeroImmersione} - profondita {row.Nominativo}");
+            var fascia = row.FasciaProfondita;
+            if (fascia is null && profondita is not null)
+            {
+                fascia = FasceProfonditaCatalogo.FirstOrDefault(item => profondita.Value >= item.MetriDa && profondita.Value <= item.MetriA);
+            }
+
+            if (fascia is null)
+            {
+                throw new InvalidOperationException($"Immersione {immersione.NumeroImmersione}: selezionare la fascia profondita per {row.Nominativo}.");
+            }
+
+            var ore = ParseNullableDecimal(row.OreImmersione, $"Immersione {immersione.NumeroImmersione} - ore {row.Nominativo}");
+            if (ore is null || ore <= 0)
+            {
+                throw new InvalidOperationException($"Immersione {immersione.NumeroImmersione}: indicare ore immersione valide per {row.Nominativo}.");
+            }
+
+            if (row.CategoriaContabileOre is null)
+            {
+                throw new InvalidOperationException($"Immersione {immersione.NumeroImmersione}: selezionare la categoria contabile per {row.Nominativo}.");
+            }
+
+            items.Add(new ServizioOperatoreSubEsternoImmersione
+            {
+                ServizioOperatoreSubEsternoId = row.PerId,
                 TipologiaImmersioneOperativaId = row.TipologiaImmersioneOperativa.TipologiaImmersioneOperativaId,
                 ProfonditaMetri = profondita,
                 FasciaProfonditaId = fascia.FasciaProfonditaId,
