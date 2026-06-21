@@ -29,9 +29,14 @@ public sealed partial class PersonaleRepository
 
     public List<ReportPersonaleMensileRiga> GetReportPersonaleMensile(int anno, int mese)
     {
-        using var connection = OpenConnection();
         var dataInizio = new DateOnly(anno, mese, 1);
         var dataFine = dataInizio.AddMonths(1).AddDays(-1);
+        return GetReportPersonale(dataInizio, dataFine);
+    }
+
+    public List<ReportPersonaleMensileRiga> GetReportPersonale(DateOnly dataInizio, DateOnly dataFine)
+    {
+        using var connection = OpenConnection();
 
         var righe = GetRegistroImmersioniMensile(connection, dataInizio, dataFine)
             .Select(item => new ReportPersonaleMensileRiga

@@ -178,6 +178,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string _servizioNote = string.Empty;
     private int _contabilitaAnnoSelezionato;
     private ContabilitaMeseItem? _contabilitaMeseSelezionato;
+    private ContabilitaMeseItem? _reportPersonaleMeseSelezionato;
     private bool _contabilitaSelezionePronta;
     private string _contabilitaSmzFiltroData = string.Empty;
     private string _contabilitaSmzFiltroNumeroServizio = string.Empty;
@@ -312,6 +313,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
             new ContabilitaMeseItem { NumeroMese = 10, Descrizione = "Ottobre" },
             new ContabilitaMeseItem { NumeroMese = 11, Descrizione = "Novembre" },
             new ContabilitaMeseItem { NumeroMese = 12, Descrizione = "Dicembre" },
+        ]);
+        ReportPersonaleMesiDisponibili = new ObservableCollection<ContabilitaMeseItem>(
+        [
+            new ContabilitaMeseItem { NumeroMese = 0, Descrizione = "Tutto l'anno" },
+            ..ContabilitaMesiDisponibili,
         ]);
         ContabilitaAnniDisponibili = new ObservableCollection<int>();
         ArchivioItems = new ObservableCollection<PersonaleArchivioListItemViewModel>();
@@ -670,6 +676,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<ContabilitaMeseItem> ContabilitaMesiDisponibili { get; }
 
+    public ObservableCollection<ContabilitaMeseItem> ReportPersonaleMesiDisponibili { get; }
+
     public ObservableCollection<int> ContabilitaAnniDisponibili { get; }
 
     public ObservableCollection<ScadenzaItemViewModel> ScadenzeProssime { get; }
@@ -748,11 +756,27 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
                 OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
-                OnPropertyChanged(nameof(ReportPersonalePeriodoTitolo));
 
                 if (_contabilitaSelezionePronta)
                 {
                     AggiornaDatiMensili();
+                }
+            }
+        }
+    }
+
+    public ContabilitaMeseItem? ReportPersonaleMeseSelezionato
+    {
+        get => _reportPersonaleMeseSelezionato;
+        set
+        {
+            if (SetProperty(ref _reportPersonaleMeseSelezionato, value))
+            {
+                OnPropertyChanged(nameof(ReportPersonalePeriodoTitolo));
+
+                if (_contabilitaSelezionePronta)
+                {
+                    CaricaReportPersonaleMensile();
                 }
             }
         }
@@ -1258,9 +1282,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
             : $"Registro immersioni {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoEffettivo}";
 
     public string ReportPersonalePeriodoTitolo =>
-        ContabilitaMeseSelezionato is null
+        ReportPersonaleMeseSelezionato is null || ReportPersonaleMeseSelezionato.NumeroMese == 0
             ? $"Report personale {ContabilitaAnnoEffettivo}"
-            : $"Report personale {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoEffettivo}";
+            : $"Report personale {ReportPersonaleMeseSelezionato.Descrizione} {ContabilitaAnnoEffettivo}";
 
     public string ReportPersonaleStato =>
         _reportPersonaleSource.Count == 0

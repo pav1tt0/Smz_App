@@ -610,8 +610,8 @@
                                 <StackPanel Width="170">
                                     <TextBlock Text="Mese"
                                                Foreground="#50626A" />
-                                    <ComboBox ItemsSource="{Binding ContabilitaMesiDisponibili}"
-                                              SelectedItem="{Binding ContabilitaMeseSelezionato}"
+                                    <ComboBox ItemsSource="{Binding ReportPersonaleMesiDisponibili}"
+                                              SelectedItem="{Binding ReportPersonaleMeseSelezionato}"
                                               DisplayMemberPath="Descrizione" />
                                 </StackPanel>
 

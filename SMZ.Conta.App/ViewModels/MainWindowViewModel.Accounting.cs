@@ -32,10 +32,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
             : ContabilitaAnniDisponibili.FirstOrDefault();
         _contabilitaMeseSelezionato = ContabilitaMesiDisponibili.FirstOrDefault(item => item.NumeroMese == oggi.Month)
             ?? ContabilitaMesiDisponibili.FirstOrDefault();
+        _reportPersonaleMeseSelezionato = ReportPersonaleMesiDisponibili.FirstOrDefault(item => item.NumeroMese == oggi.Month)
+            ?? ReportPersonaleMesiDisponibili.FirstOrDefault();
         _contabilitaSelezionePronta = true;
         OnPropertyChanged(nameof(ContabilitaAnnoSelezionato));
         OnPropertyChanged(nameof(ContabilitaAnnoEffettivo));
         OnPropertyChanged(nameof(ContabilitaMeseSelezionato));
+        OnPropertyChanged(nameof(ReportPersonaleMeseSelezionato));
         OnPropertyChanged(nameof(ContabilitaPeriodoTitolo));
         OnPropertyChanged(nameof(RegistroImmersioniPeriodoTitolo));
         OnPropertyChanged(nameof(ReportPersonalePeriodoTitolo));
@@ -354,13 +357,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void CaricaReportPersonaleMensile()
     {
-        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        if (ReportPersonaleMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
         {
             return;
         }
 
+        var dataInizio = ReportPersonaleMeseSelezionato.NumeroMese == 0
+            ? new DateOnly(ContabilitaAnnoSelezionato, 1, 1)
+            : new DateOnly(ContabilitaAnnoSelezionato, ReportPersonaleMeseSelezionato.NumeroMese, 1);
+        var dataFine = ReportPersonaleMeseSelezionato.NumeroMese == 0
+            ? new DateOnly(ContabilitaAnnoSelezionato, 12, 31)
+            : dataInizio.AddMonths(1).AddDays(-1);
+
         _reportPersonaleSource.Clear();
-        _reportPersonaleSource.AddRange(_repository.GetReportPersonaleMensile(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese));
+        _reportPersonaleSource.AddRange(_repository.GetReportPersonale(dataInizio, dataFine));
         ApplicaFiltriReportPersonale();
     }
 
