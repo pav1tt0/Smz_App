@@ -210,73 +210,12 @@
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="0.86*" />
+                <ColumnDefinition Width="1.55*" />
                 <ColumnDefinition Width="20" />
-                <ColumnDefinition Width="1.1*" />
-                <ColumnDefinition Width="20" />
-                <ColumnDefinition Width="1.04*" />
+                <ColumnDefinition Width="0.95*" />
             </Grid.ColumnDefinitions>
 
             <Border Style="{DynamicResource CardStyle}"
-                    Padding="26">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Text="Stato nucleo"
-                               FontSize="22"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource AppTextBrush}" />
-
-                    <Grid Grid.Row="1"
-                          Margin="0,34,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="112" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <Border Width="92"
-                                Height="92"
-                                Background="#EAF3FD"
-                                CornerRadius="46"
-                                VerticalAlignment="Top">
-                            <TextBlock Text="&#xE716;"
-                                       FontFamily="Segoe MDL2 Assets"
-                                       Foreground="#0E5AA7"
-                                       FontSize="42"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" />
-                        </Border>
-
-                        <StackPanel Grid.Column="1"
-                                    VerticalAlignment="Top">
-                            <TextBlock Text="{Binding DashboardStatoSintesi}"
-                                       Foreground="{DynamicResource AppTextBrush}"
-                                       FontSize="15"
-                                       FontWeight="SemiBold"
-                                       LineHeight="23"
-                                       TextWrapping="Wrap" />
-                            <TextBlock Margin="0,18,0,0"
-                                       Text="{Binding DashboardServizioSintesi}"
-                                       Foreground="{DynamicResource AppMutedTextBrush}"
-                                       FontSize="14"
-                                       LineHeight="23"
-                                       TextWrapping="Wrap" />
-                            <TextBlock Margin="0,14,0,0"
-                                       Text="{Binding DashboardArchivioSintesi}"
-                                       Foreground="{DynamicResource AppMutedTextBrush}"
-                                       FontSize="14"
-                                       LineHeight="23"
-                                       TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Grid>
-                </Grid>
-            </Border>
-
-            <Border Grid.Column="2"
-                    Style="{DynamicResource CardStyle}"
                     Padding="24">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -295,7 +234,7 @@
                           Margin="0,20,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="18" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
@@ -303,7 +242,7 @@
                                 BorderBrush="#F0B2B8"
                                 BorderThickness="1"
                                 CornerRadius="8"
-                                Padding="18,12">
+                                Padding="22,14">
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Center">
                                 <TextBlock Text="&#xE7BA;"
@@ -314,13 +253,13 @@
                                 <TextBlock Margin="12,0,0,0"
                                            Text="{Binding DashboardVisiteScadutePersonale}"
                                            Foreground="#D40F1F"
-                                           FontSize="18"
+                                           FontSize="20"
                                            FontWeight="Bold"
                                            VerticalAlignment="Center" />
                                 <TextBlock Margin="8,0,0,0"
                                            Text="Scadute"
                                            Foreground="#D40F1F"
-                                           FontSize="16"
+                                           FontSize="17"
                                            FontWeight="SemiBold"
                                            VerticalAlignment="Center" />
                             </StackPanel>
@@ -331,7 +270,7 @@
                                 BorderBrush="#F2C78F"
                                 BorderThickness="1"
                                 CornerRadius="8"
-                                Padding="18,12">
+                                Padding="22,14">
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Center">
                                 <TextBlock Text="&#xE823;"
@@ -342,13 +281,13 @@
                                 <TextBlock Margin="12,0,0,0"
                                            Text="{Binding DashboardVisiteInScadenzaPersonale}"
                                            Foreground="#EF7D00"
-                                           FontSize="18"
+                                           FontSize="20"
                                            FontWeight="Bold"
                                            VerticalAlignment="Center" />
                                 <TextBlock Margin="8,0,0,0"
                                            Text="In scadenza"
                                            Foreground="#EF7D00"
-                                           FontSize="16"
+                                           FontSize="17"
                                            FontWeight="SemiBold"
                                            VerticalAlignment="Center" />
                             </StackPanel>
@@ -377,9 +316,9 @@
                                         <Grid MinHeight="52"
                                               Margin="16,0">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="1.18*" />
-                                                <ColumnDefinition Width="1*" />
-                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="1.2*" />
+                                                <ColumnDefinition Width="1.1*" />
+                                                <ColumnDefinition Width="1.1*" />
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="{Binding Nominativo}"
                                                        Foreground="{DynamicResource AppTextBrush}"
@@ -397,7 +336,9 @@
                                                        Foreground="{Binding TitoloForeground}"
                                                        FontSize="14"
                                                        FontWeight="SemiBold"
-                                                       VerticalAlignment="Center" />
+                                                       VerticalAlignment="Center"
+                                                       TextAlignment="Right"
+                                                       TextTrimming="CharacterEllipsis" />
                                         </Grid>
                                     </Button>
                                 </DataTemplate>
@@ -416,7 +357,7 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Column="4"
+            <Border Grid.Column="2"
                     Style="{DynamicResource CardStyle}"
                     Padding="24">
                 <Grid>

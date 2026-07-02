@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Threading;
 using Microsoft.Win32;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Infrastructure;
@@ -92,6 +93,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _createExternalBackupCommand;
     private readonly RelayCommand _configureExternalBackupDirectoryCommand;
     private readonly RelayCommand _restoreBackupCommand;
+    private readonly DispatcherTimer _clockTimer;
     private readonly List<string> _allSearchSuggestions;
     private readonly BackupSettings _backupSettings;
     private PersonaleListItemViewModel? _selectedPersonale;
@@ -135,6 +137,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string _mail1Utente = string.Empty;
     private string _mail2Utente = string.Empty;
     private string _stato = "Pronto";
+    private DateTime _headerDateTime = DateTime.Now;
     private int _scadenzeTotali;
     private int _scadenzeUrgenti;
     private int _scadenzeScadute;
@@ -276,6 +279,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _saveLocalitaOperativeCommand = new RelayCommand(SalvaLocalitaOperative);
         _saveUnitaNavaliCommand = new RelayCommand(SalvaUnitaNavali);
         _saveTariffeContabiliCommand = new RelayCommand(SalvaTariffeContabili);
+        _clockTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(30),
+        };
+        _clockTimer.Tick += (_, _) => AggiornaDataOraHeader();
+        _clockTimer.Start();
 
         Abilitazioni = new ObservableCollection<PersonaleAbilitazioneRowViewModel>();
         VisiteMediche = new ObservableCollection<VisitaMedicaRowViewModel>();
@@ -375,6 +384,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SezioneAttivaIndex = HomeSectionIndex;
     }
 
+    private void AggiornaDataOraHeader()
+    {
+        _headerDateTime = DateTime.Now;
+        OnPropertyChanged(nameof(HeaderDateText));
+        OnPropertyChanged(nameof(HeaderTimeText));
+    }
+
     public string Titolo => "SMZ La Spezia";
 
     public string Sottotitolo => "Gestione integrata di personale, servizi, immersioni e scadenze";
@@ -392,6 +408,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string HomeSottotitolo =>
         "Una home iniziale piu moderna per accedere ai moduli del nucleo: personale, servizi giornalieri, archivio e contabilita.";
+
+    public string HeaderDateText => _headerDateTime.ToString("d MMMM yyyy", CultureInfo.GetCultureInfo("it-IT"));
+
+    public string HeaderTimeText => _headerDateTime.ToString("HH:mm", CultureInfo.GetCultureInfo("it-IT"));
 
     public int DashboardDipendentiTotali => PersonaleItems.Count;
 
@@ -1347,6 +1367,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ? "Cartella backup esterno non configurata."
             : "Nessun backup esterno ancora creato.",
         "Ultimo backup esterno");
+
+    public string BackupLocaleSintesi => FormatBackupFooterInfo(
+        _backupService.GetLatestLocalBackup(),
+        "Backup locale: non creato",
+        "Backup locale");
+
+    public string BackupEsternoSintesi => FormatBackupFooterInfo(
+        _backupService.GetLatestExternalBackup(_backupSettings.ExternalBackupDirectory),
+        string.IsNullOrWhiteSpace(_backupSettings.ExternalBackupDirectory)
+            ? "Backup esterno: non configurato"
+            : "Backup esterno: non creato",
+        "Backup esterno");
 
     public string BackupCartellaEsterna =>
         string.IsNullOrWhiteSpace(_backupSettings.ExternalBackupDirectory)

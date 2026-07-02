@@ -364,6 +364,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         return $"{prefix}: {info.CreatedAtLocal:dd/MM/yyyy HH:mm} - {info.FileName} ({sizeMb:0.##} MB)";
     }
 
+    private static string FormatBackupFooterInfo(BackupInfo? info, string fallback, string prefix)
+    {
+        return info is null
+            ? fallback
+            : $"{prefix}: {info.CreatedAtLocal:dd/MM/yyyy HH:mm}";
+    }
+
     private int ContaScadenzeScheda()
     {
         var totale = Abilitazioni.Count(item => TryParseDate(item.DataScadenza) is not null);

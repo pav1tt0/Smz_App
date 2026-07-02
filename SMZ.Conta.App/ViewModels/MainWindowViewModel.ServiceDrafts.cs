@@ -1251,6 +1251,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(BackupLocaleStato));
         OnPropertyChanged(nameof(BackupEsternoStato));
+        OnPropertyChanged(nameof(BackupLocaleSintesi));
+        OnPropertyChanged(nameof(BackupEsternoSintesi));
         OnPropertyChanged(nameof(BackupCartellaEsterna));
         OnPropertyChanged(nameof(BackupDescrizione));
     }
