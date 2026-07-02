@@ -85,6 +85,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(DashboardTopScadenze));
         OnPropertyChanged(nameof(DashboardTopScadenzeTitolo));
         OnPropertyChanged(nameof(DashboardCriticitaItems));
+        OnPropertyChanged(nameof(HasDashboardCriticitaOperative));
+        OnPropertyChanged(nameof(DashboardCriticitaOperativeEmptyText));
         OnPropertyChanged(nameof(DashboardVisiteScadutePersonale));
         OnPropertyChanged(nameof(DashboardVisiteInScadenzaPersonale));
     }

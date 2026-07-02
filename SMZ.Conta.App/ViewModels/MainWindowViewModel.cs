@@ -444,7 +444,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     };
 
     public IReadOnlyList<ScadenzaItemViewModel> DashboardTopScadenze =>
-        ScadenzeProssime.Take(6).ToList();
+        ScadenzeProssime
+            .Where(IsVisitaMedicaScadenza)
+            .Take(6)
+            .ToList();
 
     public string DashboardTopScadenzeTitolo =>
         ScadenzeProssime.Count == 0
@@ -452,19 +455,30 @@ public sealed partial class MainWindowViewModel : ObservableObject
             : "Da controllare subito";
 
     public IReadOnlyList<ScadenzaItemViewModel> DashboardCriticitaItems =>
-        ScadenzeProssime.Take(3).ToList();
+        ScadenzeProssime
+            .Where(item => !IsVisitaMedicaScadenza(item))
+            .Take(4)
+            .ToList();
+
+    public bool HasDashboardCriticitaOperative => DashboardCriticitaItems.Count > 0;
+
+    public string DashboardCriticitaOperativeEmptyText =>
+        "Nessuna criticita operativa non sanitaria rilevata.";
 
     public int DashboardVisiteScadutePersonale => ScadenzeProssime
-        .Where(item => string.Equals(item.Origine, "Visita medica", StringComparison.OrdinalIgnoreCase) && item.IsExpired)
+        .Where(item => IsVisitaMedicaScadenza(item) && item.IsExpired)
         .Select(item => item.PerId)
         .Distinct()
         .Count();
 
     public int DashboardVisiteInScadenzaPersonale => ScadenzeProssime
-        .Where(item => string.Equals(item.Origine, "Visita medica", StringComparison.OrdinalIgnoreCase) && !item.IsExpired)
+        .Where(item => IsVisitaMedicaScadenza(item) && !item.IsExpired)
         .Select(item => item.PerId)
         .Distinct()
         .Count();
+
+    private static bool IsVisitaMedicaScadenza(ScadenzaItemViewModel item) =>
+        string.Equals(item.Origine, "Visita medica", StringComparison.OrdinalIgnoreCase);
 
     public RelayCommand NavigateSectionCommand => _navigateSectionCommand;
 

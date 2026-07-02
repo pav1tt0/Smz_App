@@ -225,7 +225,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="Scadenze personale"
+                    <TextBlock Text="Scadenze visite mediche"
                                FontSize="22"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource AppTextBrush}" />
@@ -379,7 +379,7 @@
                                        FontSize="23"
                                        VerticalAlignment="Center" />
                             <TextBlock Margin="10,0,0,0"
-                                       Text="Criticita personale"
+                                       Text="Criticita operative"
                                        FontSize="20"
                                        FontWeight="SemiBold"
                                        Foreground="#D40F1F"
@@ -403,6 +403,16 @@
                     <ItemsControl Grid.Row="1"
                                   Margin="0,24,0,0"
                                   ItemsSource="{Binding DashboardCriticitaItems}">
+                        <ItemsControl.Style>
+                            <Style TargetType="ItemsControl">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasDashboardCriticitaOperative}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Button Padding="0"
@@ -444,6 +454,29 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+
+                    <Border Grid.Row="1"
+                            Margin="0,24,0,0"
+                            Padding="18"
+                            Background="#F8FAFC"
+                            BorderBrush="{DynamicResource AppBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasDashboardCriticitaOperative}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="{Binding DashboardCriticitaOperativeEmptyText}"
+                                   Foreground="{DynamicResource AppMutedTextBrush}"
+                                   FontSize="14"
+                                   TextWrapping="Wrap" />
+                    </Border>
 
                     <Button Grid.Row="2"
                             Margin="0,16,0,0"
