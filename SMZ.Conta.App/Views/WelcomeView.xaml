@@ -6,202 +6,28 @@
     </UserControl.Resources>
 
     <Grid Visibility="{Binding IsWelcomeVisible, Converter={StaticResource BoolToVisibilityConverter}}">
-        <Border Background="#E807111D"
-                CornerRadius="28" />
+        <Border Background="#D8071528" />
 
-        <Border Margin="12"
-                CornerRadius="30"
-                Background="#FF102131"
+        <Border Margin="18"
+                CornerRadius="10"
+                Background="#071A33"
                 ClipToBounds="True">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="44"
-                                  ShadowDepth="14"
+                <DropShadowEffect BlurRadius="40"
+                                  ShadowDepth="12"
                                   Direction="270"
-                                  Opacity="0.34"
+                                  Opacity="0.32"
                                   Color="#02070D" />
             </Border.Effect>
 
             <Grid>
                 <Border Background="{DynamicResource HomePhotoBrush}"
-                        Opacity="0.58" />
-                <Rectangle Fill="#8A07111D" />
+                        Opacity="0.46" />
+                <Rectangle Fill="{DynamicResource WelcomeScreenOverlayBrush}" />
 
-                <Canvas IsHitTestVisible="False"
-                        Opacity="0.28">
-                    <Rectangle Width="1700"
-                               Height="900"
-                               Canvas.Left="-80"
-                               Canvas.Top="-40"
-                               Fill="#00000000">
-                        <Rectangle.OpacityMask>
-                            <DrawingBrush TileMode="Tile"
-                                          Viewport="0,0,10,10"
-                                          ViewportUnits="Absolute">
-                                <DrawingBrush.Drawing>
-                                    <GeometryDrawing Brush="#FFFFFFFF"
-                                                     Geometry="M 1,1 L 2,1 2,2 1,2 Z" />
-                                </DrawingBrush.Drawing>
-                            </DrawingBrush>
-                        </Rectangle.OpacityMask>
-                    </Rectangle>
-                </Canvas>
-
-                <Canvas IsHitTestVisible="False"
-                        ClipToBounds="True"
-                        Opacity="0.78">
-                    <Canvas.Triggers>
-                        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
-                            <BeginStoryboard>
-                                <Storyboard RepeatBehavior="Forever">
-                                    <DoubleAnimation Storyboard.TargetName="BubbleOne"
-                                                     Storyboard.TargetProperty="(Canvas.Top)"
-                                                     From="760"
-                                                     To="-80"
-                                                     Duration="0:0:15" />
-                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BubbleOne"
-                                                                   Storyboard.TargetProperty="Opacity">
-                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:2" Value="0.54" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:12" Value="0.42" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:15" Value="0" />
-                                    </DoubleAnimationUsingKeyFrames>
-
-                                    <DoubleAnimation Storyboard.TargetName="BubbleTwo"
-                                                     Storyboard.TargetProperty="(Canvas.Top)"
-                                                     From="830"
-                                                     To="-70"
-                                                     BeginTime="0:0:2"
-                                                     Duration="0:0:18" />
-                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BubbleTwo"
-                                                                   Storyboard.TargetProperty="Opacity"
-                                                                   BeginTime="0:0:2">
-                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:2" Value="0.44" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:15" Value="0.34" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:18" Value="0" />
-                                    </DoubleAnimationUsingKeyFrames>
-
-                                    <DoubleAnimation Storyboard.TargetName="BubbleThree"
-                                                     Storyboard.TargetProperty="(Canvas.Top)"
-                                                     From="790"
-                                                     To="-60"
-                                                     BeginTime="0:0:4"
-                                                     Duration="0:0:13" />
-                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BubbleThree"
-                                                                   Storyboard.TargetProperty="Opacity"
-                                                                   BeginTime="0:0:4">
-                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="0.48" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:10" Value="0.36" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:13" Value="0" />
-                                    </DoubleAnimationUsingKeyFrames>
-
-                                    <DoubleAnimation Storyboard.TargetName="BubbleFour"
-                                                     Storyboard.TargetProperty="(Canvas.Top)"
-                                                     From="860"
-                                                     To="-90"
-                                                     BeginTime="0:0:6"
-                                                     Duration="0:0:20" />
-                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BubbleFour"
-                                                                   Storyboard.TargetProperty="Opacity"
-                                                                   BeginTime="0:0:6">
-                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:2" Value="0.38" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:17" Value="0.28" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:20" Value="0" />
-                                    </DoubleAnimationUsingKeyFrames>
-
-                                    <DoubleAnimation Storyboard.TargetName="BubbleFive"
-                                                     Storyboard.TargetProperty="(Canvas.Top)"
-                                                     From="820"
-                                                     To="-65"
-                                                     BeginTime="0:0:9"
-                                                     Duration="0:0:16" />
-                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BubbleFive"
-                                                                   Storyboard.TargetProperty="Opacity"
-                                                                   BeginTime="0:0:9">
-                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="0.5" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:13" Value="0.32" />
-                                        <SplineDoubleKeyFrame KeyTime="0:0:16" Value="0" />
-                                    </DoubleAnimationUsingKeyFrames>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Canvas.Triggers>
-
-                    <Ellipse x:Name="BubbleOne"
-                             Style="{DynamicResource WelcomeBubbleStyle}"
-                             Width="30"
-                             Height="30"
-                             Canvas.Left="190"
-                             Canvas.Top="760" />
-                    <Ellipse x:Name="BubbleTwo"
-                             Style="{DynamicResource WelcomeBubbleStyle}"
-                             Width="18"
-                             Height="18"
-                             Canvas.Left="420"
-                             Canvas.Top="830" />
-                    <Ellipse x:Name="BubbleThree"
-                             Style="{DynamicResource WelcomeBubbleStyle}"
-                             Width="24"
-                             Height="24"
-                             Canvas.Left="1120"
-                             Canvas.Top="790" />
-                    <Ellipse x:Name="BubbleFour"
-                             Style="{DynamicResource WelcomeBubbleStyle}"
-                             Width="36"
-                             Height="36"
-                             Canvas.Left="1320"
-                             Canvas.Top="860" />
-                    <Ellipse x:Name="BubbleFive"
-                             Style="{DynamicResource WelcomeBubbleStyle}"
-                             Width="14"
-                             Height="14"
-                             Canvas.Left="820"
-                             Canvas.Top="820" />
-                </Canvas>
-
-                <Ellipse Width="860"
-                         Height="420"
-                         HorizontalAlignment="Right"
-                         VerticalAlignment="Center"
-                         Margin="0,70,-230,0"
-                         Opacity="0.26"
-                         IsHitTestVisible="False">
-                    <Ellipse.Fill>
-                        <RadialGradientBrush>
-                            <GradientStop Color="#E0C84B30" Offset="0" />
-                            <GradientStop Color="#5B173B5A" Offset="0.48" />
-                            <GradientStop Color="#00173B5A" Offset="1" />
-                        </RadialGradientBrush>
-                    </Ellipse.Fill>
-                    <Ellipse.Effect>
-                        <BlurEffect Radius="42" />
-                    </Ellipse.Effect>
-                </Ellipse>
-
-                <Ellipse Width="620"
-                         Height="300"
-                         HorizontalAlignment="Left"
-                         VerticalAlignment="Bottom"
-                         Margin="-160,0,0,-80"
-                         Opacity="0.2"
-                         IsHitTestVisible="False">
-                    <Ellipse.Fill>
-                        <RadialGradientBrush>
-                            <GradientStop Color="#A2145B7E" Offset="0" />
-                            <GradientStop Color="#00145B7E" Offset="1" />
-                        </RadialGradientBrush>
-                    </Ellipse.Fill>
-                    <Ellipse.Effect>
-                        <BlurEffect Radius="44" />
-                    </Ellipse.Effect>
-                </Ellipse>
-
-                <Button Width="112"
+                <Button Width="104"
                         Height="38"
-                        Margin="0,30,38,0"
+                        Margin="0,28,34,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Content="AUDIO"
@@ -209,185 +35,75 @@
                         ToolTip="{Binding WelcomeAudioTooltip}"
                         Style="{DynamicResource WelcomeAudioButtonStyle}" />
 
-                <Viewbox Margin="64,64,64,28"
+                <Viewbox Margin="70,58,70,38"
                          Stretch="Uniform"
                          StretchDirection="DownOnly">
-                    <Grid Width="1480"
-                          Height="820">
+                    <Grid Width="1420"
+                          Height="800">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
-                            <RowDefinition Height="190" />
-                            <RowDefinition Height="44" />
+                            <RowDefinition Height="46" />
                         </Grid.RowDefinitions>
 
-                        <Grid Grid.Row="0">
+                        <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1.08*" />
-                                <ColumnDefinition Width="0.92*" />
+                                <ColumnDefinition Width="1.1*" />
+                                <ColumnDefinition Width="0.9*" />
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        Margin="0,0,44,0">
-                                <TextBlock Text="CENTRO NAUTICO E SMZ"
-                                           Foreground="#FFFDF7"
+                            <StackPanel VerticalAlignment="Center"
+                                        Margin="0,0,58,0">
+                                <TextBlock Text="Nucleo Sommozzatori"
+                                           Foreground="#FFFFFF"
                                            FontSize="64"
-                                           FontWeight="Black"
-                                           TextAlignment="Center"
-                                           LineHeight="68" />
-                                <TextBlock Text="NUCLEO SOMMOZZATORI"
-                                           Margin="0,10,0,0"
-                                           Foreground="#FFFDF7"
-                                           FontSize="52"
-                                           FontWeight="Black"
-                                           TextAlignment="Center"
-                                           LineHeight="56" />
-                                <TextBlock Text="LA SPEZIA"
-                                           Margin="0,8,0,0"
-                                           Foreground="#FFFDF7"
-                                           FontSize="42"
-                                           FontWeight="Black"
-                                           TextAlignment="Center"
-                                           LineHeight="46" />
-                                <TextBlock Text="GESTIONALE OPERATIVO"
-                                           Margin="0,22,0,0"
-                                           Foreground="#F1CF62"
-                                           FontSize="46"
-                                           FontWeight="Black"
-                                           TextAlignment="Center"
-                                           LineHeight="50" />
-
+                                           FontWeight="Bold"
+                                           LineHeight="70"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Margin="0,18,0,0"
+                                           Text="POLIZIA DI STATO"
+                                           Foreground="#FFFFFF"
+                                           FontSize="26"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Margin="0,8,0,0"
+                                           Text="Centro Nautico e SMZ"
+                                           Foreground="#D3E2F2"
+                                           FontSize="25" />
                                 <TextBlock Margin="0,30,0,0"
-                                           MaxWidth="640"
-                                           Text="Personale, servizi giornalieri, immersioni, archivio e contabilita in un'unica piattaforma."
-                                           Foreground="#D7E5F2"
+                                           MaxWidth="680"
+                                           Text="Gestionale operativo per servizi giornalieri, personale, immersioni, archivio e contabilita."
+                                           Foreground="#DDE8F4"
                                            FontSize="20"
                                            LineHeight="32"
-                                           TextAlignment="Center"
                                            TextWrapping="Wrap" />
+
+                                <Button Margin="0,42,0,0"
+                                        Width="310"
+                                        Height="64"
+                                        Content="Entra nel gestionale"
+                                        Command="{Binding EnterAppCommand}"
+                                        IsDefault="True"
+                                        HorizontalAlignment="Left"
+                                        Style="{DynamicResource WelcomeEnterButtonStyle}" />
                             </StackPanel>
 
                             <Grid Grid.Column="1"
                                   VerticalAlignment="Center"
-                                  Margin="34,34,0,0">
-                                <StackPanel HorizontalAlignment="Center"
-                                            VerticalAlignment="Center">
-                                    <Border Width="430"
-                                            Height="430"
-                                            Padding="0">
-                                        <Border.Effect>
-                                            <DropShadowEffect BlurRadius="34"
-                                                              ShadowDepth="12"
-                                                              Direction="270"
-                                                              Opacity="0.42"
-                                                              Color="#02070D" />
-                                        </Border.Effect>
-                                        <Image Source="/SMZ.App;component/Assets/logo_smz.png"
-                                               Stretch="Uniform" />
-                                    </Border>
-
-                                    <Button Margin="0,28,0,0"
-                                            Width="330"
-                                            Height="78"
-                                            Content="Entra nel gestionale"
-                                            Command="{Binding EnterAppCommand}"
-                                            IsDefault="True"
-                                            HorizontalAlignment="Center"
-                                            Style="{DynamicResource WelcomeEnterButtonStyle}" />
-                                </StackPanel>
-
+                                  HorizontalAlignment="Center">
+                                <Border Width="460"
+                                        Height="460"
+                                        Background="#26071528"
+                                        BorderBrush="#466D98"
+                                        BorderThickness="1"
+                                        CornerRadius="10"
+                                        Padding="34">
+                                    <Image Source="/SMZ.App;component/Assets/logo_smz.png"
+                                           Stretch="Uniform" />
+                                </Border>
                             </Grid>
                         </Grid>
 
-                        <Grid Grid.Row="1"
-                              Margin="0,34,0,0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="1" />
-                                <RowDefinition Height="28" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="1" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="1" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Row="0"
-                                    Grid.ColumnSpan="5"
-                                    Background="#336C8FB1" />
-
-                            <Border Grid.Row="2"
-                                    Grid.Column="1"
-                                    Background="#2E6C8FB1" />
-                            <Border Grid.Row="2"
-                                    Grid.Column="3"
-                                    Background="#2E6C8FB1" />
-
-                            <StackPanel Grid.Row="2"
-                                        Margin="0,0,44,0">
-                                <TextBlock Text="SERVIZI GIORNALIERI"
-                                           Foreground="#F1CF62"
-                                           FontSize="18"
-                                           FontWeight="Black" />
-                                <TextBlock Margin="0,16,0,0"
-                                           Text="Registro operativo"
-                                           Foreground="#FFFDF7"
-                                           FontSize="20"
-                                           FontWeight="Bold" />
-                                <TextBlock Margin="0,12,0,0"
-                                           Text="{Binding DashboardServizioSintesi}"
-                                           Foreground="#B8CADB"
-                                           FontSize="15"
-                                           LineHeight="23"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="2"
-                                        Grid.Column="2"
-                                        Margin="44,0,44,0">
-                                <TextBlock Text="PERSONALE"
-                                           Foreground="#F1CF62"
-                                           FontSize="18"
-                                           FontWeight="Black" />
-                                <TextBlock Margin="0,16,0,0"
-                                           Text="{Binding DashboardDipendentiTotali, StringFormat={}{0} operatori registrati}"
-                                           Foreground="#FFFDF7"
-                                           FontSize="20"
-                                           FontWeight="Bold" />
-                                <TextBlock Margin="0,12,0,0"
-                                           Text="{Binding DashboardVisiteInScadenzaPersonale, StringFormat={}{0} visite da monitorare}"
-                                           Foreground="#B8CADB"
-                                           FontSize="15"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Row="2"
-                                        Grid.Column="4"
-                                        Margin="44,0,0,0">
-                                <TextBlock Text="ARCHIVIO E CONTABILITA"
-                                           Foreground="#F1CF62"
-                                           FontSize="18"
-                                           FontWeight="Black" />
-                                <TextBlock Margin="0,16,0,0"
-                                           Text="Backup, report e riepiloghi"
-                                           Foreground="#FFFDF7"
-                                           FontSize="20"
-                                           FontWeight="Bold" />
-                                <TextBlock Margin="0,12,0,0"
-                                           Text="{Binding DashboardArchivioSintesi}"
-                                           Foreground="#B8CADB"
-                                           FontSize="15"
-                                           LineHeight="23"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Grid>
-
-                        <Grid Grid.Row="2">
-                            <TextBlock HorizontalAlignment="Center"
+                        <Grid Grid.Row="1">
+                            <TextBlock HorizontalAlignment="Left"
                                        VerticalAlignment="Center"
                                        Text="{Binding WelcomeCredits}"
                                        Style="{DynamicResource WelcomeMetaTextStyle}" />
