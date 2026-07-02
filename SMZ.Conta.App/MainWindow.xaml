@@ -299,7 +299,7 @@
             <Setter Property="Foreground" Value="{StaticResource AppTextBrush}" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="MinHeight" Value="116" />
-            <Setter Property="Padding" Value="20" />
+            <Setter Property="Padding" Value="14" />
             <Setter Property="Margin" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Template">

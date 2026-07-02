@@ -36,28 +36,39 @@
                     <Button Command="{Binding NavigateSectionCommand}"
                             CommandParameter="1"
                             Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,18,0">
+                            Margin="0,0,12,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="52" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="&#xE787;"
-                                       Style="{DynamicResource ModuleIconStyle}" />
+                            <Canvas Width="44"
+                                    Height="44"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <Rectangle Canvas.Left="6" Canvas.Top="10" Width="32" Height="29" Stroke="#0E5AA7" StrokeThickness="4" RadiusX="3" RadiusY="3" />
+                                <Rectangle Canvas.Left="6" Canvas.Top="10" Width="32" Height="9" Fill="#0E5AA7" RadiusX="3" RadiusY="3" />
+                                <Rectangle Canvas.Left="13" Canvas.Top="5" Width="4" Height="10" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
+                                <Rectangle Canvas.Left="27" Canvas.Top="5" Width="4" Height="10" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
+                                <Rectangle Canvas.Left="14" Canvas.Top="24" Width="4" Height="4" Fill="#0E5AA7" />
+                                <Rectangle Canvas.Left="21" Canvas.Top="24" Width="4" Height="4" Fill="#0E5AA7" />
+                                <Rectangle Canvas.Left="28" Canvas.Top="24" Width="4" Height="4" Fill="#0E5AA7" />
+                                <Rectangle Canvas.Left="14" Canvas.Top="31" Width="4" Height="4" Fill="#0E5AA7" />
+                                <Rectangle Canvas.Left="21" Canvas.Top="31" Width="4" Height="4" Fill="#0E5AA7" />
+                                <Rectangle Canvas.Left="28" Canvas.Top="31" Width="4" Height="4" Fill="#0E5AA7" />
+                            </Canvas>
                             <StackPanel Grid.Column="1"
                                         VerticalAlignment="Center">
                                 <TextBlock Text="Servizio giornaliero"
-                                           FontSize="16"
+                                           FontSize="15"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}"
-                                           LineHeight="19"
-                                           TextWrapping="Wrap" />
+                                           TextWrapping="NoWrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Pianificazione e turni"
-                                           FontSize="13"
+                                           FontSize="12"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           LineHeight="16"
-                                           TextWrapping="Wrap" />
+                                           TextWrapping="NoWrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -65,28 +76,33 @@
                     <Button Command="{Binding NavigateSectionCommand}"
                             CommandParameter="2"
                             Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,18,0">
+                            Margin="0,0,12,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="52" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="&#xE716;"
-                                       Style="{DynamicResource ModuleIconStyle}" />
+                            <Canvas Width="44"
+                                    Height="44"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <Ellipse Canvas.Left="7" Canvas.Top="6" Width="16" Height="16" Fill="#0E5AA7" />
+                                <Ellipse Canvas.Left="27" Canvas.Top="11" Width="12" Height="12" Fill="#0E5AA7" />
+                                <Path Fill="#0E5AA7" Data="M 3,39 L 3,32 C 3,24 9,20 17,20 C 25,20 31,24 31,32 L 31,39 Z" />
+                                <Path Fill="#0E5AA7" Data="M 27,39 L 27,32 C 27,28 25,25 22,23 C 25,22 28,21 32,21 C 39,21 43,25 43,32 L 43,39 Z" />
+                            </Canvas>
                             <StackPanel Grid.Column="1"
                                         VerticalAlignment="Center">
                                 <TextBlock Text="Personale"
-                                           FontSize="16"
+                                           FontSize="15"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}"
-                                           LineHeight="19"
-                                           TextWrapping="Wrap" />
+                                           TextWrapping="NoWrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Anagrafica e qualifiche"
-                                           FontSize="13"
+                                           FontSize="12"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           LineHeight="16"
-                                           TextWrapping="Wrap" />
+                                           TextWrapping="NoWrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -94,48 +110,32 @@
                     <Button Command="{Binding NavigateSectionCommand}"
                             CommandParameter="3"
                             Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,18,0">
+                            Margin="0,0,12,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="52" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Grid Width="48"
-                                  Height="48"
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center">
-                                <Border Width="42"
-                                        Height="30"
-                                        VerticalAlignment="Bottom"
-                                        Background="#0E5AA7"
-                                        CornerRadius="3" />
-                                <Border Width="42"
-                                        Height="8"
-                                        VerticalAlignment="Top"
-                                        Margin="0,7,0,0"
-                                        Background="#0E5AA7"
-                                        CornerRadius="3" />
-                                <Border Width="28"
-                                        Height="4"
-                                        VerticalAlignment="Center"
-                                        Margin="0,7,0,0"
-                                        Background="#FFFFFF"
-                                        CornerRadius="2" />
-                            </Grid>
+                            <Canvas Width="44"
+                                    Height="44"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <Rectangle Canvas.Left="5" Canvas.Top="12" Width="34" Height="8" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
+                                <Rectangle Canvas.Left="8" Canvas.Top="21" Width="28" Height="20" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
+                                <Rectangle Canvas.Left="13" Canvas.Top="27" Width="18" Height="4" Fill="#FFFFFF" RadiusX="2" RadiusY="2" />
+                            </Canvas>
                             <StackPanel Grid.Column="1"
                                         VerticalAlignment="Center">
                                 <TextBlock Text="Backup e archivio"
-                                           FontSize="16"
+                                           FontSize="15"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}"
-                                           LineHeight="19"
-                                           TextWrapping="Wrap" />
+                                           TextWrapping="NoWrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Dati e documenti storici"
-                                           FontSize="13"
+                                           FontSize="12"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           LineHeight="16"
-                                           TextWrapping="Wrap" />
+                                           TextWrapping="NoWrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -143,15 +143,15 @@
                     <Button Command="{Binding NavigateSectionCommand}"
                             CommandParameter="4"
                             Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,18,0">
+                            Margin="0,0,12,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="52" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="€"
+                            <TextBlock Text="&#x20AC;"
                                        FontFamily="Segoe UI"
-                                       FontSize="52"
+                                       FontSize="50"
                                        FontWeight="SemiBold"
                                        Foreground="#0E5AA7"
                                        HorizontalAlignment="Center"
@@ -159,17 +159,15 @@
                             <StackPanel Grid.Column="1"
                                         VerticalAlignment="Center">
                                 <TextBlock Text="Contabilita"
-                                           FontSize="16"
+                                           FontSize="15"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}"
-                                           LineHeight="19"
-                                           TextWrapping="Wrap" />
+                                           TextWrapping="NoWrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Movimenti e bilanci"
-                                           FontSize="13"
+                                           FontSize="12"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           LineHeight="16"
-                                           TextWrapping="Wrap" />
+                                           TextWrapping="NoWrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -179,25 +177,30 @@
                             Style="{DynamicResource HomeModuleButtonStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="52" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="&#xE749;"
-                                       Style="{DynamicResource ModuleIconStyle}" />
+                            <Canvas Width="44"
+                                    Height="44"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <Rectangle Canvas.Left="10" Canvas.Top="4" Width="24" Height="15" Fill="#FFFFFF" Stroke="#0E5AA7" StrokeThickness="4" RadiusX="2" RadiusY="2" />
+                                <Rectangle Canvas.Left="4" Canvas.Top="17" Width="36" Height="18" Fill="#0E5AA7" RadiusX="3" RadiusY="3" />
+                                <Rectangle Canvas.Left="9" Canvas.Top="29" Width="26" Height="12" Fill="#FFFFFF" Stroke="#0E5AA7" StrokeThickness="4" RadiusX="2" RadiusY="2" />
+                                <Ellipse Canvas.Left="31" Canvas.Top="21" Width="4" Height="4" Fill="#FFFFFF" />
+                            </Canvas>
                             <StackPanel Grid.Column="1"
                                         VerticalAlignment="Center">
                                 <TextBlock Text="Stampe e report"
-                                           FontSize="16"
+                                           FontSize="15"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}"
-                                           LineHeight="19"
-                                           TextWrapping="Wrap" />
+                                           TextWrapping="NoWrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Stampe e documenti"
-                                           FontSize="13"
+                                           FontSize="12"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           LineHeight="16"
-                                           TextWrapping="Wrap" />
+                                           TextWrapping="NoWrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
