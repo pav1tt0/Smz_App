@@ -277,13 +277,29 @@
             </Setter>
         </Style>
 
+        <Style x:Key="SidebarIconStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="23" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="ModuleIconStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="38" />
+            <Setter Property="Foreground" Value="{StaticResource AppBlueBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
         <Style x:Key="HomeModuleButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
             <Setter Property="Background" Value="#FFFFFF" />
             <Setter Property="BorderBrush" Value="#D5DEE8" />
             <Setter Property="Foreground" Value="{StaticResource AppTextBrush}" />
             <Setter Property="MinWidth" Value="0" />
-            <Setter Property="MinHeight" Value="104" />
-            <Setter Property="Padding" Value="18" />
+            <Setter Property="MinHeight" Value="116" />
+            <Setter Property="Padding" Value="20" />
             <Setter Property="Margin" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Template">
@@ -416,11 +432,11 @@
 
     <Grid Background="{StaticResource AppWorkspaceBrush}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="310" />
+            <ColumnDefinition Width="312" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="84" />
+            <RowDefinition Height="86" />
             <RowDefinition Height="*" />
             <RowDefinition Height="44" />
         </Grid.RowDefinitions>
@@ -434,21 +450,23 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Margin="20,26,20,18">
-                    <Image Width="90"
-                           Height="90"
-                           HorizontalAlignment="Left"
+                <StackPanel Margin="20,24,20,16">
+                    <Image Width="98"
+                           Height="98"
+                           HorizontalAlignment="Center"
                            Source="Assets/logo_smz.png"
                            Stretch="Uniform" />
                     <TextBlock Margin="0,18,0,0"
                                Text="POLIZIA DI STATO"
                                Foreground="#FFFFFF"
                                FontSize="18"
-                               FontWeight="SemiBold" />
+                               FontWeight="SemiBold"
+                               TextAlignment="Center" />
                     <TextBlock Margin="0,6,0,0"
                                Text="Centro Nautico e SMZ"
                                Foreground="#D0DEEE"
-                               FontSize="16" />
+                               FontSize="16"
+                               TextAlignment="Center" />
                     <Border Margin="0,20,0,0"
                             Height="1"
                             Background="#36506C" />
@@ -470,13 +488,11 @@
                         </Button.Style>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="38" />
+                                <ColumnDefinition Width="42" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="HO"
-                                       FontWeight="Bold"
-                                       Foreground="#FFFFFF"
-                                       VerticalAlignment="Center" />
+                            <TextBlock Text="&#xE80F;"
+                                       Style="{StaticResource SidebarIconStyle}" />
                             <TextBlock Grid.Column="1"
                                        Text="Dashboard operativa"
                                        VerticalAlignment="Center" />
@@ -497,13 +513,11 @@
                         </Button.Style>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="38" />
+                                <ColumnDefinition Width="42" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="SG"
-                                       FontWeight="Bold"
-                                       Foreground="#FFFFFF"
-                                       VerticalAlignment="Center" />
+                            <TextBlock Text="&#xE787;"
+                                       Style="{StaticResource SidebarIconStyle}" />
                             <TextBlock Grid.Column="1"
                                        Text="Servizio giornaliero"
                                        VerticalAlignment="Center" />
@@ -524,13 +538,11 @@
                         </Button.Style>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="38" />
+                                <ColumnDefinition Width="42" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="PE"
-                                       FontWeight="Bold"
-                                       Foreground="#FFFFFF"
-                                       VerticalAlignment="Center" />
+                            <TextBlock Text="&#xE716;"
+                                       Style="{StaticResource SidebarIconStyle}" />
                             <TextBlock Grid.Column="1"
                                        Text="Personale"
                                        VerticalAlignment="Center" />
@@ -551,13 +563,11 @@
                         </Button.Style>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="38" />
+                                <ColumnDefinition Width="42" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="BA"
-                                       FontWeight="Bold"
-                                       Foreground="#FFFFFF"
-                                       VerticalAlignment="Center" />
+                            <TextBlock Text="&#xE8B7;"
+                                       Style="{StaticResource SidebarIconStyle}" />
                             <TextBlock Grid.Column="1"
                                        Text="Backup e archivio"
                                        VerticalAlignment="Center" />
@@ -578,13 +588,11 @@
                         </Button.Style>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="38" />
+                                <ColumnDefinition Width="42" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="CO"
-                                       FontWeight="Bold"
-                                       Foreground="#FFFFFF"
-                                       VerticalAlignment="Center" />
+                            <TextBlock Text="&#xEAFD;"
+                                       Style="{StaticResource SidebarIconStyle}" />
                             <TextBlock Grid.Column="1"
                                        Text="Contabilita"
                                        VerticalAlignment="Center" />
@@ -605,13 +613,11 @@
                         </Button.Style>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="38" />
+                                <ColumnDefinition Width="42" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="SR"
-                                       FontWeight="Bold"
-                                       Foreground="#FFFFFF"
-                                       VerticalAlignment="Center" />
+                            <TextBlock Text="&#xE749;"
+                                       Style="{StaticResource SidebarIconStyle}" />
                             <TextBlock Grid.Column="1"
                                        Text="Stampe e report"
                                        VerticalAlignment="Center" />
@@ -632,13 +638,11 @@
                         </Button.Style>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="38" />
+                                <ColumnDefinition Width="42" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="IM"
-                                       FontWeight="Bold"
-                                       Foreground="#FFFFFF"
-                                       VerticalAlignment="Center" />
+                            <TextBlock Text="&#xE713;"
+                                       Style="{StaticResource SidebarIconStyle}" />
                             <TextBlock Grid.Column="1"
                                        Text="Impostazioni operative"
                                        VerticalAlignment="Center" />
@@ -651,8 +655,8 @@
                     <Border Height="1"
                             Background="#36506C"
                             Margin="0,0,0,16" />
-                    <Image Width="150"
-                           Height="120"
+                    <Image Width="158"
+                           Height="128"
                            HorizontalAlignment="Center"
                            Source="Assets/logo_smz.png"
                            Stretch="Uniform"
@@ -681,14 +685,14 @@
 
                 <TextBlock Text="Nucleo Sommozzatori"
                            Foreground="#FFFFFF"
-                           FontSize="36"
+                           FontSize="38"
                            FontWeight="SemiBold"
                            VerticalAlignment="Center" />
 
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
-                    <TextBlock Text="Centro Nautico e SMZ"
+                    <TextBlock Text="Postazione locale"
                                Foreground="#D8E4F2"
                                FontSize="16"
                                VerticalAlignment="Center" />
