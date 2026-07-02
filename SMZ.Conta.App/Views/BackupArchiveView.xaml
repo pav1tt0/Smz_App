@@ -20,22 +20,22 @@
                                     <TextBlock Text="Backup dati"
                                                FontSize="22"
                                                FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                               Foreground="{DynamicResource AppTextBrush}" />
                                     <TextBlock Margin="0,8,0,0"
                                                Text="{Binding BackupDescrizione}"
-                                               Foreground="#53646A"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                TextWrapping="Wrap" />
                                     <TextBlock Margin="0,12,0,0"
                                                Text="{Binding BackupLocaleStato}"
-                                               Foreground="#17313E"
+                                               Foreground="{DynamicResource AppTextBrush}"
                                                TextWrapping="Wrap" />
                                     <TextBlock Margin="0,6,0,0"
                                                Text="{Binding BackupEsternoStato}"
-                                               Foreground="#17313E"
+                                               Foreground="{DynamicResource AppTextBrush}"
                                                TextWrapping="Wrap" />
                                     <TextBlock Margin="0,6,0,0"
                                                Text="{Binding BackupCartellaEsterna, StringFormat=Cartella esterna: {0}}"
-                                               Foreground="#53646A"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                TextWrapping="Wrap" />
                                 </StackPanel>
 
@@ -69,11 +69,11 @@
                                 <TextBlock Text="Backup e archivio"
                                            FontSize="22"
                                            FontWeight="SemiBold"
-                                           Foreground="#17313E" />
+                                           Foreground="{DynamicResource AppTextBrush}" />
                                 <TextBlock Grid.Row="1"
                                            Margin="0,10,0,0"
                                            Text="Elenco delle schede eliminate dalla parte operativa e ancora recuperabili."
-                                           Foreground="#53646A"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap" />
 
                                 <DataGrid Grid.Row="2"

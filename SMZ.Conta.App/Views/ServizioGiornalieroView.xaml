@@ -56,16 +56,16 @@
                                         <TextBlock Text="Servizi giornalieri"
                                                    FontSize="22"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#17313E" />
+                                                   Foreground="{DynamicResource AppTextBrush}" />
                                         <TextBlock Margin="0,4,0,0"
                                                    Text="{Binding ServiziSalvatiStato}"
-                                                   Foreground="#53646A"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="2">
                                         <TextBlock Text="Ricerca servizi"
-                                                   Foreground="#50626A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                          <Grid Margin="0,6,0,0">
                                              <Grid.ColumnDefinitions>
                                                  <ColumnDefinition Width="2*" />
@@ -83,15 +83,15 @@
                                             </Grid.RowDefinitions>
 
                                             <TextBlock Text="Localita"
-                                                       Foreground="#50626A"
+                                                       Foreground="{DynamicResource AppMutedTextBrush}"
                                                        FontSize="12" />
                                              <TextBlock Grid.Column="2"
                                                         Text="N. servizio"
-                                                        Foreground="#50626A"
+                                                        Foreground="{DynamicResource AppMutedTextBrush}"
                                                         FontSize="12" />
                                              <TextBlock Grid.Column="4"
                                                         Text="Data o mese"
-                                                        Foreground="#50626A"
+                                                        Foreground="{DynamicResource AppMutedTextBrush}"
                                                         FontSize="12" />
 
                                             <TextBox Grid.Row="2"
@@ -149,10 +149,10 @@
                                             <TextBlock Text="Elenco servizi compilati"
                                                        FontSize="20"
                                                        FontWeight="SemiBold"
-                                                       Foreground="#17313E" />
+                                                       Foreground="{DynamicResource AppTextBrush}" />
                                             <TextBlock Margin="0,3,0,0"
                                                        Text="Sono visibili i servizi recenti; usa la ricerca per trovare quelli piu vecchi."
-                                                       Foreground="#53646A" />
+                                                       Foreground="{DynamicResource AppMutedTextBrush}" />
                                         </StackPanel>
                                     </DockPanel>
 
@@ -175,8 +175,8 @@
                                             <DataTemplate>
                                                 <Border Margin="0,0,0,3"
                                                         Padding="6"
-                                                        Background="#F8FBFD"
-                                                        BorderBrush="#D8E1E8"
+                                                        Background="#F8FAFC"
+                                                        BorderBrush="{DynamicResource AppBorderBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="8">
                                                     <Border.ToolTip>
@@ -191,9 +191,9 @@
                                                                     <TextBlock Text="{Binding DataServizio, StringFormat=Servizio del {0:dd/MM/yyyy}}"
                                                                                FontSize="16"
                                                                                FontWeight="SemiBold"
-                                                                               Foreground="#17313E" />
+                                                                               Foreground="{DynamicResource AppTextBrush}" />
                                                                     <TextBlock Margin="0,8,0,0"
-                                                                               Foreground="#53646A"
+                                                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                TextWrapping="Wrap">
                                                                         <Run Text="Ordine: " />
                                                                         <Run Text="{Binding NumeroOrdineServizio}" />
@@ -201,25 +201,25 @@
                                                                         <Run Text="{Binding OrarioServizio}" />
                                                                     </TextBlock>
                                                                     <TextBlock Margin="0,6,0,0"
-                                                                               Foreground="#53646A"
+                                                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                TextWrapping="Wrap">
                                                                         <Run Text="Tipo: " />
                                                                         <Run Text="{Binding TipoServizio}" />
                                                                     </TextBlock>
                                                                     <TextBlock Margin="0,6,0,0"
                                                                                Text="{Binding LocalitaDescrizione, StringFormat=Localita: {0}}"
-                                                                               Foreground="#17313E"
+                                                                               Foreground="{DynamicResource AppTextBrush}"
                                                                                TextWrapping="Wrap" />
                                                                     <TextBlock Margin="0,6,0,0"
                                                                                Text="{Binding ScopoDescrizione, StringFormat=Scopo: {0}}"
-                                                                               Foreground="#53646A"
+                                                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                TextWrapping="Wrap" />
                                                                     <TextBlock Margin="0,6,0,0"
                                                                                Text="{Binding UnitaNavaleDescrizione, StringFormat=Mezzo: {0}}"
-                                                                               Foreground="#53646A"
+                                                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                TextWrapping="Wrap" />
                                                                     <TextBlock Margin="0,10,0,0"
-                                                                               Foreground="#17313E"
+                                                                               Foreground="{DynamicResource AppTextBrush}"
                                                                                FontWeight="SemiBold">
                                                                         <Run Text="Presenti " />
                                                                         <Run Text="{Binding PresentiTotali}" />
@@ -245,7 +245,7 @@
                                                         <TextBlock Text="{Binding DataServizio, StringFormat={}{0:dd/MM/yyyy}}"
                                                                    FontSize="15"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="#17313E"
+                                                                   Foreground="{DynamicResource AppTextBrush}"
                                                                    VerticalAlignment="Center" />
                                                         <TextBlock Grid.Column="1"
                                                                    Text="{Binding TipoServizio}"
@@ -254,7 +254,7 @@
                                                                    VerticalAlignment="Center"
                                                                    TextTrimming="CharacterEllipsis" />
                                                         <TextBlock Grid.Column="2"
-                                                                   Foreground="#53646A"
+                                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                                    VerticalAlignment="Center"
                                                                    TextTrimming="CharacterEllipsis">
                                                             <Run Text="Ord. " />
@@ -264,21 +264,21 @@
                                                         </TextBlock>
                                                         <TextBlock Grid.Column="3"
                                                                    Text="{Binding LocalitaDescrizione}"
-                                                                   Foreground="#17313E"
+                                                                   Foreground="{DynamicResource AppTextBrush}"
                                                                    FontWeight="SemiBold"
                                                                    VerticalAlignment="Center"
                                                                    TextTrimming="CharacterEllipsis" />
                                                         <TextBlock Grid.Column="4"
                                                                    HorizontalAlignment="Left"
                                                                    VerticalAlignment="Center"
-                                                                   Foreground="#53646A">
+                                                                   Foreground="{DynamicResource AppMutedTextBrush}">
                                                             <Run Text="Presenti " />
                                                             <Run Text="{Binding PresentiTotali}" />
                                                         </TextBlock>
                                                         <TextBlock Grid.Column="5"
                                                                    HorizontalAlignment="Left"
                                                                    VerticalAlignment="Center"
-                                                                   Foreground="#53646A"
+                                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                                    Text="{Binding ImmersioniTotali, StringFormat=Immersioni: {0}}" />
                                                         <Button Grid.Column="6"
                                                                 Content="Apri"
@@ -328,10 +328,10 @@
                                         <TextBlock Text="{Binding ServizioEditorTitolo}"
                                                    FontSize="22"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#17313E" />
+                                                   Foreground="{DynamicResource AppTextBrush}" />
                                         <TextBlock Margin="0,4,0,0"
                                                    Text="{Binding ServizioBozzaStato}"
-                                                   Foreground="#53646A"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
                                 </DockPanel>
@@ -354,11 +354,11 @@
                                 </ScrollViewer.Resources>
                                 <StackPanel>
                                     <TextBlock Text="{Binding ServizioEditorSottotitolo}"
-                                               Foreground="#53646A"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                TextWrapping="Wrap" />
 
                                     <Border Margin="0,16,0,0"
-                                            Background="#F2F5F8"
+                                            Background="#F8FAFC"
                                             CornerRadius="18"
                                             Padding="16">
                                         <Grid>
@@ -378,20 +378,20 @@
                                             </Grid.RowDefinitions>
 
                                             <StackPanel>
-                                                <TextBlock Text="Data servizio" Foreground="#50626A" />
+                                                <TextBlock Text="Data servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <controls:DateInputPicker Text="{Binding ServizioData, UpdateSourceTrigger=PropertyChanged}"
                                                                           Width="150"
                                                                           ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
-                                                <TextBlock Text="N. ordine servizio" Foreground="#50626A" />
+                                                <TextBlock Text="N. ordine servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding ServizioNumeroOrdine, UpdateSourceTrigger=PropertyChanged}"
                                                          MaxLength="40" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="4">
-                                                <TextBlock Text="Orario servizio" Foreground="#50626A" />
+                                                <TextBlock Text="Orario servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <Grid Margin="0,6,0,0">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="160" />
@@ -414,7 +414,7 @@
                                                                     Visibility="{Binding ServizioOrarioDerogaAttiva, Converter={StaticResource BoolToVisibilityConverter}}">
                                                             <StackPanel>
                                                                 <TextBlock Text="Inizio"
-                                                                           Foreground="#50626A"
+                                                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                                                            FontSize="11" />
                                                                 <TextBox Width="82"
                                                                          Text="{Binding ServizioOrarioDerogaInizio, UpdateSourceTrigger=PropertyChanged}"
@@ -424,7 +424,7 @@
                                                             </StackPanel>
                                                             <StackPanel Margin="10,0,0,0">
                                                                 <TextBlock Text="Fine"
-                                                                           Foreground="#50626A"
+                                                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                                                            FontSize="11" />
                                                                 <TextBox Width="82"
                                                                          Text="{Binding ServizioOrarioDerogaFine, UpdateSourceTrigger=PropertyChanged}"
@@ -450,7 +450,7 @@
                                                                     Visibility="{Binding ServizioStraordinarioAttivo, Converter={StaticResource BoolToVisibilityConverter}}">
                                                             <StackPanel>
                                                                 <TextBlock Text="Inizio"
-                                                                           Foreground="#50626A"
+                                                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                                                            FontSize="11" />
                                                                 <TextBox Width="82"
                                                                          Text="{Binding ServizioStraordinarioInizio, UpdateSourceTrigger=PropertyChanged}"
@@ -460,7 +460,7 @@
                                                             </StackPanel>
                                                             <StackPanel Margin="10,0,0,0">
                                                                 <TextBlock Text="Fine"
-                                                                           Foreground="#50626A"
+                                                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                                                            FontSize="11" />
                                                                 <TextBox Width="82"
                                                                          Text="{Binding ServizioStraordinarioFine, UpdateSourceTrigger=PropertyChanged}"
@@ -475,7 +475,7 @@
                                                                     BorderThickness="1"
                                                                     CornerRadius="10">
                                                                 <TextBlock Text="{Binding ServizioStraordinarioOreDisplay}"
-                                                                           Foreground="#17313E"
+                                                                           Foreground="{DynamicResource AppTextBrush}"
                                                                            FontWeight="SemiBold" />
                                                             </Border>
                                                         </StackPanel>
@@ -484,7 +484,7 @@
                                             </StackPanel>
 
                                             <StackPanel Grid.Row="1">
-                                                <TextBlock Text="Tipo servizio" Foreground="#50626A" />
+                                                <TextBlock Text="Tipo servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <ComboBox ItemsSource="{Binding TipiServizioDisponibili}"
                                                           SelectedItem="{Binding ServizioTipoSelezionato}" />
                                             </StackPanel>
@@ -497,7 +497,7 @@
                                                 </Grid.ColumnDefinitions>
 
                                                 <StackPanel Grid.Column="0">
-                                                    <TextBlock Text="Localita" Foreground="#50626A" />
+                                                    <TextBlock Text="Localita" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                     <ComboBox Width="300"
                                                               HorizontalAlignment="Left"
                                                               ItemsSource="{Binding LocalitaOperativeServizioCatalogo}"
@@ -506,7 +506,7 @@
                                                 </StackPanel>
 
                                                 <StackPanel Grid.Column="2">
-                                                    <TextBlock Text="Unita navale" Foreground="#50626A" />
+                                                    <TextBlock Text="Unita navale" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                     <ComboBox Width="220"
                                                               HorizontalAlignment="Left"
                                                               ItemsSource="{Binding UnitaNavaliCatalogo}"
@@ -516,7 +516,7 @@
                                             </Grid>
 
                                             <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                                <TextBlock Text="Indennita" Foreground="#50626A" />
+                                                <TextBlock Text="Indennita" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <CheckBox Margin="0,10,0,0"
                                                           IsChecked="{Binding ServizioFuoriSede}"
                                                           Content="Indennita fuori sede" />
@@ -525,7 +525,7 @@
                                                           Content="Indennita ordine pubblico" />
                                                 <TextBlock Margin="0,8,0,0"
                                                            Text="Le due indennita non sono compatibili tra loro."
-                                                           Foreground="#53646A"
+                                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                                            TextWrapping="Wrap" />
                                             </StackPanel>
 
@@ -537,14 +537,14 @@
                                                 </Grid.ColumnDefinitions>
 
                                                 <StackPanel>
-                                                    <TextBlock Text="Scopo immersione" Foreground="#50626A" />
+                                                    <TextBlock Text="Scopo immersione" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                     <ComboBox ItemsSource="{Binding ScopiImmersioneCatalogo}"
                                                               SelectedItem="{Binding ServizioScopoSelezionato}"
                                                               DisplayMemberPath="Descrizione" />
                                                 </StackPanel>
 
                                                 <StackPanel Grid.Column="2">
-                                                    <TextBlock Text="Responsabile servizio" Foreground="#50626A" />
+                                                    <TextBlock Text="Responsabile servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                     <ComboBox ItemsSource="{Binding OperatoriServizioPresentiDisponibili}"
                                                               SelectedItem="{Binding ServizioResponsabileSelezionato}"
                                                               DisplayMemberPath="NominativoConQualifica"
@@ -553,13 +553,13 @@
                                             </Grid>
 
                                             <StackPanel Grid.Row="4" Grid.ColumnSpan="5" Margin="0,10,0,0">
-                                                <TextBlock Text="Attivita svolta" Foreground="#50626A" />
+                                                <TextBlock Text="Attivita svolta" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding ServizioAttivitaSvolta, UpdateSourceTrigger=PropertyChanged}"
                                                          Style="{DynamicResource ServizioWheelTextBoxStyle}"
                                                          TextWrapping="Wrap"
                                                          AcceptsReturn="True"
                                                          MinHeight="64" />
-                                                <TextBlock Margin="0,10,0,0" Text="Note servizio" Foreground="#50626A" />
+                                                <TextBlock Margin="0,10,0,0" Text="Note servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding ServizioNote, UpdateSourceTrigger=PropertyChanged}"
                                                          Style="{DynamicResource ServizioWheelTextBoxStyle}"
                                                          TextWrapping="Wrap"
@@ -572,10 +572,10 @@
                                     <TextBlock Text="Personale impiegato"
                                                FontSize="19"
                                                FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                               Foreground="{DynamicResource AppTextBrush}" />
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Seleziona il personale interno del servizio. I contatori ora considerano solo le righe effettivamente compilate."
-                                               Foreground="#53646A"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                TextWrapping="Wrap" />
 
                                     <DataGrid Margin="0,16,0,0"
@@ -648,7 +648,7 @@
                                                    Text="Operatori sub altri reparti"
                                                    FontSize="19"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#17313E"
+                                                   Foreground="{DynamicResource AppTextBrush}"
                                                    VerticalAlignment="Center" />
                                         <StackPanel DockPanel.Dock="Right"
                                                     Orientation="Horizontal">
@@ -662,7 +662,7 @@
                                     </DockPanel>
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Operatori SMZ o OSSALC di altri reparti inseriti solo per questo servizio. Una volta compilati compaiono tra i presenti immersione."
-                                               Foreground="#53646A"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                TextWrapping="Wrap" />
 
                                     <DataGrid Margin="0,16,0,0"
@@ -727,7 +727,7 @@
                                                    Text="Assistenza SMZ"
                                                    FontSize="19"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#17313E"
+                                                   Foreground="{DynamicResource AppTextBrush}"
                                                    VerticalAlignment="Center" />
                                         <StackPanel DockPanel.Dock="Right"
                                                     Orientation="Horizontal">
@@ -741,7 +741,7 @@
                                     </DockPanel>
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Usa questa griglia per assistenza SMZ sporadica che non deve entrare in anagrafica. Resta legata solo al singolo servizio."
-                                               Foreground="#53646A"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                TextWrapping="Wrap" />
 
                                     <DataGrid Margin="0,16,0,0"
@@ -790,7 +790,7 @@
                                                    Text="Immersioni del servizio"
                                                    FontSize="19"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#17313E"
+                                                   Foreground="{DynamicResource AppTextBrush}"
                                                    VerticalAlignment="Center" />
                                         <Button DockPanel.Dock="Right"
                                                 Content="Aggiungi immersione"
@@ -799,7 +799,7 @@
                                     </DockPanel>
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Compila solo i ruoli di intestazione per ogni immersione. Direttori e assistenti restano evidenziati nella tabella unica e non vengono conteggiati in acqua nello stesso turno."
-                                               Foreground="#53646A"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                TextWrapping="Wrap" />
 
                                     <ItemsControl Margin="0,16,0,0"
@@ -812,8 +812,8 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Margin="0,0,14,14"
-                                                        Background="#F8FBFD"
-                                                        BorderBrush="#D8E1E8"
+                                                        Background="#F8FAFC"
+                                                        BorderBrush="{DynamicResource AppBorderBrush}"
                                                         BorderThickness="1"
                                                         CornerRadius="18"
                                                         Padding="14">
@@ -823,7 +823,7 @@
                                                                        Text="{Binding NumeroImmersione, StringFormat=Immersione {0}}"
                                                                        FontSize="18"
                                                                        FontWeight="SemiBold"
-                                                                       Foreground="#17313E"
+                                                                       Foreground="{DynamicResource AppTextBrush}"
                                                                        VerticalAlignment="Center" />
                                                             <Button DockPanel.Dock="Right"
                                                                     Content="Rimuovi"
@@ -844,10 +844,10 @@
                                                                     <TextBlock DockPanel.Dock="Left"
                                                                                Text="Orario immersione"
                                                                                FontWeight="SemiBold"
-                                                                               Foreground="#17313E" />
+                                                                               Foreground="{DynamicResource AppTextBrush}" />
                                                                     <TextBlock DockPanel.Dock="Right"
                                                                                Text="Digita 0830 o 1015, il campo formatta da solo"
-                                                                               Foreground="#5B7280"
+                                                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                FontSize="11" />
                                                                 </DockPanel>
 
@@ -856,7 +856,7 @@
                                                                             VerticalAlignment="Center">
                                                                     <StackPanel>
                                                                         <TextBlock Text="Inizio"
-                                                                                   Foreground="#50626A"
+                                                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                    FontSize="11" />
                                                                         <Grid Width="96">
                                                                             <TextBox Style="{DynamicResource ImmersionTimeTextBoxStyle}"
@@ -892,7 +892,7 @@
 
                                                                     <StackPanel>
                                                                         <TextBlock Text="Fine"
-                                                                                   Foreground="#50626A"
+                                                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                    FontSize="11" />
                                                                         <Grid Width="96">
                                                                             <TextBox Style="{DynamicResource ImmersionTimeTextBoxStyle}"
@@ -934,7 +934,7 @@
                                                             </Grid.RowDefinitions>
 
                                                             <StackPanel>
-                                                                <TextBlock Text="Direttore immersione" Foreground="#50626A" />
+                                                                <TextBlock Text="Direttore immersione" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                                 <ComboBox Margin="0,6,0,0"
                                                                           ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding DirettoreImmersione}"
@@ -942,7 +942,7 @@
                                                             </StackPanel>
 
                                                             <StackPanel Grid.Column="2">
-                                                                <TextBlock Text="Operatore soccorso" Foreground="#50626A" />
+                                                                <TextBlock Text="Operatore soccorso" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                                 <ComboBox Margin="0,6,0,0"
                                                                           ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding OperatoreSoccorso}"
@@ -950,7 +950,7 @@
                                                             </StackPanel>
 
                                                             <StackPanel Grid.Row="1" Margin="0,10,0,0">
-                                                                <TextBlock Text="Assistenza BLSD" Foreground="#50626A" />
+                                                                <TextBlock Text="Assistenza BLSD" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                                 <ComboBox Margin="0,6,0,0"
                                                                           ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding AssistenteBlsd}"
@@ -958,7 +958,7 @@
                                                             </StackPanel>
 
                                                             <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
-                                                                <TextBlock Text="Assistenza sanitaria" Foreground="#50626A" />
+                                                                <TextBlock Text="Assistenza sanitaria" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                                 <ComboBox Margin="0,6,0,0"
                                                                           ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding AssistenteSanitario}"
@@ -966,7 +966,7 @@
                                                             </StackPanel>
                                                         </Grid>
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Note immersione" Foreground="#50626A" />
+                                                        <TextBlock Margin="0,10,0,0" Text="Note immersione" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}"
                                                                  Style="{DynamicResource ServizioWheelTextBoxStyle}"
                                                                  TextWrapping="Wrap"
@@ -979,8 +979,8 @@
                                     </ItemsControl>
 
                                     <Border Margin="0,2,14,0"
-                                            Background="#F8FBFD"
-                                            BorderBrush="#D8E1E8"
+                                            Background="#F8FAFC"
+                                            BorderBrush="{DynamicResource AppBorderBrush}"
                                             BorderThickness="1"
                                             CornerRadius="18"
                                             Padding="14">
@@ -988,13 +988,13 @@
                                             <DockPanel LastChildFill="False">
                                                 <TextBlock DockPanel.Dock="Left"
                                                            Text="Dettaglio contabile SMZ"
-                                                           Foreground="#17313E"
+                                                           Foreground="{DynamicResource AppTextBrush}"
                                                            FontWeight="SemiBold"
                                                            VerticalAlignment="Center" />
                                             </DockPanel>
                                             <TextBlock Margin="0,4,0,0"
                                                        Text="Compila una sola riga per operatore: apparato, profondita, ore e categoria vengono applicati automaticamente a tutte le immersioni utili. Correggi solo le eccezioni."
-                                                       Foreground="#53646A"
+                                                       Foreground="{DynamicResource AppMutedTextBrush}"
                                                        TextWrapping="Wrap" />
 
                                             <DataGrid Margin="0,12,0,0"

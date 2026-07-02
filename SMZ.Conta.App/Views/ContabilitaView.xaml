@@ -22,10 +22,10 @@
                                     <TextBlock Text="{Binding ContabilitaPeriodoTitolo}"
                                                FontSize="20"
                                                FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                               Foreground="{DynamicResource AppTextBrush}" />
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Modulo contabile operativo: riepilogo SMZ immersioni, piu giornate utili e trentesimi per sanitari e Assistenza SMZ."
-                                               Foreground="#53646A"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                TextWrapping="Wrap" />
                                     <TextBlock Margin="0,8,0,0"
                                                Text="{Binding ElaborazioneMensileStato}"
@@ -39,7 +39,7 @@
                                             VerticalAlignment="Center">
                                     <StackPanel Width="170">
                                         <TextBlock Text="Mese"
-                                                   Foreground="#50626A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <ComboBox ItemsSource="{Binding ContabilitaMesiDisponibili}"
                                                   SelectedItem="{Binding ContabilitaMeseSelezionato}"
                                                   DisplayMemberPath="Descrizione" />
@@ -48,7 +48,7 @@
                                     <StackPanel Width="110"
                                                 Margin="12,0,0,0">
                                         <TextBlock Text="Anno"
-                                                   Foreground="#50626A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <ComboBox ItemsSource="{Binding ContabilitaAnniDisponibili}"
                                                   SelectedItem="{Binding ContabilitaAnnoSelezionato, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
@@ -81,10 +81,10 @@
                                         <TextBlock Text="Contabilita SMZ immersioni"
                                                    FontSize="18"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#17313E" />
+                                                   Foreground="{DynamicResource AppTextBrush}" />
                                         <TextBlock Margin="0,6,0,0"
                                                    Text="{Binding ContabilitaSmzStato}"
-                                                   Foreground="#53646A"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
                                 </DockPanel>
@@ -92,7 +92,7 @@
                                 <TextBlock Grid.Row="1"
                                            Margin="0,14,0,0"
                                            Text="Le righe sono separate per data e ordine di servizio, cosi puoi risalire subito all'origine operativa della contabilita."
-                                           Foreground="#6A7B80"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap" />
 
                                 <WrapPanel Grid.Row="2"
@@ -103,7 +103,7 @@
                                         <TextBlock Text="Data"
                                                    FontSize="11"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#53646A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <ComboBox Margin="0,4,0,0"
                                                   ItemsSource="{Binding ContabilitaSmzDateDisponibili}"
                                                   SelectedItem="{Binding ContabilitaSmzFiltroData, UpdateSourceTrigger=PropertyChanged}" />
@@ -114,7 +114,7 @@
                                         <TextBlock Text="N. servizio"
                                                    FontSize="11"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#53646A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <ComboBox Margin="0,4,0,0"
                                                   ItemsSource="{Binding ContabilitaSmzNumeriServizioDisponibili}"
                                                   SelectedItem="{Binding ContabilitaSmzFiltroNumeroServizio, UpdateSourceTrigger=PropertyChanged}" />
@@ -125,7 +125,7 @@
                                         <TextBlock Text="Nominativo"
                                                    FontSize="11"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#53646A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <TextBox Margin="0,4,0,0"
                                                  Text="{Binding ContabilitaSmzFiltroNominativo, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
@@ -135,7 +135,7 @@
                                         <TextBlock Text="Apparato"
                                                    FontSize="11"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#53646A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <ComboBox Margin="0,4,0,0"
                                                   ItemsSource="{Binding ContabilitaSmzApparatiDisponibili}"
                                                   SelectedItem="{Binding ContabilitaSmzFiltroApparato, UpdateSourceTrigger=PropertyChanged}" />
@@ -221,11 +221,11 @@
                                     <TextBlock Text="Sanitari impiegati"
                                                FontSize="18"
                                                FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                               Foreground="{DynamicResource AppTextBrush}" />
                                     <TextBlock Grid.Row="1"
                                                Margin="0,10,0,0"
                                                Text="{Binding ContabilitaSanitariStato}"
-                                               Foreground="#53646A"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                TextWrapping="Wrap" />
 
                                     <DataGrid Grid.Row="2"
@@ -274,15 +274,15 @@
                                     <TextBlock Text="Assistenza SMZ"
                                                FontSize="18"
                                                FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                               Foreground="{DynamicResource AppTextBrush}" />
                                     <StackPanel Grid.Row="1"
                                                 Margin="0,10,0,0">
                                         <TextBlock Text="{Binding ContabilitaSupportoStato}"
-                                                   Foreground="#53646A"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                    TextWrapping="Wrap" />
                                         <TextBlock Margin="0,4,0,0"
                                                    Text="Aggregazione per nominativo: conviene usare sempre la stessa scrittura per avere conteggi coerenti."
-                                                   Foreground="#6A7B80"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                    FontSize="12"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>

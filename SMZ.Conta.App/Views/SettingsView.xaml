@@ -15,10 +15,10 @@
                                 <TextBlock Text="Impostazioni operative"
                                            FontSize="22"
                                            FontWeight="SemiBold"
-                                           Foreground="#17313E" />
+                                           Foreground="{DynamicResource AppTextBrush}" />
                                 <TextBlock Margin="0,8,0,0"
                                            Text="Cataloghi e tariffe sono separati dalle pagine operative per evitare modifiche accidentali durante l'uso quotidiano."
-                                           Foreground="#53646A"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
@@ -43,10 +43,10 @@
                                             <TextBlock Text="Localita operative"
                                                        FontSize="18"
                                                        FontWeight="SemiBold"
-                                                       Foreground="#17313E" />
+                                                       Foreground="{DynamicResource AppTextBrush}" />
                                             <TextBlock Margin="0,6,0,0"
                                                        Text="Modifica descrizione, provincia, ordine e stato attivo delle localita usate nei servizi."
-                                                       Foreground="#53646A"
+                                                       Foreground="{DynamicResource AppMutedTextBrush}"
                                                        TextWrapping="Wrap" />
                                         </StackPanel>
 
@@ -116,10 +116,10 @@
                                             <TextBlock Text="Mezzi nautici"
                                                        FontSize="18"
                                                        FontWeight="SemiBold"
-                                                       Foreground="#17313E" />
+                                                       Foreground="{DynamicResource AppTextBrush}" />
                                             <TextBlock Margin="0,6,0,0"
                                                        Text="Modifica descrizione, sigla, ordine e stato attivo dei mezzi disponibili nel servizio giornaliero."
-                                                       Foreground="#53646A"
+                                                       Foreground="{DynamicResource AppMutedTextBrush}"
                                                        TextWrapping="Wrap" />
                                         </StackPanel>
 
@@ -190,10 +190,10 @@
                                         <TextBlock Text="Tariffe contabili"
                                                    FontSize="18"
                                                    FontWeight="SemiBold"
-                                                   Foreground="#17313E" />
+                                                   Foreground="{DynamicResource AppTextBrush}" />
                                         <TextBlock Margin="0,6,0,0"
                                                    Text="{Binding TariffeContabiliStato}"
-                                                   Foreground="#53646A"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
 
@@ -206,7 +206,7 @@
                                 <TextBlock Grid.Row="1"
                                            Margin="0,12,0,0"
                                            Text="Le tariffe salvate restano nel database e vengono usate nei calcoli contabili successivi."
-                                           Foreground="#6A7B80"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap" />
 
                                 <DataGrid Grid.Row="2"

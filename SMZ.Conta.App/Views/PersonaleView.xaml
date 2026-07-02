@@ -36,12 +36,12 @@
 
                                     <StackPanel>
                                         <TextBlock Text="Cerca personale"
-                                                   Foreground="#50626A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <TextBox Text="{Binding FiltroCognome, UpdateSourceTrigger=PropertyChanged}" />
                                         <Border Margin="0,8,0,0"
                                                 Padding="8"
-                                                Background="#F4F7F3"
-                                                BorderBrush="#D2DBD6"
+                                                Background="#F8FAFC"
+                                                BorderBrush="{DynamicResource AppBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="8"
                                                 Visibility="{Binding IsSearchSuggestionsOpen, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -56,7 +56,7 @@
 
                                     <StackPanel Grid.Column="2">
                                         <TextBlock Text="Abilitazione"
-                                                   Foreground="#50626A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <ComboBox ItemsSource="{Binding FiltroAbilitazioni}"
                                                   SelectedItem="{Binding FiltroAbilitazione}"
                                                   DisplayMemberPath="Descrizione" />
@@ -64,7 +64,7 @@
 
                                     <StackPanel Grid.Column="4">
                                         <TextBlock Text="Visite entro"
-                                                   Foreground="#50626A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <controls:DateInputPicker Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
                                                                   Width="150"
                                                                   ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
@@ -99,10 +99,10 @@
                                             <TextBlock Text="Elenco personale"
                                                        FontSize="22"
                                                        FontWeight="SemiBold"
-                                                       Foreground="#17313E" />
+                                                       Foreground="{DynamicResource AppTextBrush}" />
                                             <TextBlock Margin="0,3,0,0"
                                                        Text="{Binding DashboardDipendentiTotali, StringFormat={}{0} nominativi disponibili}"
-                                                       Foreground="#53646A" />
+                                                       Foreground="{DynamicResource AppMutedTextBrush}" />
                                         </StackPanel>
                                         <Button DockPanel.Dock="Right"
                                                 Content="Apri scheda"
@@ -169,7 +169,7 @@
                                                             <TextBlock Text="{Binding NominativoConQualifica}"
                                                                        FontSize="14"
                                                                        FontWeight="SemiBold"
-                                                                       Foreground="#17313E"
+                                                                       Foreground="{DynamicResource AppTextBrush}"
                                                                        TextTrimming="CharacterEllipsis" />
 
                                                             <Grid Grid.Row="1"
@@ -179,7 +179,7 @@
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
                                                                 <TextBlock Text="{Binding CodiceFiscale}"
-                                                                           Foreground="#53646A"
+                                                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                                                            FontSize="12"
                                                                            TextTrimming="CharacterEllipsis" />
                                                                 <Border Grid.Column="1"
@@ -218,10 +218,10 @@
                                             <TextBlock Text="Personale"
                                                        FontSize="20"
                                                        FontWeight="SemiBold"
-                                                       Foreground="#17313E" />
+                                                       Foreground="{DynamicResource AppTextBrush}" />
                                             <TextBlock Margin="0,3,0,0"
                                                        Text="{Binding DashboardDipendentiTotali, StringFormat={}{0} nominativi}"
-                                                       Foreground="#53646A"
+                                                       Foreground="{DynamicResource AppMutedTextBrush}"
                                                        FontSize="12" />
                                         </StackPanel>
                                         <Button DockPanel.Dock="Right"
@@ -233,13 +233,13 @@
                                     <StackPanel Grid.Row="1"
                                                 Margin="0,16,0,0">
                                         <TextBlock Text="Cerca"
-                                                   Foreground="#50626A" />
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <TextBox Text="{Binding FiltroCognome, UpdateSourceTrigger=PropertyChanged}" />
 
                                         <Border Margin="0,8,0,0"
                                                 Padding="8"
-                                                Background="#F4F7F3"
-                                                BorderBrush="#D2DBD6"
+                                                Background="#F8FAFC"
+                                                BorderBrush="{DynamicResource AppBorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="12"
                                                 Visibility="{Binding IsSearchSuggestionsOpen, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -306,7 +306,7 @@
                                                         <TextBlock Text="{Binding NominativoConQualifica}"
                                                                    FontSize="14"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="#17313E"
+                                                                   Foreground="{DynamicResource AppTextBrush}"
                                                                    TextTrimming="CharacterEllipsis" />
 
                                                         <Grid Grid.Row="1"
@@ -316,7 +316,7 @@
                                                                 <ColumnDefinition Width="Auto" />
                                                             </Grid.ColumnDefinitions>
                                                             <TextBlock Text="{Binding CodiceFiscale}"
-                                                                       Foreground="#53646A"
+                                                                       Foreground="{DynamicResource AppMutedTextBrush}"
                                                                        FontSize="12"
                                                                        TextTrimming="CharacterEllipsis" />
                                                             <Border Grid.Column="1"
@@ -339,11 +339,11 @@
                                     <Expander Grid.Row="3"
                                               Margin="0,12,0,0"
                                               Header="Filtri avanzati"
-                                              Foreground="#17313E"
+                                              Foreground="{DynamicResource AppTextBrush}"
                                               FontWeight="SemiBold">
                                         <StackPanel Margin="0,10,0,0">
                                             <TextBlock Text="Abilitazione o specialita"
-                                                       Foreground="#50626A"
+                                                       Foreground="{DynamicResource AppMutedTextBrush}"
                                                        FontWeight="Normal" />
                                             <ComboBox ItemsSource="{Binding FiltroAbilitazioni}"
                                                       SelectedItem="{Binding FiltroAbilitazione}"
@@ -351,7 +351,7 @@
 
                                             <TextBlock Margin="0,12,0,0"
                                                        Text="Visite in scadenza entro"
-                                                       Foreground="#50626A"
+                                                       Foreground="{DynamicResource AppMutedTextBrush}"
                                                        FontWeight="Normal" />
                                             <controls:DateInputPicker Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
                                                                       Width="150"
@@ -379,7 +379,7 @@
                                                Text="Scheda anagrafica"
                                                FontSize="22"
                                                FontWeight="SemiBold"
-                                               Foreground="#17313E"
+                                               Foreground="{DynamicResource AppTextBrush}"
                                                VerticalAlignment="Center" />
                                     <StackPanel DockPanel.Dock="Right"
                                                 Orientation="Horizontal"
@@ -455,21 +455,21 @@
                                         </Border>
 
                                         <Border Grid.Column="4"
-                                                Background="#F4F7F3"
+                                                Background="#F8FAFC"
                                                 CornerRadius="18"
                                                 Padding="14">
                                             <StackPanel>
                                                 <TextBlock Text="Prossima scadenza"
-                                                           Foreground="#50626A"
+                                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                                            FontSize="12" />
                                                 <TextBlock Margin="0,6,0,0"
                                                            Text="{Binding SchedaProssimaScadenza}"
-                                                           Foreground="#17313E"
+                                                           Foreground="{DynamicResource AppTextBrush}"
                                                            FontSize="22"
                                                            FontWeight="SemiBold" />
                                                 <TextBlock Margin="0,4,0,0"
                                                            Text="{Binding SchedaProssimaScadenzaDettaglio}"
-                                                           Foreground="#52656B"
+                                                           Foreground="{DynamicResource AppMutedTextBrush}"
                                                            TextWrapping="Wrap" />
                                             </StackPanel>
                                         </Border>
@@ -537,16 +537,16 @@
                                 </Border>
 
                                 <Border Margin="0,18,0,0"
-                                        Background="#F2F5F8"
+                                        Background="#F8FAFC"
                                         CornerRadius="18"
                                         Padding="16">
                                     <StackPanel>
                                         <TextBlock Text="Date: usa valori come 18/03/2026. Le abilitazioni e le visite si inseriscono dal pannello guidato qui sotto, non piu scrivendo direttamente in griglia."
-                                                   Foreground="#4A5E64"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                    TextWrapping="Wrap" />
                                         <TextBlock Margin="0,8,0,0"
                                                    Text="Per trasferimenti o cessazioni imposta lo stato di servizio e la data di fine servizio: lo storico resta valido, mentre i nuovi servizi useranno solo personale disponibile alla data del servizio."
-                                                   Foreground="#6A7B80"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                    FontSize="12"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
@@ -556,7 +556,7 @@
                                                Text="Dati di servizio"
                                                FontSize="18"
                                                FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                               Foreground="{DynamicResource AppTextBrush}" />
                                     <Grid Margin="0,16,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="110" />
@@ -575,13 +575,13 @@
                                         </Grid.RowDefinitions>
 
                                         <StackPanel>
-                                            <TextBlock Text="PerID" Foreground="#50626A" />
+                                            <TextBlock Text="PerID" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding PerIdInput, UpdateSourceTrigger=PropertyChanged}"
                                                      IsReadOnly="{Binding IsExistingPerson}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="2">
-                                            <TextBlock Text="Qualifica" Foreground="#50626A" />
+                                            <TextBlock Text="Qualifica" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <ComboBox ItemsSource="{Binding QualificheDisponibili}"
                                                       Text="{Binding Qualifica, UpdateSourceTrigger=PropertyChanged}"
                                                       IsEditable="True"
@@ -589,25 +589,25 @@
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="4">
-                                            <TextBlock Text="Decorrenza qualifica" Foreground="#50626A" />
+                                            <TextBlock Text="Decorrenza qualifica" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <controls:DateInputPicker Text="{Binding DataDecorrenzaQualifica, UpdateSourceTrigger=PropertyChanged}"
                                                                       Width="150"
                                                                       ToolTip="Data decorrenza della qualifica, usata per ordinare l'anzianita a parita di qualifica" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="6">
-                                            <TextBlock Text="Profilo personale" Foreground="#50626A" />
+                                            <TextBlock Text="Profilo personale" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <ComboBox ItemsSource="{Binding ProfiliPersonaleDisponibili}"
                                                       SelectedItem="{Binding ProfiloPersonale}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="8">
-                                            <TextBlock Text="N. brevetto" Foreground="#50626A" />
+                                            <TextBlock Text="N. brevetto" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding NumeroBrevettoSmz, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="5" Margin="0,10,0,0">
-                                            <TextBlock Text="Ruolo sanitario" Foreground="#50626A" />
+                                            <TextBlock Text="Ruolo sanitario" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <ComboBox ItemsSource="{Binding RuoliSanitariDisponibili}"
                                                       SelectedItem="{Binding RuoloSanitario}"
                                                       IsEnabled="{Binding IsProfiloSanitario}" />
@@ -624,13 +624,13 @@
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Margin="0,10,0,0">
-                                            <TextBlock Text="Stato servizio" Foreground="#50626A" />
+                                            <TextBlock Text="Stato servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <ComboBox ItemsSource="{Binding StatiServizioPersonaleDisponibili}"
                                                       SelectedItem="{Binding StatoServizioPersonale}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
-                                            <TextBlock Text="{Binding DataFineServizioLabel}" Foreground="#50626A" />
+                                            <TextBlock Text="{Binding DataFineServizioLabel}" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <controls:DateInputPicker Text="{Binding DataFineServizio, UpdateSourceTrigger=PropertyChanged}"
                                                                       Width="150"
                                                                       ToolTip="Per trasferiti o cessati indica l'ultimo giorno di servizio" />
@@ -639,7 +639,7 @@
 
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Per il profilo sanitario il ruolo sanitario e obbligatorio; brevetto subacqueo e attagliamento restano facoltativi."
-                                               Foreground="#6A7B80"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                FontSize="12"
                                                TextWrapping="Wrap" />
 
@@ -647,7 +647,7 @@
                                                Text="Dati anagrafici"
                                                FontSize="18"
                                                FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                               Foreground="{DynamicResource AppTextBrush}" />
                                     <Grid Margin="0,16,0,0">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto" />
@@ -662,12 +662,12 @@
                                             </Grid.ColumnDefinitions>
 
                                             <StackPanel>
-                                                <TextBlock Text="Cognome" Foreground="#50626A" />
+                                                <TextBlock Text="Cognome" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding Cognome, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Nome" Foreground="#50626A" />
+                                                <TextBlock Text="Nome" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding Nome, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                         </Grid>
@@ -682,19 +682,19 @@
                                             </Grid.ColumnDefinitions>
 
                                             <StackPanel>
-                                                <TextBlock Text="Data di nascita" Foreground="#50626A" />
+                                                <TextBlock Text="Data di nascita" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <controls:DateInputPicker Text="{Binding DataNascita, UpdateSourceTrigger=PropertyChanged}"
                                                                           Width="150"
                                                                           ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Luogo di nascita" Foreground="#50626A" />
+                                                <TextBlock Text="Luogo di nascita" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding LuogoNascita, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="4">
-                                                <TextBlock Text="Codice fiscale" Foreground="#50626A" />
+                                                <TextBlock Text="Codice fiscale" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding CodiceFiscale, UpdateSourceTrigger=PropertyChanged}"
                                                          MaxLength="16" />
                                             </StackPanel>
@@ -705,7 +705,7 @@
                                                Text="Contatti e residenza"
                                                FontSize="18"
                                                FontWeight="SemiBold"
-                                               Foreground="#17313E" />
+                                               Foreground="{DynamicResource AppTextBrush}" />
                                     <Grid Margin="0,16,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
@@ -719,27 +719,27 @@
                                         </Grid.RowDefinitions>
 
                                         <StackPanel>
-                                            <TextBlock Text="Telefono 1" Foreground="#50626A" />
+                                            <TextBlock Text="Telefono 1" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding Telefono1, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="2">
-                                            <TextBlock Text="Telefono 2" Foreground="#50626A" />
+                                            <TextBlock Text="Telefono 2" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding Telefono2, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Margin="0,10,0,0">
-                                            <TextBlock Text="Mail Polizia" Foreground="#50626A" />
+                                            <TextBlock Text="Mail Polizia" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <DockPanel Margin="0,6,0,0" LastChildFill="True">
                                                 <Border DockPanel.Dock="Right"
                                                         Margin="8,0,0,0"
                                                         Padding="10,8"
-                                                        Background="#EEF4F8"
+                                                        Background="#F1F6FB"
                                                         BorderBrush="#C9D5E1"
                                                         BorderThickness="1"
                                                         CornerRadius="6">
                                                     <TextBlock Text="{Binding MailDominioFisso}"
-                                                               Foreground="#53646A"
+                                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                                VerticalAlignment="Center" />
                                                 </Border>
                                                 <TextBox Text="{Binding Mail1Utente, UpdateSourceTrigger=PropertyChanged}"
@@ -748,13 +748,13 @@
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
-                                            <TextBlock Text="Mail personale" Foreground="#50626A" />
+                                            <TextBlock Text="Mail personale" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding Mail2Utente, UpdateSourceTrigger=PropertyChanged}"
                                                      ToolTip="Inserisci l'indirizzo completo" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                            <TextBlock Text="Via" Foreground="#50626A" />
+                                            <TextBlock Text="Via" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding ViaResidenza, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
@@ -766,13 +766,13 @@
                                             </Grid.ColumnDefinitions>
 
                                             <StackPanel>
-                                                <TextBlock Text="CAP" Foreground="#50626A" />
+                                                <TextBlock Text="CAP" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding CapResidenza, UpdateSourceTrigger=PropertyChanged}"
                                                          MaxLength="5" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Citta" Foreground="#50626A" />
+                                                <TextBlock Text="Citta" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding CittaResidenza, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
                                         </Grid>
@@ -803,7 +803,7 @@
                                                 <TextBlock Text="Inserimento guidato abilitazione"
                                                            FontSize="19"
                                                            FontWeight="SemiBold"
-                                                           Foreground="#17313E" />
+                                                           Foreground="{DynamicResource AppTextBrush}" />
 
                                                 <Grid Grid.Row="1" Margin="0,14,0,0">
                                                     <Grid.ColumnDefinitions>
@@ -813,12 +813,12 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <StackPanel>
-                                                        <TextBlock Text="Tipo abilitazione" Foreground="#50626A" />
+                                                        <TextBlock Text="Tipo abilitazione" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <ComboBox ItemsSource="{Binding TipiAbilitazioneCatalogo}"
                                                                   SelectedItem="{Binding AbilitazioneTipoSelezionato}"
                                                                   DisplayMemberPath="EtichettaCompleta" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="{Binding AbilitazioneLivelloEtichetta}" Foreground="#50626A" />
+                                                        <TextBlock Margin="0,10,0,0" Text="{Binding AbilitazioneLivelloEtichetta}" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <ComboBox ItemsSource="{Binding AbilitazioneLivelliSuggeriti}"
                                                                   Text="{Binding AbilitazioneLivello, UpdateSourceTrigger=PropertyChanged}"
                                                                   IsEnabled="{Binding AbilitazioneRichiedeLivello}"
@@ -828,18 +828,18 @@
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="2">
-                                                        <TextBlock Text="Data conseguimento" Foreground="#50626A" />
+                                                        <TextBlock Text="Data conseguimento" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <controls:DateInputPicker Text="{Binding AbilitazioneDataConseguimento, UpdateSourceTrigger=PropertyChanged}"
                                                                                   Width="150"
                                                                                   ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Data scadenza" Foreground="#50626A" />
+                                                        <TextBlock Margin="0,10,0,0" Text="Data scadenza" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <controls:DateInputPicker Text="{Binding AbilitazioneDataScadenza, UpdateSourceTrigger=PropertyChanged}"
                                                                                   Width="150"
                                                                                   ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa"
                                                                                   IsEnabled="{Binding AbilitazioneRichiedeScadenza}" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Note" Foreground="#50626A" />
+                                                        <TextBlock Margin="0,10,0,0" Text="Note" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <TextBox Text="{Binding AbilitazioneNote, UpdateSourceTrigger=PropertyChanged}" />
                                                     </StackPanel>
                                                 </Grid>
@@ -851,7 +851,7 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <TextBlock Text="{Binding AbilitazioneIndicazioni}"
-                                                               Foreground="#5B6C72"
+                                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                                VerticalAlignment="Center"
                                                                TextWrapping="Wrap" />
 
@@ -923,7 +923,7 @@
                                                 <TextBlock Text="Visite mediche obbligatorie"
                                                            FontSize="19"
                                                            FontWeight="SemiBold"
-                                                           Foreground="#17313E" />
+                                                           Foreground="{DynamicResource AppTextBrush}" />
 
                                                 <Grid Grid.Row="1" Margin="0,14,0,0">
                                                     <Grid.ColumnDefinitions>
@@ -933,37 +933,37 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <StackPanel>
-                                                        <TextBlock Text="Tipo visita" Foreground="#50626A" />
+                                                        <TextBlock Text="Tipo visita" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <ComboBox ItemsSource="{Binding TipiVisitaMedicaCatalogo}"
                                                                   SelectedItem="{Binding VisitaTipoSelezionato}"
                                                                   DisplayMemberPath="Descrizione" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Data ultima visita" Foreground="#50626A" />
+                                                        <TextBlock Margin="0,10,0,0" Text="Data ultima visita" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <controls:DateInputPicker Text="{Binding VisitaDataUltimaVisita, UpdateSourceTrigger=PropertyChanged}"
                                                                                   Width="150"
                                                                                   ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Esito" Foreground="#50626A" />
+                                                        <TextBlock Margin="0,10,0,0" Text="Esito" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <TextBox Text="{Binding VisitaEsito, UpdateSourceTrigger=PropertyChanged}" />
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="2">
                                                         <TextBlock Text="{Binding RegoleVisiteTitolo}"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="#17313E" />
+                                                                   Foreground="{DynamicResource AppTextBrush}" />
                                                         <TextBlock Margin="0,6,0,0"
                                                                    Text="{Binding RegoleVisiteDescrizione}"
-                                                                   Foreground="#53646A"
+                                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                                    TextWrapping="Wrap" />
 
-                                                        <TextBlock Margin="0,12,0,0" Text="Scadenza calcolata" Foreground="#50626A" />
+                                                        <TextBlock Margin="0,12,0,0" Text="Scadenza calcolata" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <TextBox Text="{Binding VisitaScadenzaCalcolata, Mode=OneWay}"
                                                                  Style="{DynamicResource DateTextBoxStyle}"
                                                                  IsReadOnly="True"
                                                                  IsReadOnlyCaretVisible="False"
                                                                  Background="#F6F8F6" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Note" Foreground="#50626A" />
+                                                        <TextBlock Margin="0,10,0,0" Text="Note" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <TextBox Text="{Binding VisitaNote, UpdateSourceTrigger=PropertyChanged}" />
                                                     </StackPanel>
                                                 </Grid>
@@ -975,7 +975,7 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <TextBlock Text="{Binding VisitaIndicazioni}"
-                                                               Foreground="#5B6C72"
+                                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                                VerticalAlignment="Center"
                                                                TextWrapping="Wrap" />
 
@@ -1027,8 +1027,8 @@
                                                   VerticalScrollBarVisibility="Auto"
                                                   HorizontalScrollBarVisibility="Disabled">
                                         <StackPanel>
-                                            <Border Background="#F7F9FB"
-                                                    BorderBrush="#D6E0E7"
+                                            <Border Background="#F8FAFC"
+                                                    BorderBrush="{DynamicResource AppBorderBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="18"
                                                     Padding="22">
@@ -1047,10 +1047,10 @@
                                                         <TextBlock Text="Scheda misure"
                                                                    FontSize="20"
                                                                    FontWeight="SemiBold"
-                                                                   Foreground="#17313E" />
+                                                                   Foreground="{DynamicResource AppTextBrush}" />
                                                         <TextBlock Margin="0,6,0,0"
                                                                    Text="{Binding AttagliamentoIndicazioni}"
-                                                                   Foreground="#5B6C72"
+                                                                   Foreground="{DynamicResource AppMutedTextBrush}"
                                                                    TextWrapping="Wrap" />
 
                                                         <ItemsControl Margin="0,24,0,0"
@@ -1102,7 +1102,7 @@
 
                                                     <Border Grid.Column="2"
                                                             Background="White"
-                                                            BorderBrush="#D6E0E7"
+                                                            BorderBrush="{DynamicResource AppBorderBrush}"
                                                             BorderThickness="1"
                                                             CornerRadius="16"
                                                             Padding="12"
@@ -1125,10 +1125,10 @@
                                                     <TextBlock Text="Misure aggiuntive gia presenti"
                                                                FontSize="17"
                                                                FontWeight="SemiBold"
-                                                               Foreground="#17313E" />
+                                                               Foreground="{DynamicResource AppTextBrush}" />
                                                     <TextBlock Margin="0,6,0,0"
                                                                Text="Le voci non comprese nella scheda principale restano salvate e visibili qui."
-                                                               Foreground="#5B6C72"
+                                                               Foreground="{DynamicResource AppMutedTextBrush}"
                                                                TextWrapping="Wrap" />
 
                                                     <DataGrid Margin="0,12,0,0"
