@@ -106,3 +106,28 @@ Nota: le immagini in `.codex\generated_images` sono utili come riferimento, ma p
 - Rifinitura testi, spaziature, stemmi, hover/selected: 1-2 ore.
 - Controllo finale nell'app reale: circa 1 ora.
 - Totale realistico: mezza giornata.
+
+## Stato alla chiusura - 2026-07-03
+
+Branch di lavoro: `restyling-ui-2026`.
+
+Ultimo commit salvato: `514887d Rifinisci logo e icona impostazioni sidebar`.
+
+Stato:
+
+- Shell principale rifatta con sidebar scura, header scuro, footer stato/backup.
+- Home avvicinata al mockup con card moduli principali, icone XAML e layout dashboard.
+- `Stato nucleo` rimosso dalla dashboard.
+- `Scadenze visite mediche` separato da `Criticita operative`.
+- `Criticita operative` non ripete le visite mediche; mostra solo scadenze non sanitarie oppure stato vuoto.
+- Data e ora aggiunte nell'header.
+- Info backup sintetiche spostate nella barra in basso.
+- Logo SMZ in sidebar ingrandito.
+- Icona impostazioni sidebar sostituita con ingranaggio.
+- Build verificata con 0 errori e 0 avvisi dopo chiusura dell'app.
+
+Da riprendere:
+
+- Provare visivamente l'app reale dopo l'ultimo commit.
+- Rifinire eventuali spaziature della sidebar se `Impostazioni operative` risultasse ancora troppo bassa su schermi piu piccoli.
+- Continuare il restyling delle pagine interne, partendo da `Backup e archivio` e `Contabilita`.
