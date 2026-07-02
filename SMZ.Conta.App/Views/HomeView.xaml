@@ -39,7 +39,7 @@
                             Margin="0,0,18,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="74" />
+                                <ColumnDefinition Width="64" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="&#xE787;"
@@ -49,11 +49,15 @@
                                 <TextBlock Text="Servizio giornaliero"
                                            FontSize="16"
                                            FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}" />
+                                           Foreground="{DynamicResource AppTextBrush}"
+                                           LineHeight="19"
+                                           TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Pianificazione e turni"
                                            FontSize="13"
-                                           Foreground="{DynamicResource AppMutedTextBrush}" />
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           LineHeight="16"
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -64,7 +68,7 @@
                             Margin="0,0,18,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="74" />
+                                <ColumnDefinition Width="64" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="&#xE716;"
@@ -74,11 +78,15 @@
                                 <TextBlock Text="Personale"
                                            FontSize="16"
                                            FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}" />
+                                           Foreground="{DynamicResource AppTextBrush}"
+                                           LineHeight="19"
+                                           TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Anagrafica e qualifiche"
                                            FontSize="13"
-                                           Foreground="{DynamicResource AppMutedTextBrush}" />
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           LineHeight="16"
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -89,21 +97,45 @@
                             Margin="0,0,18,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="74" />
+                                <ColumnDefinition Width="64" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="&#xE8B7;"
-                                       Style="{DynamicResource ModuleIconStyle}" />
+                            <Grid Width="48"
+                                  Height="48"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center">
+                                <Border Width="42"
+                                        Height="30"
+                                        VerticalAlignment="Bottom"
+                                        Background="#0E5AA7"
+                                        CornerRadius="3" />
+                                <Border Width="42"
+                                        Height="8"
+                                        VerticalAlignment="Top"
+                                        Margin="0,7,0,0"
+                                        Background="#0E5AA7"
+                                        CornerRadius="3" />
+                                <Border Width="28"
+                                        Height="4"
+                                        VerticalAlignment="Center"
+                                        Margin="0,7,0,0"
+                                        Background="#FFFFFF"
+                                        CornerRadius="2" />
+                            </Grid>
                             <StackPanel Grid.Column="1"
                                         VerticalAlignment="Center">
                                 <TextBlock Text="Backup e archivio"
                                            FontSize="16"
                                            FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}" />
+                                           Foreground="{DynamicResource AppTextBrush}"
+                                           LineHeight="19"
+                                           TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Dati e documenti storici"
                                            FontSize="13"
-                                           Foreground="{DynamicResource AppMutedTextBrush}" />
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           LineHeight="16"
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -114,21 +146,30 @@
                             Margin="0,0,18,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="74" />
+                                <ColumnDefinition Width="64" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="&#xEAFD;"
-                                       Style="{DynamicResource ModuleIconStyle}" />
+                            <TextBlock Text="€"
+                                       FontFamily="Segoe UI"
+                                       FontSize="52"
+                                       FontWeight="SemiBold"
+                                       Foreground="#0E5AA7"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1"
                                         VerticalAlignment="Center">
                                 <TextBlock Text="Contabilita"
                                            FontSize="16"
                                            FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}" />
+                                           Foreground="{DynamicResource AppTextBrush}"
+                                           LineHeight="19"
+                                           TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Movimenti e bilanci"
                                            FontSize="13"
-                                           Foreground="{DynamicResource AppMutedTextBrush}" />
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           LineHeight="16"
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -138,7 +179,7 @@
                             Style="{DynamicResource HomeModuleButtonStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="74" />
+                                <ColumnDefinition Width="64" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="&#xE749;"
@@ -148,11 +189,15 @@
                                 <TextBlock Text="Stampe e report"
                                            FontSize="16"
                                            FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}" />
+                                           Foreground="{DynamicResource AppTextBrush}"
+                                           LineHeight="19"
+                                           TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Stampe e documenti"
                                            FontSize="13"
-                                           Foreground="{DynamicResource AppMutedTextBrush}" />
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           LineHeight="16"
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
