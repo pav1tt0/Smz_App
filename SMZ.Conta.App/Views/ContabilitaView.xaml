@@ -204,11 +204,11 @@
                         </Border>
 
                         <Grid Grid.Row="4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="18" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="18" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
 
                             <Border Style="{DynamicResource CardStyle}">
                                 <Grid>
@@ -243,10 +243,10 @@
                                                                 Width="80"
                                                                 Binding="{Binding PerId}" />
                                             <DataGridTextColumn Header="Nominativo"
-                                                                Width="220"
+                                                                Width="2*"
                                                                 Binding="{Binding Nominativo}" />
                                             <DataGridTextColumn Header="Qualifica / ruolo"
-                                                                Width="200"
+                                                                Width="2*"
                                                                 Binding="{Binding QualificaConRuolo}" />
                                             <DataGridTextColumn Header="Giornate"
                                                                 Width="90"
@@ -255,14 +255,14 @@
                                                                 Width="90"
                                                                 Binding="{Binding TrentesimiMaturati}" />
                                             <DataGridTextColumn Header="Ultimo servizio"
-                                                                Width="120"
+                                                                Width="*"
                                                                 Binding="{Binding UltimaDataServizioDescrizione}" />
                                         </DataGrid.Columns>
                                     </DataGrid>
                                 </Grid>
                             </Border>
 
-                            <Border Grid.Column="2"
+                            <Border Grid.Row="2"
                                     Style="{DynamicResource CardStyle}">
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -299,10 +299,10 @@
                                               ScrollViewer.VerticalScrollBarVisibility="Auto">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Nominativo"
-                                                                Width="220"
+                                                                Width="2*"
                                                                 Binding="{Binding Nominativo}" />
                                             <DataGridTextColumn Header="Qualifica / ruolo"
-                                                                Width="200"
+                                                                Width="2*"
                                                                 Binding="{Binding QualificaConRuolo}" />
                                             <DataGridTextColumn Header="Giornate"
                                                                 Width="90"
@@ -311,7 +311,7 @@
                                                                 Width="90"
                                                                 Binding="{Binding TrentesimiMaturati}" />
                                             <DataGridTextColumn Header="Ultimo servizio"
-                                                                Width="120"
+                                                                Width="*"
                                                                 Binding="{Binding UltimaDataServizioDescrizione}" />
                                         </DataGrid.Columns>
                                     </DataGrid>

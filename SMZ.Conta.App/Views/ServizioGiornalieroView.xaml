@@ -45,12 +45,15 @@
                             <Border Style="{DynamicResource CardStyle}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="0.9*" />
-                                        <ColumnDefinition Width="18" />
-                                        <ColumnDefinition Width="1.8*" />
+                                        <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="18" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="14" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
 
                                     <StackPanel>
                                         <TextBlock Text="Servizi giornalieri"
@@ -63,16 +66,17 @@
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
 
-                                    <StackPanel Grid.Column="2">
+                                    <StackPanel Grid.Row="2"
+                                                Grid.ColumnSpan="3">
                                         <TextBlock Text="Ricerca servizi"
                                                    Foreground="{DynamicResource AppMutedTextBrush}" />
                                          <Grid Margin="0,6,0,0">
                                              <Grid.ColumnDefinitions>
                                                  <ColumnDefinition Width="2*" />
                                                  <ColumnDefinition Width="12" />
-                                                 <ColumnDefinition Width="110" />
+                                                 <ColumnDefinition Width="130" />
                                                  <ColumnDefinition Width="12" />
-                                                 <ColumnDefinition Width="120" />
+                                                 <ColumnDefinition Width="150" />
                                                  <ColumnDefinition Width="12" />
                                                  <ColumnDefinition Width="Auto" />
                                              </Grid.ColumnDefinitions>
@@ -106,17 +110,21 @@
                                                                        Text="{Binding ServiziDataSearchText, UpdateSourceTrigger=PropertyChanged}"
                                                                        AutoFormatText="False"
                                                                        ShowMonthShortcut="True"
-                                                                       Width="115"
+                                                                       Width="145"
                                                                        ToolTip="{Binding ServiziDataSearchToolTip}" />
                                              <Button Grid.Row="2"
                                                      Grid.Column="6"
                                                      Content="Pulisci"
-                                                    Command="{Binding ClearServiziSearchCommand}"
-                                                    Style="{DynamicResource SecondaryButtonStyle}" />
+                                                     Command="{Binding ClearServiziSearchCommand}"
+                                                     Style="{DynamicResource SecondaryButtonStyle}"
+                                                     MinWidth="112"
+                                                     Width="112"
+                                                     Height="42"
+                                                     Margin="0" />
                                         </Grid>
                                     </StackPanel>
 
-                                    <WrapPanel Grid.Column="4"
+                                    <WrapPanel Grid.Column="2"
                                                HorizontalAlignment="Right"
                                                VerticalAlignment="Bottom">
                                         <Button Content="Nuovo"

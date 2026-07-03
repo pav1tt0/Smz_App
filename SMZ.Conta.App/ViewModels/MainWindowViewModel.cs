@@ -463,7 +463,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public bool HasDashboardCriticitaOperative => DashboardCriticitaItems.Count > 0;
 
     public string DashboardCriticitaOperativeEmptyText =>
-        "Nessuna criticita operativa non sanitaria rilevata.";
+        "Nessuna criticità operativa non sanitaria rilevata.";
 
     public int DashboardVisiteScadutePersonale => ScadenzeProssime
         .Where(item => IsVisitaMedicaScadenza(item) && item.IsExpired)

@@ -22,18 +22,151 @@
 
             <Grid>
                 <Border Background="{DynamicResource HomePhotoBrush}"
-                        Opacity="0.46" />
+                        Opacity="0.68" />
                 <Rectangle Fill="{DynamicResource WelcomeScreenOverlayBrush}" />
 
-                <Button Width="104"
-                        Height="38"
-                        Margin="0,28,34,0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Content="AUDIO"
+                <Canvas IsHitTestVisible="False"
+                        ClipToBounds="True">
+                    <Ellipse x:Name="WelcomeBubbleOne"
+                             Width="18"
+                             Height="18"
+                             Canvas.Left="118"
+                             Canvas.Top="760"
+                             Style="{DynamicResource WelcomeBubbleStyle}" />
+                    <Ellipse x:Name="WelcomeBubbleTwo"
+                             Width="28"
+                             Height="28"
+                             Canvas.Left="248"
+                             Canvas.Top="830"
+                             Style="{DynamicResource WelcomeBubbleStyle}" />
+                    <Ellipse x:Name="WelcomeBubbleThree"
+                             Width="14"
+                             Height="14"
+                             Canvas.Left="980"
+                             Canvas.Top="780"
+                             Style="{DynamicResource WelcomeBubbleStyle}" />
+                    <Ellipse x:Name="WelcomeBubbleFour"
+                             Width="22"
+                             Height="22"
+                             Canvas.Left="1220"
+                             Canvas.Top="850"
+                             Style="{DynamicResource WelcomeBubbleStyle}" />
+                    <Ellipse x:Name="WelcomeBubbleFive"
+                             Width="12"
+                             Height="12"
+                             Canvas.Left="520"
+                             Canvas.Top="810"
+                             Style="{DynamicResource WelcomeBubbleStyle}" />
+                    <Canvas.Triggers>
+                        <EventTrigger RoutedEvent="Canvas.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="WelcomeBubbleOne"
+                                                     Storyboard.TargetProperty="(Canvas.Top)"
+                                                     From="760"
+                                                     To="-40"
+                                                     Duration="0:0:18"
+                                                     RepeatBehavior="Forever" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="WelcomeBubbleOne"
+                                                                   Storyboard.TargetProperty="Opacity"
+                                                                   RepeatBehavior="Forever">
+                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:3" Value="0.55" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:15" Value="0.35" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:18" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+
+                                    <DoubleAnimation Storyboard.TargetName="WelcomeBubbleTwo"
+                                                     Storyboard.TargetProperty="(Canvas.Top)"
+                                                     From="830"
+                                                     To="-60"
+                                                     Duration="0:0:24"
+                                                     BeginTime="0:0:4"
+                                                     RepeatBehavior="Forever" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="WelcomeBubbleTwo"
+                                                                   Storyboard.TargetProperty="Opacity"
+                                                                   BeginTime="0:0:4"
+                                                                   RepeatBehavior="Forever">
+                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:4" Value="0.45" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:20" Value="0.32" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:24" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+
+                                    <DoubleAnimation Storyboard.TargetName="WelcomeBubbleThree"
+                                                     Storyboard.TargetProperty="(Canvas.Top)"
+                                                     From="780"
+                                                     To="-35"
+                                                     Duration="0:0:20"
+                                                     BeginTime="0:0:8"
+                                                     RepeatBehavior="Forever" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="WelcomeBubbleThree"
+                                                                   Storyboard.TargetProperty="Opacity"
+                                                                   BeginTime="0:0:8"
+                                                                   RepeatBehavior="Forever">
+                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:3" Value="0.5" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:17" Value="0.3" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:20" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+
+                                    <DoubleAnimation Storyboard.TargetName="WelcomeBubbleFour"
+                                                     Storyboard.TargetProperty="(Canvas.Top)"
+                                                     From="850"
+                                                     To="-50"
+                                                     Duration="0:0:28"
+                                                     BeginTime="0:0:2"
+                                                     RepeatBehavior="Forever" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="WelcomeBubbleFour"
+                                                                   Storyboard.TargetProperty="Opacity"
+                                                                   BeginTime="0:0:2"
+                                                                   RepeatBehavior="Forever">
+                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:5" Value="0.4" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:24" Value="0.28" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:28" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+
+                                    <DoubleAnimation Storyboard.TargetName="WelcomeBubbleFive"
+                                                     Storyboard.TargetProperty="(Canvas.Top)"
+                                                     From="810"
+                                                     To="-30"
+                                                     Duration="0:0:22"
+                                                     BeginTime="0:0:12"
+                                                     RepeatBehavior="Forever" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="WelcomeBubbleFive"
+                                                                   Storyboard.TargetProperty="Opacity"
+                                                                   BeginTime="0:0:12"
+                                                                   RepeatBehavior="Forever">
+                                        <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:3" Value="0.46" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:18" Value="0.3" />
+                                        <LinearDoubleKeyFrame KeyTime="0:0:22" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Canvas.Triggers>
+                </Canvas>
+
+                <Button Margin="34,0,0,34"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom"
+                        Content="&#xE767;"
                         Command="{Binding ToggleWelcomeAudioCommand}"
                         ToolTip="{Binding WelcomeAudioTooltip}"
-                        Style="{DynamicResource WelcomeAudioButtonStyle}" />
+                        Style="{DynamicResource WelcomeIconButtonStyle}" />
+
+                <StackPanel Margin="0,28,34,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Orientation="Horizontal">
+                    <Button Width="104"
+                            Height="38"
+                            Content="ESCI"
+                            Click="CloseAppButton_Click"
+                            Style="{DynamicResource WelcomeAudioButtonStyle}" />
+                </StackPanel>
 
                 <Viewbox Margin="70,58,70,38"
                          Stretch="Uniform"
@@ -52,66 +185,80 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel VerticalAlignment="Center"
-                                        Margin="0,0,58,0">
-                                <TextBlock Text="Nucleo Sommozzatori"
-                                           Foreground="#FFFFFF"
-                                           FontSize="64"
-                                           FontWeight="Bold"
-                                           LineHeight="70"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,18,0,0"
+                                        Margin="0">
+                                <TextBlock Width="700"
                                            Text="POLIZIA DI STATO"
                                            Foreground="#FFFFFF"
-                                           FontSize="26"
-                                           FontWeight="SemiBold" />
-                                <TextBlock Margin="0,8,0,0"
-                                           Text="Centro Nautico e SMZ"
+                                           FontSize="68"
+                                           FontWeight="Bold"
+                                           LineHeight="72"
+                                           TextAlignment="Center"
+                                           TextWrapping="NoWrap" />
+                                <TextBlock Width="700"
+                                           Margin="0,12,0,0"
+                                           Text="CENTRO NAUTICO E SMZ"
                                            Foreground="#D3E2F2"
-                                           FontSize="25" />
+                                           FontSize="38"
+                                           FontWeight="SemiBold"
+                                           TextAlignment="Center"
+                                           TextWrapping="NoWrap" />
+                                <TextBlock Width="700"
+                                           Margin="0,8,0,0"
+                                           Text="NUCLEO SOMMOZZATORI"
+                                           Foreground="#FFFFFF"
+                                           FontSize="38"
+                                           FontWeight="SemiBold"
+                                           TextAlignment="Center"
+                                           TextWrapping="NoWrap" />
                                 <TextBlock Margin="0,30,0,0"
-                                           MaxWidth="680"
-                                           Text="Gestionale operativo per servizi giornalieri, personale, immersioni, archivio e contabilita."
+                                           Width="700"
+                                           Text="Gestionale operativo per servizi giornalieri, personale&#x0a;immersioni, archivio e contabilita."
                                            Foreground="#DDE8F4"
                                            FontSize="20"
                                            LineHeight="32"
+                                           TextAlignment="Center"
                                            TextWrapping="Wrap" />
 
-                                <Button Margin="0,42,0,0"
-                                        Width="310"
-                                        Height="64"
+                                <Button Margin="0,48,0,0"
+                                        Width="390"
+                                        Height="78"
                                         Content="Entra nel gestionale"
                                         Command="{Binding EnterAppCommand}"
                                         IsDefault="True"
-                                        HorizontalAlignment="Left"
+                                        HorizontalAlignment="Center"
                                         Style="{DynamicResource WelcomeEnterButtonStyle}" />
                             </StackPanel>
 
                             <Grid Grid.Column="1"
                                   VerticalAlignment="Center"
                                   HorizontalAlignment="Center">
-                                <Border Width="460"
-                                        Height="460"
-                                        Background="#26071528"
-                                        BorderBrush="#466D98"
-                                        BorderThickness="1"
-                                        CornerRadius="10"
-                                        Padding="34">
-                                    <Image Source="/SMZ.App;component/Assets/logo_smz.png"
-                                           Stretch="Uniform" />
-                                </Border>
+                                <Image Width="620"
+                                       Height="620"
+                                       Source="/SMZ.App;component/Assets/logo_smz.png"
+                                       Stretch="Uniform">
+                                    <Image.Effect>
+                                        <DropShadowEffect BlurRadius="24"
+                                                          ShadowDepth="8"
+                                                          Direction="270"
+                                                          Opacity="0.48"
+                                                          Color="#02070D" />
+                                    </Image.Effect>
+                                </Image>
                             </Grid>
                         </Grid>
 
-                        <Grid Grid.Row="1">
-                            <TextBlock HorizontalAlignment="Left"
-                                       VerticalAlignment="Center"
-                                       Text="{Binding WelcomeCredits}"
+                        <StackPanel Grid.Row="1"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="{Binding WelcomeCredits}"
                                        Style="{DynamicResource WelcomeMetaTextStyle}" />
-                            <TextBlock HorizontalAlignment="Right"
-                                       VerticalAlignment="Center"
-                                       Text="{Binding WelcomeVersione}"
+                            <TextBlock Margin="18,0"
+                                       Text="|"
                                        Style="{DynamicResource WelcomeMetaTextStyle}" />
-                        </Grid>
+                            <TextBlock Text="{Binding WelcomeVersione}"
+                                       Style="{DynamicResource WelcomeMetaTextStyle}" />
+                        </StackPanel>
                     </Grid>
                 </Viewbox>
             </Grid>

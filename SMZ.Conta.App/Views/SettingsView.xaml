@@ -38,8 +38,14 @@
                                         <RowDefinition Height="*" />
                                     </Grid.RowDefinitions>
 
-                                    <DockPanel LastChildFill="False">
-                                        <StackPanel DockPanel.Dock="Left">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
                                             <TextBlock Text="Localita operative"
                                                        FontSize="18"
                                                        FontWeight="SemiBold"
@@ -50,11 +56,13 @@
                                                        TextWrapping="Wrap" />
                                         </StackPanel>
 
-                                        <Button DockPanel.Dock="Right"
+                                        <Button Grid.Column="2"
                                                 Content="Salva localita"
                                                 Command="{Binding SaveLocalitaOperativeCommand}"
+                                                MinWidth="128"
+                                                Margin="0"
                                                 Style="{DynamicResource AccentButtonStyle}" />
-                                    </DockPanel>
+                                    </Grid>
 
                                     <DockPanel Grid.Row="1"
                                                Margin="0,14,0,0"
@@ -111,8 +119,14 @@
                                         <RowDefinition Height="*" />
                                     </Grid.RowDefinitions>
 
-                                    <DockPanel LastChildFill="False">
-                                        <StackPanel DockPanel.Dock="Left">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel>
                                             <TextBlock Text="Mezzi nautici"
                                                        FontSize="18"
                                                        FontWeight="SemiBold"
@@ -123,11 +137,13 @@
                                                        TextWrapping="Wrap" />
                                         </StackPanel>
 
-                                        <Button DockPanel.Dock="Right"
+                                        <Button Grid.Column="2"
                                                 Content="Salva mezzi"
                                                 Command="{Binding SaveUnitaNavaliCommand}"
+                                                MinWidth="128"
+                                                Margin="0"
                                                 Style="{DynamicResource AccentButtonStyle}" />
-                                    </DockPanel>
+                                    </Grid>
 
                                     <DockPanel Grid.Row="1"
                                                Margin="0,14,0,0"
@@ -185,8 +201,14 @@
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
 
-                                <DockPanel LastChildFill="False">
-                                    <StackPanel DockPanel.Dock="Left">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
                                         <TextBlock Text="Tariffe contabili"
                                                    FontSize="18"
                                                    FontWeight="SemiBold"
@@ -197,11 +219,13 @@
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
 
-                                    <Button DockPanel.Dock="Right"
+                                    <Button Grid.Column="2"
                                             Content="Salva tariffe"
                                             Command="{Binding SaveTariffeContabiliCommand}"
+                                            MinWidth="128"
+                                            Margin="0"
                                             Style="{DynamicResource SecondaryButtonStyle}" />
-                                </DockPanel>
+                                </Grid>
 
                                 <TextBlock Grid.Row="1"
                                            Margin="0,12,0,0"

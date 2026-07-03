@@ -379,7 +379,7 @@
                                        FontSize="23"
                                        VerticalAlignment="Center" />
                             <TextBlock Margin="10,0,0,0"
-                                       Text="Criticita operative"
+                                       Text="Criticità operative"
                                        FontSize="20"
                                        FontWeight="SemiBold"
                                        Foreground="#D40F1F"
@@ -485,6 +485,7 @@
                             Content="Vai all'elenco"
                             Command="{Binding NavigateSectionCommand}"
                             CommandParameter="2"
+                            IsEnabled="{Binding HasDashboardCriticitaOperative}"
                             Style="{DynamicResource SecondaryButtonStyle}" />
                 </Grid>
             </Border>

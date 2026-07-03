@@ -27,6 +27,11 @@ public partial class MainWindow : Window
         UpdateWelcomeAudio();
     }
 
+    private void CloseAppButton_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
     private void MainWindow_Closed(object? sender, EventArgs e)
     {
         _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
@@ -35,6 +40,11 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
+        if (_viewModel.IsWelcomeVisible)
+        {
+            return;
+        }
+
         var areeConModifiche = _viewModel.GetAreeConModificheNonSalvate();
         if (areeConModifiche.Count == 0)
         {

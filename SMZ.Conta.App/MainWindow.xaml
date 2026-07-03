@@ -37,9 +37,9 @@
         <LinearGradientBrush x:Key="WelcomeScreenOverlayBrush"
                              StartPoint="0,0"
                              EndPoint="1,1">
-            <GradientStop Color="#D9071528" Offset="0" />
-            <GradientStop Color="#C8092446" Offset="0.48" />
-            <GradientStop Color="#E6071528" Offset="1" />
+            <GradientStop Color="#B8071528" Offset="0" />
+            <GradientStop Color="#96092446" Offset="0.48" />
+            <GradientStop Color="#C8071528" Offset="1" />
         </LinearGradientBrush>
 
         <Style x:Key="CardStyle" TargetType="Border">
@@ -363,14 +363,15 @@
             <Setter Property="MinWidth" Value="260" />
             <Setter Property="MinHeight" Value="56" />
             <Setter Property="Padding" Value="24,15" />
-            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontSize" Value="21" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Margin" Value="0" />
         </Style>
 
         <Style x:Key="WelcomeMetaTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#C7D8EB" />
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#E2EEF9" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
         <Style x:Key="WelcomeFeatureChipStyle" TargetType="Border">
@@ -419,6 +420,15 @@
             </Style.Triggers>
         </Style>
 
+        <Style x:Key="WelcomeIconButtonStyle" TargetType="Button" BasedOn="{StaticResource WelcomeAudioButtonStyle}">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Width" Value="48" />
+            <Setter Property="Height" Value="48" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+            <Setter Property="FontSize" Value="21" />
+        </Style>
+
         <Style x:Key="WelcomeMetricCardStyle" TargetType="Border" BasedOn="{StaticResource WelcomeHudCardStyle}" />
 
         <Style x:Key="WelcomeBubbleStyle" TargetType="Ellipse">
@@ -451,8 +461,8 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Margin="20,18,20,12">
-                    <Image Width="108"
-                           Height="108"
+                    <Image Width="216"
+                           Height="216"
                            HorizontalAlignment="Center"
                            Source="Assets/logo_smz.png"
                            Stretch="Uniform" />
@@ -741,6 +751,15 @@
                                    FontSize="16"
                                    VerticalAlignment="Center" />
                     </StackPanel>
+                    <Border Width="1"
+                            Height="26"
+                            Margin="22,0"
+                            Background="#607A96" />
+                    <Button Width="104"
+                            Height="38"
+                            Content="ESCI"
+                            Click="CloseAppButton_Click"
+                            Style="{DynamicResource WelcomeAudioButtonStyle}" />
                 </StackPanel>
             </Grid>
         </Border>
