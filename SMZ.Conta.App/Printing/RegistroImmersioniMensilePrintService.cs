@@ -17,7 +17,6 @@ public enum RegistroImmersioniMensilePrintLayout
 
 public sealed class RegistroImmersioniMensilePrintService
 {
-    private const double TableLineThickness = 0.8;
     private readonly PersonaleRepository _repository;
 
     public RegistroImmersioniMensilePrintService(PersonaleRepository repository)
@@ -72,9 +71,10 @@ public sealed class RegistroImmersioniMensilePrintService
         var persone = GetPersone(servizi);
         var document = new FlowDocument
         {
-            FontFamily = new FontFamily("Calibri"),
+            FontFamily = PrintTheme.DocumentFont,
             FontSize = GetFontSize(layout),
             PagePadding = GetPagePadding(layout),
+            Foreground = PrintTheme.TextBrush,
         };
 
         AddCoverPage(document, anno, meseDescrizione);
@@ -114,10 +114,12 @@ public sealed class RegistroImmersioniMensilePrintService
 
     private static void AddCoverPage(FlowDocument document, int anno, string meseDescrizione)
     {
-        AddCentered(document, "POLIZIA DI STATO", 18, FontWeights.Bold);
+        document.Blocks.Add(PrintTheme.RepublicEmblem(68, new Thickness(0, 0, 0, 8)));
+        AddCentered(document, "POLIZIA DI STATO", 20, FontWeights.Bold);
         AddCentered(document, "Centro Nautico e Sommozzatori", 15, FontWeights.Bold);
         AddCentered(document, "Nucleo Sommozzatori", 15, FontWeights.Bold);
         AddCentered(document, "La Spezia", 13, FontWeights.Normal);
+        document.Blocks.Add(CreateDivider(new Thickness(120, 28, 120, 0)));
         AddCentered(document, "REGISTRO IMMERSIONI", 18, FontWeights.Bold, new Thickness(0, 72, 0, 0));
         AddCentered(document, $"Mese di {meseDescrizione.ToUpper(CultureInfo.CurrentCulture)} Anno {anno}", 13, FontWeights.Bold, new Thickness(0, 12, 0, 0));
     }
@@ -142,6 +144,8 @@ public sealed class RegistroImmersioniMensilePrintService
         {
             FontSize = 11,
             FontWeight = FontWeights.Bold,
+            Background = PrintTheme.SectionBackground,
+            Padding = new Thickness(5, 3, 5, 3),
             Margin = new Thickness(0, 0, 0, 8),
         };
         section.Blocks.Add(title);
@@ -333,9 +337,10 @@ public sealed class RegistroImmersioniMensilePrintService
         })
         {
             ColumnSpan = 4,
-            BorderBrush = Brushes.Black,
-            BorderThickness = new Thickness(TableLineThickness),
+            BorderBrush = PrintTheme.BorderBrush,
+            BorderThickness = new Thickness(PrintTheme.BorderThickness),
             Padding = new Thickness(3),
+            Background = PrintTheme.SectionBackground,
         });
         table.RowGroups[0].Rows.Add(title);
 
@@ -459,6 +464,14 @@ public sealed class RegistroImmersioniMensilePrintService
         });
     }
 
+    private static BlockUIContainer CreateDivider(Thickness margin) =>
+        new(new Border
+        {
+            Height = 1,
+            Background = PrintTheme.BorderBrush,
+            Margin = margin,
+        });
+
     private static Table CreateTable(params double[] widths)
     {
         var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 0, 0, 4) };
@@ -502,14 +515,16 @@ public sealed class RegistroImmersioniMensilePrintService
             TextAlignment = header ? TextAlignment.Center : TextAlignment.Left,
         })
         {
-            BorderBrush = Brushes.Black,
+            BorderBrush = PrintTheme.BorderBrush,
             BorderThickness = new Thickness(
-                columnIndex == 0 ? TableLineThickness : 0,
-                rowIndex == 0 ? TableLineThickness : 0,
-                TableLineThickness,
-                TableLineThickness),
-            Padding = new Thickness(2),
-            Background = header ? Brushes.WhiteSmoke : Brushes.Transparent,
+                columnIndex == 0 ? PrintTheme.BorderThickness : 0,
+                rowIndex == 0 ? PrintTheme.BorderThickness : 0,
+                PrintTheme.BorderThickness,
+                PrintTheme.BorderThickness),
+            Padding = new Thickness(3, 2, 3, 2),
+            Background = header
+                ? PrintTheme.HeaderBackground
+                : rowIndex % 2 == 0 ? PrintTheme.AlternateRowBackground : Brushes.Transparent,
         };
 
     private sealed record RegistroPrintPersonaleRow(

@@ -561,7 +561,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="110" />
                                             <ColumnDefinition Width="18" />
-                                            <ColumnDefinition Width="220" />
+                                            <ColumnDefinition Width="260" />
                                             <ColumnDefinition Width="18" />
                                             <ColumnDefinition Width="160" />
                                             <ColumnDefinition Width="18" />
@@ -730,21 +730,9 @@
 
                                         <StackPanel Grid.Row="1" Margin="0,10,0,0">
                                             <TextBlock Text="Mail Polizia" Foreground="{DynamicResource AppMutedTextBrush}" />
-                                            <DockPanel Margin="0,6,0,0" LastChildFill="True">
-                                                <Border DockPanel.Dock="Right"
-                                                        Margin="8,0,0,0"
-                                                        Padding="10,8"
-                                                        Background="#F1F6FB"
-                                                        BorderBrush="#C9D5E1"
-                                                        BorderThickness="1"
-                                                        CornerRadius="6">
-                                                    <TextBlock Text="{Binding MailDominioFisso}"
-                                                               Foreground="{DynamicResource AppMutedTextBrush}"
-                                                               VerticalAlignment="Center" />
-                                                </Border>
-                                                <TextBox Text="{Binding Mail1Utente, UpdateSourceTrigger=PropertyChanged}"
-                                                         ToolTip="Inserisci solo il nome utente istituzionale" />
-                                            </DockPanel>
+                                            <TextBox Margin="0,6,0,0"
+                                                     Text="{Binding Mail1Utente, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="Inserisci solo il nome utente istituzionale" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">

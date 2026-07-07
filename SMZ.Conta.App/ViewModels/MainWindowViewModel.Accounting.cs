@@ -819,9 +819,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         var document = new FlowDocument
         {
-            FontFamily = new FontFamily("Calibri"),
+            FontFamily = PrintTheme.DocumentFont,
             FontSize = 8.5,
             PagePadding = new Thickness(28),
+            Foreground = PrintTheme.TextBrush,
         };
 
         document.Blocks.Add(new Paragraph(new Run($"CONTABILITA MENSILE IMMERSIONI - {ContabilitaPeriodoTitolo.ToUpper(CultureInfo.CurrentCulture)}"))
@@ -829,7 +830,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
             FontSize = 15,
             FontWeight = FontWeights.Bold,
             TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(0, 0, 0, 12),
+            Margin = new Thickness(0, 0, 0, 6),
+        });
+        document.Blocks.Add(new Paragraph(new Run("Riepilogo operatori SMZ"))
+        {
+            FontSize = 10,
+            FontWeight = FontWeights.Bold,
+            Background = PrintTheme.SectionBackground,
+            Padding = new Thickness(5, 3, 5, 3),
+            Margin = new Thickness(0, 0, 0, 8),
         });
         document.Blocks.Add(BuildContabilitaPrintTable());
         return document;
@@ -837,7 +846,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private Table BuildContabilitaPrintTable()
     {
-        var table = new Table { CellSpacing = 0 };
+        var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 0, 0, 6) };
         foreach (var width in new[] { 58d, 76d, 42d, 62d, 150d, 58d, 58d, 50d, 48d, 48d, 48d, 48d, 62d })
         {
             table.Columns.Add(new TableColumn { Width = new GridLength(width) });
@@ -864,16 +873,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 item.ImportoDisplay);
         }
 
-        AddPrintRow(table, string.Empty, string.Empty, string.Empty, string.Empty, "TOTALI", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, ContabilitaSmzTotaleOreDisplay, ContabilitaSmzTotaleImportiDisplay);
+        AddPrintTotalRow(table, string.Empty, string.Empty, string.Empty, string.Empty, "TOTALI", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, ContabilitaSmzTotaleOreDisplay, ContabilitaSmzTotaleImportiDisplay);
         return table;
     }
 
     private static void AddPrintHeader(Table table, params string[] values)
     {
-        var row = new TableRow { FontWeight = FontWeights.Bold, Background = Brushes.WhiteSmoke };
-        foreach (var value in values)
+        var row = new TableRow { FontWeight = FontWeights.Bold };
+        var rowIndex = table.RowGroups[0].Rows.Count;
+        for (var columnIndex = 0; columnIndex < values.Length; columnIndex++)
         {
-            row.Cells.Add(CreatePrintCell(value));
+            row.Cells.Add(CreatePrintCell(values[columnIndex], true, rowIndex, columnIndex, false));
         }
 
         table.RowGroups[0].Rows.Add(row);
@@ -882,21 +892,45 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private static void AddPrintRow(Table table, params string[] values)
     {
         var row = new TableRow();
-        foreach (var value in values)
+        var rowIndex = table.RowGroups[0].Rows.Count;
+        for (var columnIndex = 0; columnIndex < values.Length; columnIndex++)
         {
-            row.Cells.Add(CreatePrintCell(value));
+            row.Cells.Add(CreatePrintCell(values[columnIndex], false, rowIndex, columnIndex, false));
         }
 
         table.RowGroups[0].Rows.Add(row);
     }
 
-    private static TableCell CreatePrintCell(string value) =>
-        new(new Paragraph(new Run(value)) { Margin = new Thickness(2) })
+    private static void AddPrintTotalRow(Table table, params string[] values)
+    {
+        var row = new TableRow { FontWeight = FontWeights.Bold };
+        var rowIndex = table.RowGroups[0].Rows.Count;
+        for (var columnIndex = 0; columnIndex < values.Length; columnIndex++)
         {
-            BorderBrush = Brushes.Black,
-            BorderThickness = new Thickness(0.5),
-            Padding = new Thickness(2),
+            row.Cells.Add(CreatePrintCell(values[columnIndex], false, rowIndex, columnIndex, true));
+        }
+
+        table.RowGroups[0].Rows.Add(row);
+    }
+
+    private static TableCell CreatePrintCell(string value, bool header, int rowIndex, int columnIndex, bool total) =>
+        new(new Paragraph(new Run(value))
+        {
+            Margin = new Thickness(2),
+            TextAlignment = header ? TextAlignment.Center : GetContabilitaPrintAlignment(columnIndex),
+        })
+        {
+            BorderBrush = PrintTheme.BorderBrush,
+            BorderThickness = new Thickness(PrintTheme.BorderThickness),
+            Padding = new Thickness(3, 2, 3, 2),
+            Background = header
+                ? PrintTheme.HeaderBackground
+                : total ? PrintTheme.TotalBackground
+                : rowIndex % 2 == 0 ? PrintTheme.AlternateRowBackground : Brushes.Transparent,
         };
+
+    private static TextAlignment GetContabilitaPrintAlignment(int columnIndex) =>
+        columnIndex is 2 or >= 6 ? TextAlignment.Right : TextAlignment.Left;
 
     private static bool HasValoriContabili(ContabilitaMensileOperatoreRow riga) =>
         riga.OreOrd != 0m

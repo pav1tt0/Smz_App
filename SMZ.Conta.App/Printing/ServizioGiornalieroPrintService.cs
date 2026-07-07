@@ -47,40 +47,31 @@ public sealed class ServizioGiornalieroPrintService
 
         var document = new FlowDocument
         {
-            FontFamily = new FontFamily("Calibri"),
+            FontFamily = PrintTheme.DocumentFont,
             FontSize = 11,
             PagePadding = new Thickness(42),
+            Foreground = PrintTheme.TextBrush,
         };
 
-        AddCentered(document, "POLIZIA DI STATO", 13, FontWeights.Bold);
+        document.Blocks.Add(PrintTheme.RepublicEmblem(56));
+        AddCentered(document, "POLIZIA DI STATO", 16, FontWeights.Bold);
         AddCentered(document, "CENTRO NAUTICO E SOMMOZZATORI", 13, FontWeights.Bold);
-        AddCentered(document, "Nucleo Sommozzatori - La Spezia", 12, FontWeights.Normal);
-        document.Blocks.Add(new Paragraph(new Run("Al Signor Direttore Centro Nautico e Sommozzatori")) { Margin = new Thickness(0, 18, 0, 0) });
-        document.Blocks.Add(new Paragraph(new Run("SEDE")) { FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 14) });
+        AddCentered(document, "Nucleo Sommozzatori", 12, FontWeights.Normal);
+        AddCentered(document, "La Spezia", 12, FontWeights.Normal);
+        document.Blocks.Add(CreateDivider());
+        document.Blocks.Add(CreateRecipientBlock());
 
         AddLabelParagraph(document, "OGGETTO", $"Riferimento Ordine di Servizio nr. {servizio.NumeroOrdineServizio} del {servizio.DataServizio:dd/MM/yyyy}.");
         AddLabelParagraph(document, "Relazione", $"Attivita specialistiche svolte a {EmptyDash(localita)} per il servizio di {EmptyDash(scopo)} con orario {EmptyDash(servizio.OrarioServizio)}.");
         AddLabelParagraph(document, "Responsabile Team SMZ", EmptyDash(responsabile));
 
-        document.Blocks.Add(new Paragraph(new Run("Personale impiegato"))
-        {
-            FontWeight = FontWeights.Bold,
-            Margin = new Thickness(0, 14, 0, 6),
-        });
+        document.Blocks.Add(PrintTheme.SectionTitle("Personale impiegato"));
         document.Blocks.Add(BuildPersonaleTable(servizio, persone, cataloghi));
 
-        document.Blocks.Add(new Paragraph(new Run("Attivita svolta ed eventuali variazioni di servizio"))
-        {
-            FontWeight = FontWeights.Bold,
-            Margin = new Thickness(0, 14, 0, 4),
-        });
+        document.Blocks.Add(PrintTheme.SectionTitle("Attivita svolta ed eventuali variazioni di servizio"));
         document.Blocks.Add(new Paragraph(new Run(EmptyDash(servizio.AttivitaSvolta))) { Margin = new Thickness(0, 0, 0, 8) });
 
-        document.Blocks.Add(new Paragraph(new Run("Trattamento economico accessorio"))
-        {
-            FontWeight = FontWeights.Bold,
-            Margin = new Thickness(0, 12, 0, 6),
-        });
+        document.Blocks.Add(PrintTheme.SectionTitle("Trattamento economico accessorio", new Thickness(0, 12, 0, 6)));
         document.Blocks.Add(BuildRiepilogoTable(servizio));
 
         if (!string.IsNullOrWhiteSpace(unita))
@@ -282,6 +273,38 @@ public sealed class ServizioGiornalieroPrintService
         });
     }
 
+    private static BlockUIContainer CreateDivider() =>
+        new(new Border
+        {
+            Height = 1,
+            Background = PrintTheme.BorderBrush,
+            Margin = new Thickness(0, 8, 0, 8),
+        });
+
+    private static BlockUIContainer CreateRecipientBlock()
+    {
+        var panel = new StackPanel
+        {
+            Width = 330,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(0, 18, 45, 14),
+        };
+        panel.Children.Add(new TextBlock
+        {
+            Text = "AL SIGNOR DIRETTORE CENTRO NAUTICO E SOMMOZZATORI",
+            TextWrapping = TextWrapping.Wrap,
+        });
+        panel.Children.Add(new TextBlock
+        {
+            Text = "SEDE",
+            FontWeight = FontWeights.Bold,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(0, 3, 0, 0),
+        });
+
+        return new BlockUIContainer(panel);
+    }
+
     private static void AddLabelParagraph(FlowDocument document, string label, string value)
     {
         var paragraph = new Paragraph { Margin = new Thickness(0, 4, 0, 4) };
@@ -304,10 +327,11 @@ public sealed class ServizioGiornalieroPrintService
 
     private static void AddHeaderRow(Table table, params string[] values)
     {
-        var row = new TableRow { FontWeight = FontWeights.Bold, Background = Brushes.LightGray };
-        foreach (var value in values)
+        var row = new TableRow { FontWeight = FontWeights.Bold };
+        var rowIndex = table.RowGroups[0].Rows.Count;
+        for (var columnIndex = 0; columnIndex < values.Length; columnIndex++)
         {
-            row.Cells.Add(CreateCell(value));
+            row.Cells.Add(CreateCell(values[columnIndex], true, rowIndex, columnIndex));
         }
 
         table.RowGroups[0].Rows.Add(row);
@@ -316,21 +340,32 @@ public sealed class ServizioGiornalieroPrintService
     private static void AddRow(Table table, params string[] values)
     {
         var row = new TableRow();
-        foreach (var value in values)
+        var rowIndex = table.RowGroups[0].Rows.Count;
+        for (var columnIndex = 0; columnIndex < values.Length; columnIndex++)
         {
-            row.Cells.Add(CreateCell(value));
+            row.Cells.Add(CreateCell(values[columnIndex], false, rowIndex, columnIndex));
         }
 
         table.RowGroups[0].Rows.Add(row);
     }
 
-    private static TableCell CreateCell(string value) =>
-        new(new Paragraph(new Run(value)) { Margin = new Thickness(2) })
+    private static TableCell CreateCell(string value, bool header, int rowIndex, int columnIndex) =>
+        new(new Paragraph(new Run(value))
         {
-            BorderBrush = Brushes.Gray,
-            BorderThickness = new Thickness(0.5),
-            Padding = new Thickness(3),
+            Margin = new Thickness(2),
+            TextAlignment = header ? TextAlignment.Center : GetCellAlignment(columnIndex),
+        })
+        {
+            BorderBrush = PrintTheme.BorderBrush,
+            BorderThickness = new Thickness(PrintTheme.BorderThickness),
+            Padding = new Thickness(4, 3, 4, 3),
+            Background = header
+                ? PrintTheme.HeaderBackground
+                : rowIndex % 2 == 0 ? PrintTheme.AlternateRowBackground : Brushes.Transparent,
         };
+
+    private static TextAlignment GetCellAlignment(int columnIndex) =>
+        columnIndex >= 4 ? TextAlignment.Right : TextAlignment.Left;
 
     private static string EmptyDash(string value) => string.IsNullOrWhiteSpace(value) ? "________________" : value.Trim();
 }
