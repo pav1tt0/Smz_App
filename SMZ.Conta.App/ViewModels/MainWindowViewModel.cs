@@ -337,7 +337,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         FiltriScadenze = new ObservableCollection<string>(["Tutte", "Solo visite", "Solo abilitazioni"]);
         TipiAbilitazioneCatalogo = new ObservableCollection<TipoAbilitazione>(_repository.GetTipiAbilitazione());
         TipiServizioDisponibili = new ObservableCollection<string>(["InSede", "FuoriSede"]);
-        OrariServizioFissiDisponibili = new ObservableCollection<string>(["", ..OrariServizioFissi]);
+        OrariServizioFissiDisponibili = new ObservableCollection<string>(["", .. OrariServizioFissi]);
         CategorieRegistroCatalogo = new ObservableCollection<CategoriaRegistroItem>(cataloghiServizio.CategorieRegistro);
         LocalitaOperativeCatalogo = new ObservableCollection<LocalitaOperativa>(cataloghiServizio.LocalitaOperative);
         LocalitaOperativeServizioCatalogo = new ObservableCollection<LocalitaOperativa>(BuildLocalitaOperativeServizioCatalogo(cataloghiServizio.LocalitaOperative));
@@ -371,6 +371,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         InizializzaContabilita();
         AggiornaSuggerimentiRicerca();
         InizializzaBozzaServizio(preserveSelections: false);
+        RegistraSnapshotServizio();
 
         CaricaElenco();
         CaricaArchivio();
@@ -1215,6 +1216,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         || item.OperatoreSoccorso is not null
         || item.AssistenteBlsd is not null
         || item.AssistenteSanitario is not null
+        || !string.IsNullOrWhiteSpace(item.OrarioInizio)
+        || !string.IsNullOrWhiteSpace(item.OrarioFine)
+        || !string.IsNullOrWhiteSpace(item.Note)
         || item.Partecipazioni.Any(IsPartecipazioneImmersioneCompilata));
 
     public string ServizioBozzaStato =>

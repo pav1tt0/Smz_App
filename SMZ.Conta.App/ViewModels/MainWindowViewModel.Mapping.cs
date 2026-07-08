@@ -524,6 +524,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 || row.OperatoreSoccorso is not null
                 || row.AssistenteBlsd is not null
                 || row.AssistenteSanitario is not null
+                || !string.IsNullOrWhiteSpace(row.OrarioInizio)
+                || !string.IsNullOrWhiteSpace(row.OrarioFine)
                 || !string.IsNullOrWhiteSpace(row.Note)
                 || partecipazioniImmersione.Count > 0
                 || partecipazioniEsterneImmersione.Count > 0;
@@ -541,8 +543,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             items.Add(new ServizioImmersione
             {
                 NumeroImmersione = row.NumeroImmersione,
-                OrarioInizio = null,
-                OrarioFine = null,
+                OrarioInizio = ParseNullableTime(row.OrarioInizio, $"Immersione {row.NumeroImmersione} - orario inizio"),
+                OrarioFine = ParseNullableTime(row.OrarioFine, $"Immersione {row.NumeroImmersione} - orario fine"),
                 DirettoreImmersionePerId = GetPerIdOperatoreSelezionato(row.DirettoreImmersione),
                 OperatoreSoccorsoPerId = GetPerIdOperatoreSelezionato(row.OperatoreSoccorso),
                 AssistenteBlsdPerId = GetPerIdOperatoreSelezionato(row.AssistenteBlsd),
@@ -920,6 +922,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         return parsed;
+    }
+
+    private static TimeOnly? ParseNullableTime(string value, string fieldName)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (TryNormalizeTimeInput(value, out var normalized)
+            && TimeOnly.TryParseExact(normalized, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+        {
+            return parsed;
+        }
+
+        throw new InvalidOperationException($"{fieldName}: usare un orario valido nel formato HH:mm.");
     }
 
     private static decimal? ParseNullableDecimal(string value, string fieldName)

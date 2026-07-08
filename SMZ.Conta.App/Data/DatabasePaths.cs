@@ -5,11 +5,16 @@ namespace SMZ.Conta.App.Data;
 
 public static class DatabasePaths
 {
+    public const string AppDataDirectoryEnvironmentVariable = "SMZ_CONTA_APPDATA";
+
     public static string AppDataDirectory =>
-        Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "SMZ",
-            "Conta");
+        Environment.GetEnvironmentVariable(AppDataDirectoryEnvironmentVariable) is { } overridePath
+            && !string.IsNullOrWhiteSpace(overridePath)
+            ? overridePath
+            : Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "SMZ",
+                "Conta");
 
     public static string ExportDirectory => Path.Combine(AppDataDirectory, "Export");
 

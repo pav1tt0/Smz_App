@@ -760,6 +760,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             or nameof(ServizioImmersioneDraftViewModel.OperatoreSoccorso)
             or nameof(ServizioImmersioneDraftViewModel.AssistenteBlsd)
             or nameof(ServizioImmersioneDraftViewModel.AssistenteSanitario)
+            or nameof(ServizioImmersioneDraftViewModel.OrarioInizio)
+            or nameof(ServizioImmersioneDraftViewModel.OrarioFine)
             or nameof(ServizioImmersioneDraftViewModel.Note))
         {
             if (e.PropertyName is nameof(ServizioImmersioneDraftViewModel.DirettoreImmersione)

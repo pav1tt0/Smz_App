@@ -159,6 +159,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 "Immersione",
                 string.Join("|",
                     immersione.NumeroImmersione.ToString(),
+                    NormalizeSnapshotValue(immersione.OrarioInizio),
+                    NormalizeSnapshotValue(immersione.OrarioFine),
                     immersione.DirettoreImmersione?.PerId.ToString() ?? string.Empty,
                     immersione.OperatoreSoccorso?.PerId.ToString() ?? string.Empty,
                     immersione.AssistenteBlsd?.PerId.ToString() ?? string.Empty,

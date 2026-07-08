@@ -360,6 +360,10 @@
             <Setter Property="Background" Value="#0E5AA7" />
             <Setter Property="BorderBrush" Value="#5CA8F2" />
             <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="UseLayoutRounding" Value="True" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+            <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
             <Setter Property="MinWidth" Value="260" />
             <Setter Property="MinHeight" Value="56" />
             <Setter Property="Padding" Value="24,15" />

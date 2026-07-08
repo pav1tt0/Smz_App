@@ -466,6 +466,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             var item = new ServizioImmersioneDraftViewModel
             {
                 NumeroImmersione = immersione.NumeroImmersione,
+                OrarioInizio = immersione.OrarioInizio?.ToString("HH:mm") ?? string.Empty,
+                OrarioFine = immersione.OrarioFine?.ToString("HH:mm") ?? string.Empty,
                 DirettoreImmersione = TrovaOperatoreServizio(immersione.DirettoreImmersionePerId),
                 OperatoreSoccorso = TrovaOperatoreServizio(immersione.OperatoreSoccorsoPerId),
                 AssistenteBlsd = TrovaOperatoreServizio(immersione.AssistenteBlsdPerId),
