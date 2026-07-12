@@ -944,20 +944,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
             for (var index = 0; index < righeOperatore.Count; index++)
             {
                 var riga = righeOperatore[index];
+                var isUltimaRigaOperatore = index == righeOperatore.Count - 1;
+                var textStyle = isUltimaRigaOperatore ? 9 : 5;
+                var numberStyle = isUltimaRigaOperatore ? 10 : 6;
                 var cells = new List<string>
                 {
-                    TextCell(rowIndex, 1, index == 0 ? QualificaFormatter.AbbreviaPerVisualizzazione(group.Key.Qualifica) : string.Empty, 5),
-                    TextCell(rowIndex, 2, index == 0 ? $"{group.Key.Cognome} {group.Key.Nome}".Trim() : string.Empty, 5),
-                    TextCell(rowIndex, 3, riga.Apparato, 5),
-                    TextCell(rowIndex, 4, riga.FasciaProfondita, 5),
-                    NumberCell(rowIndex, 5, riga.Tariffa, 6, blankZero: false),
-                    NumberCell(rowIndex, 6, riga.OreOrd, 6),
-                    NumberCell(rowIndex, 7, riga.OreAdd, 6),
-                    NumberCell(rowIndex, 8, riga.OreSper, 6),
-                    NumberCell(rowIndex, 9, riga.OreCi, 6),
-                    NumberCell(rowIndex, 10, riga.Importo, 6),
-                    NumberCell(rowIndex, 11, 0m, 6),
-                    NumberCell(rowIndex, 12, index == righeOperatore.Count - 1 ? totaleOperatore : 0m, 6),
+                    TextCell(rowIndex, 1, index == 0 ? QualificaFormatter.AbbreviaPerVisualizzazione(group.Key.Qualifica) : string.Empty, textStyle),
+                    TextCell(rowIndex, 2, index == 0 ? $"{group.Key.Cognome} {group.Key.Nome}".Trim() : string.Empty, textStyle),
+                    TextCell(rowIndex, 3, riga.Apparato, textStyle),
+                    TextCell(rowIndex, 4, riga.FasciaProfondita, textStyle),
+                    NumberCell(rowIndex, 5, riga.Tariffa, numberStyle, blankZero: false),
+                    NumberCell(rowIndex, 6, riga.OreOrd, numberStyle),
+                    NumberCell(rowIndex, 7, riga.OreAdd, numberStyle),
+                    NumberCell(rowIndex, 8, riga.OreSper, numberStyle),
+                    NumberCell(rowIndex, 9, riga.OreCi, numberStyle),
+                    NumberCell(rowIndex, 10, riga.Importo, numberStyle),
+                    NumberCell(rowIndex, 11, 0m, numberStyle),
+                    NumberCell(rowIndex, 12, isUltimaRigaOperatore ? totaleOperatore : 0m, numberStyle),
                 };
                 rows.Add(BuildXlsxRow(rowIndex++, cells));
             }
@@ -1378,12 +1381,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
             <fill><patternFill patternType="gray125"/></fill>
             <fill><patternFill patternType="solid"><fgColor rgb="FFD9EAF7"/><bgColor indexed="64"/></patternFill></fill>
           </fills>
-          <borders count="2">
+          <borders count="3">
             <border><left/><right/><top/><bottom/><diagonal/></border>
             <border><left style="thin"><color auto="1"/></left><right style="thin"><color auto="1"/></right><top style="thin"><color auto="1"/></top><bottom style="thin"><color auto="1"/></bottom><diagonal/></border>
+            <border><left style="thin"><color auto="1"/></left><right style="thin"><color auto="1"/></right><top style="thin"><color auto="1"/></top><bottom style="medium"><color auto="1"/></bottom><diagonal/></border>
           </borders>
           <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-          <cellXfs count="9">
+          <cellXfs count="11">
             <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
             <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf>
             <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf>
@@ -1393,6 +1397,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             <xf numFmtId="2" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="right"/></xf>
             <xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0"/>
             <xf numFmtId="2" fontId="2" fillId="2" borderId="1" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="right"/></xf>
+            <xf numFmtId="0" fontId="0" fillId="0" borderId="2" xfId="0"/>
+            <xf numFmtId="2" fontId="0" fillId="0" borderId="2" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="right"/></xf>
           </cellXfs>
           <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
         </styleSheet>
