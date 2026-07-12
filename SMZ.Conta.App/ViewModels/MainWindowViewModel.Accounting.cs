@@ -140,6 +140,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ContabilitaSupportiItems.Add(item);
         }
 
+        CaricaIndennitaFuoriSedeMensile();
         AggiornaRiepilogoContabilita();
     }
 
@@ -336,11 +337,28 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(ContabilitaSanitariTotaleGiornate));
         OnPropertyChanged(nameof(ContabilitaSupportoTotalePersone));
         OnPropertyChanged(nameof(ContabilitaSupportoTotaleGiornate));
+        OnPropertyChanged(nameof(IndennitaFuoriSedeTotaleOperatori));
+        OnPropertyChanged(nameof(IndennitaFuoriSedeTotaleGiornate));
         OnPropertyChanged(nameof(ContabilitaSanitariStato));
         OnPropertyChanged(nameof(ContabilitaSupportoStato));
+        OnPropertyChanged(nameof(IndennitaFuoriSedeStato));
         OnPropertyChanged(nameof(TariffeContabiliStato));
         OnPropertyChanged(nameof(ElaborazioneMensileStato));
         OnPropertyChanged(nameof(SalvaElaborazioneMensileLabel));
+    }
+
+    private void CaricaIndennitaFuoriSedeMensile()
+    {
+        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        {
+            return;
+        }
+
+        IndennitaFuoriSedeItems.Clear();
+        foreach (var item in _repository.GetIndennitaFuoriSedeMensile(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese))
+        {
+            IndennitaFuoriSedeItems.Add(item);
+        }
     }
 
     private void AggiornaRiepilogoRegistroImmersioni()
@@ -579,6 +597,261 @@ public sealed partial class MainWindowViewModel : ObservableObject
             MessageBox.Show(ex.Message, "Export contabilita Excel", MessageBoxButton.OK, MessageBoxImage.Warning);
             Stato = "Export contabilita Excel non riuscito.";
         }
+    }
+
+    private void EsportaIndennitaFuoriSedeDocx()
+    {
+        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(DatabasePaths.ExportDirectory);
+
+            var fileName = $"indennita-fuori-sede-{ContabilitaAnnoSelezionato:D4}-{ContabilitaMeseSelezionato.NumeroMese:D2}.docx";
+            var filePath = Path.Combine(DatabasePaths.ExportDirectory, fileName);
+            WriteIndennitaFuoriSedeDocx(filePath);
+
+            Stato = $"Prospetto fuori sede creato: {filePath}";
+            MessageBox.Show(
+                $"Prospetto indennita fuori sede creato in:\n{filePath}",
+                "Indennita fuori sede",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Indennita fuori sede", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Export indennita fuori sede non riuscito.";
+        }
+    }
+
+    private void EsportaAssistenzaSmzDocx()
+    {
+        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(DatabasePaths.ExportDirectory);
+
+            var fileName = $"assistenza-smz-{ContabilitaAnnoSelezionato:D4}-{ContabilitaMeseSelezionato.NumeroMese:D2}.docx";
+            var filePath = Path.Combine(DatabasePaths.ExportDirectory, fileName);
+            WriteAssistenzaSmzDocx(filePath);
+
+            Stato = $"Prospetto assistenza SMZ creato: {filePath}";
+            MessageBox.Show(
+                $"Prospetto assistenza SMZ creato in:\n{filePath}",
+                "Assistenza SMZ",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Assistenza SMZ", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Stato = "Export assistenza SMZ non riuscito.";
+        }
+    }
+
+    private void WriteAssistenzaSmzDocx(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+
+        using var archive = ZipFile.Open(filePath, ZipArchiveMode.Create);
+        AddZipEntry(archive, "[Content_Types].xml", BuildDocxContentTypes());
+        AddZipEntry(archive, "_rels/.rels", BuildDocxRootRelationships());
+        AddZipEntry(archive, "word/document.xml", BuildAssistenzaSmzDocumentXml());
+    }
+
+    private string BuildAssistenzaSmzDocumentXml()
+    {
+        var periodoUpper = ContabilitaPeriodoTitolo.ToUpper(CultureInfo.CurrentCulture);
+        var builder = new StringBuilder();
+        builder.AppendLine("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>""");
+        builder.AppendLine("""<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">""");
+        builder.AppendLine("<w:body>");
+        builder.AppendLine(WParagraph("POLIZIA DI STATO", "center", bold: true, size: 24, spacingAfter: 0));
+        builder.AppendLine(WParagraph("Centro Nautico e Sommozzatori", "center", bold: true, size: 22, spacingAfter: 0));
+        builder.AppendLine(WParagraph("Nucleo Sommozzatori", "center", bold: true, size: 22, spacingAfter: 0));
+        builder.AppendLine(WParagraph("La Spezia", "center", size: 20, spacingAfter: 360));
+        builder.AppendLine(WParagraph($"OGGETTO: Indennita supplementare (art.9 legge 78/83) (art.10 legge n. 78/83-art.12 D.P.R. n. 57 del 20 Aprile 2022) al personale che ha effettuato operazioni ed esercitazioni con i sommozzatori del Nucleo OSSP nel mese di {periodoUpper}.", "left", size: 21, spacingAfter: 200));
+        builder.AppendLine(WParagraph("(Circolare ministeriale n.333-G/3.01.IMB.AEREON)", "left", size: 20, spacingAfter: 320));
+        builder.AppendLine(WParagraph("D I C H I A R A Z I O N E", "center", bold: true, size: 24, spacingAfter: 260));
+        builder.AppendLine(WParagraph($"Il sottoscritto _____________________, visti gli atti dell'Ufficio, dichiara che al personale di cui al presente elenco compete l'indennita supplementare prevista per i sommozzatori della Polizia di Stato, per i giorni a fianco di ciascuno indicati, per le operazioni ed esercitazioni effettuate nel mese di {periodoUpper}:", "both", size: 21, spacingAfter: 260));
+        builder.AppendLine(BuildAssistenzaSmzTable());
+        builder.AppendLine(WParagraph("La Spezia, _______________", "left", size: 21, spacingBefore: 420, spacingAfter: 420));
+        builder.AppendLine(WParagraph("Il Responsabile Nucleo SMZ", "right", size: 21, spacingAfter: 420));
+        builder.AppendLine(WParagraph("Il DIRETTORE", "right", bold: true, size: 21, spacingAfter: 0));
+        builder.AppendLine("""
+        <w:sectPr>
+          <w:pgSz w:w="11906" w:h="16838"/>
+          <w:pgMar w:top="1134" w:right="850" w:bottom="850" w:left="850" w:header="708" w:footer="708" w:gutter="0"/>
+        </w:sectPr>
+        """);
+        builder.AppendLine("</w:body>");
+        builder.AppendLine("</w:document>");
+        return builder.ToString();
+    }
+
+    private string BuildAssistenzaSmzTable()
+    {
+        var righe = BuildAssistenzaSmzRows();
+        var builder = new StringBuilder();
+        builder.AppendLine("""
+        <w:tbl>
+          <w:tblPr>
+            <w:tblW w:w="0" w:type="auto"/>
+            <w:tblBorders>
+              <w:top w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+              <w:left w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+              <w:bottom w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+              <w:right w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+              <w:insideH w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+              <w:insideV w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+            </w:tblBorders>
+          </w:tblPr>
+          <w:tblGrid>
+            <w:gridCol w:w="5000"/>
+            <w:gridCol w:w="3000"/>
+            <w:gridCol w:w="3000"/>
+          </w:tblGrid>
+        """);
+        builder.AppendLine(WTableRow(
+            ("Grado Cognome Nome", 5000, true, "center", 1),
+            ("Assistenza giornaliera (art.9 legge 78/83)", 3000, true, "center", 1),
+            ("Giorni complessivi spettanti", 3000, true, "center", 1)));
+
+        if (righe.Count == 0)
+        {
+            builder.AppendLine(WTableRow(("Nessuna assistenza SMZ registrata nel periodo selezionato.", 11000, false, "left", 3)));
+        }
+        else
+        {
+            foreach (var riga in righe)
+            {
+                builder.AppendLine(WTableRow(
+                    (riga.Nominativo, 5000, false, "left", 1),
+                    ("SI", 3000, false, "center", 1),
+                    (riga.Trentesimi.ToString(CultureInfo.CurrentCulture), 3000, false, "center", 1)));
+            }
+        }
+
+        builder.AppendLine("</w:tbl>");
+        return builder.ToString();
+    }
+
+    private List<AssistenzaSmzDocxRow> BuildAssistenzaSmzRows()
+    {
+        var rows = ContabilitaSanitariItems
+            .Select(item => new AssistenzaSmzDocxRow(
+                $"{item.QualificaDisplay} {item.Nominativo}".Trim(),
+                item.TrentesimiMaturati,
+                item.Nominativo))
+            .Concat(ContabilitaSupportiItems.Select(item => new AssistenzaSmzDocxRow(
+                $"{item.QualificaDisplay} {item.Nominativo}".Trim(),
+                item.TrentesimiMaturati,
+                item.Nominativo)))
+            .Where(item => item.Trentesimi > 0 && !string.IsNullOrWhiteSpace(item.Nominativo))
+            .OrderBy(item => item.SortKey, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(item => item.Nominativo, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+        return rows;
+    }
+
+    private void WriteIndennitaFuoriSedeDocx(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+
+        using var archive = ZipFile.Open(filePath, ZipArchiveMode.Create);
+        AddZipEntry(archive, "[Content_Types].xml", BuildDocxContentTypes());
+        AddZipEntry(archive, "_rels/.rels", BuildDocxRootRelationships());
+        AddZipEntry(archive, "word/document.xml", BuildIndennitaFuoriSedeDocumentXml());
+    }
+
+    private string BuildIndennitaFuoriSedeDocumentXml()
+    {
+        var periodo = ContabilitaPeriodoTitolo;
+        var periodoUpper = periodo.ToUpper(CultureInfo.CurrentCulture);
+        var builder = new StringBuilder();
+        builder.AppendLine("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>""");
+        builder.AppendLine("""<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">""");
+        builder.AppendLine("<w:body>");
+        builder.AppendLine(WParagraph("POLIZIA DI STATO", "center", bold: true, size: 24, spacingAfter: 0));
+        builder.AppendLine(WParagraph("Centro Nautico e Sommozzatori", "center", bold: true, size: 22, spacingAfter: 0));
+        builder.AppendLine(WParagraph("Nucleo Sommozzatori", "center", bold: true, size: 22, spacingAfter: 0));
+        builder.AppendLine(WParagraph("La Spezia", "center", size: 20, spacingAfter: 360));
+        builder.AppendLine(WParagraph($"OGGETTO: Indennita supplementare giornaliera di fuori sede (art.10 legge n.78/83 - art.12 D.P.R. n.57 del 20 aprile 2022) spettante al personale in forza al Nucleo Sommozzatori, nel mese di {periodoUpper}.", "left", size: 21, spacingAfter: 200));
+        builder.AppendLine(WParagraph("(Circolare ministeriale n.750.uffVI.dPR.57/2022)", "left", size: 20, spacingAfter: 360));
+        builder.AppendLine(WParagraph($"Il sottoscritto ____________________, visti gli atti d'Ufficio ed i giornali di bordo dei mezzi nautici in dotazione, dichiara che, in relazione ai servizi fuori sede effettuati nel mese di {periodoUpper}, al sottoelencato personale compete l'indennita supplementare di cui in oggetto, per i giorni a fianco di ciascuno indicati:", "both", size: 21, spacingAfter: 260));
+        builder.AppendLine(BuildIndennitaFuoriSedeTable());
+        builder.AppendLine(WParagraph("La Spezia, _______________", "left", size: 21, spacingBefore: 420, spacingAfter: 420));
+        builder.AppendLine(WParagraph("Il Responsabile Nucleo SMZ", "right", size: 21, spacingAfter: 420));
+        builder.AppendLine(WParagraph("Il DIRETTORE", "right", bold: true, size: 21, spacingAfter: 0));
+        builder.AppendLine("""
+        <w:sectPr>
+          <w:pgSz w:w="11906" w:h="16838"/>
+          <w:pgMar w:top="1134" w:right="850" w:bottom="850" w:left="850" w:header="708" w:footer="708" w:gutter="0"/>
+        </w:sectPr>
+        """);
+        builder.AppendLine("</w:body>");
+        builder.AppendLine("</w:document>");
+        return builder.ToString();
+    }
+
+    private string BuildIndennitaFuoriSedeTable()
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("""
+        <w:tbl>
+          <w:tblPr>
+            <w:tblW w:w="0" w:type="auto"/>
+            <w:tblBorders>
+              <w:top w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+              <w:left w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+              <w:bottom w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+              <w:right w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+              <w:insideH w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+              <w:insideV w:val="single" w:sz="6" w:space="0" w:color="000000"/>
+            </w:tblBorders>
+          </w:tblPr>
+          <w:tblGrid>
+            <w:gridCol w:w="900"/>
+            <w:gridCol w:w="3300"/>
+            <w:gridCol w:w="5600"/>
+            <w:gridCol w:w="1200"/>
+          </w:tblGrid>
+        """);
+        builder.AppendLine(WTableRow(("Qual.", 900, true, "center", 1), ("COGNOME NOME", 3300, true, "center", 1), ("Servizi svolti in data:", 5600, true, "center", 1), ("GG. complessivi", 1200, true, "center", 1)));
+
+        if (IndennitaFuoriSedeItems.Count == 0)
+        {
+            builder.AppendLine(WTableRow(("Nessun servizio fuori sede registrato nel periodo selezionato.", 11000, false, "left", 4)));
+        }
+        else
+        {
+            foreach (var item in IndennitaFuoriSedeItems.OrderBy(item => item.Cognome).ThenBy(item => item.Nome))
+            {
+                builder.AppendLine(WTableRow(
+                    (item.QualificaDisplay, 900, false, "center", 1),
+                    (item.Nominativo.ToUpper(CultureInfo.CurrentCulture), 3300, false, "left", 1),
+                    (item.DateServizioDescrizione, 5600, false, "left", 1),
+                    (item.GiornateImpiego.ToString(CultureInfo.CurrentCulture), 1200, false, "center", 1)));
+            }
+        }
+
+        builder.AppendLine("</w:tbl>");
+        return builder.ToString();
     }
 
     private void WriteContabilitaExcelXlsx(string filePath)
@@ -947,6 +1220,79 @@ public sealed partial class MainWindowViewModel : ObservableObject
         writer.Write(content.TrimStart());
     }
 
+    private static string BuildDocxContentTypes() =>
+        """
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+          <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+          <Default Extension="xml" ContentType="application/xml"/>
+          <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+        </Types>
+        """;
+
+    private static string BuildDocxRootRelationships() =>
+        """
+        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+          <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+        </Relationships>
+        """;
+
+    private static string WParagraph(
+        string text,
+        string justification = "left",
+        bool bold = false,
+        int size = 22,
+        int spacingBefore = 0,
+        int spacingAfter = 120) =>
+        $"""
+        <w:p>
+          <w:pPr>
+            <w:jc w:val="{justification}"/>
+            <w:spacing w:before="{spacingBefore}" w:after="{spacingAfter}"/>
+          </w:pPr>
+          {WRun(text, bold, size)}
+        </w:p>
+        """;
+
+    private static string WRun(string text, bool bold, int size)
+    {
+        var boldXml = bold ? "<w:b/>" : string.Empty;
+        return $"""
+        <w:r>
+          <w:rPr>{boldXml}<w:sz w:val="{size}"/><w:szCs w:val="{size}"/></w:rPr>
+          <w:t xml:space="preserve">{Xml(text)}</w:t>
+        </w:r>
+        """;
+    }
+
+    private static string WTableRow(params (string Text, int Width, bool Bold, string Justification, int GridSpan)[] cells)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine("<w:tr>");
+        foreach (var cell in cells)
+        {
+            builder.AppendLine(WTableCell(cell.Text, cell.Width, cell.Bold, cell.Justification, cell.GridSpan));
+        }
+
+        builder.AppendLine("</w:tr>");
+        return builder.ToString();
+    }
+
+    private static string WTableCell(string text, int width, bool bold, string justification, int gridSpan)
+    {
+        var gridSpanXml = gridSpan > 1 ? $"<w:gridSpan w:val=\"{gridSpan}\"/>" : string.Empty;
+        return $"""
+        <w:tc>
+          <w:tcPr>
+            <w:tcW w:w="{width}" w:type="dxa"/>
+            {gridSpanXml}
+          </w:tcPr>
+          {WParagraph(text, justification, bold, size: 20, spacingAfter: 0)}
+        </w:tc>
+        """;
+    }
+
     private static string BuildXlsxContentTypes() =>
         """
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1055,6 +1401,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private static string Xml(string value) => WebUtility.HtmlEncode(value);
 
     private sealed record ContabilitaMensileTariffaRow(string Apparato, string FasciaProfondita, decimal Tariffa);
+
+    private sealed record AssistenzaSmzDocxRow(string Nominativo, int Trentesimi, string SortKey);
 
     private sealed record ContabilitaMensileOperatoreRow(
         string Apparato,

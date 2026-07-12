@@ -352,6 +352,63 @@ public sealed partial class PersonaleRepository
         return items;
     }
 
+    private static List<IndennitaFuoriSedeSummary> GetIndennitaFuoriSede(
+        SqliteConnection connection,
+        DateOnly dataInizio,
+        DateOnly dataFine)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT PerId,
+                   Cognome,
+                   Nome,
+                   Qualifica,
+                   GROUP_CONCAT(DataServizio, ';') AS DateServizio
+            FROM (
+                SELECT DISTINCT p.PerId,
+                       p.Cognome,
+                       p.Nome,
+                       COALESCE(p.Qualifica, '') AS Qualifica,
+                       s.DataServizio
+                FROM ServizioPartecipanti sp
+                INNER JOIN ServiziGiornalieri s ON s.ServizioGiornalieroId = sp.ServizioGiornalieroId
+                INNER JOIN Personale p ON p.PerId = sp.PerId
+                WHERE sp.Presente = 1
+                  AND (s.FuoriSede = 1 OR s.TipoServizio = 'FuoriSede')
+                  AND s.DataServizio >= $dataInizio
+                  AND s.DataServizio <= $dataFine
+                ORDER BY p.Cognome, p.Nome, s.DataServizio
+            )
+            GROUP BY PerId, Cognome, Nome, Qualifica
+            ORDER BY Cognome, Nome;
+            """;
+        command.Parameters.AddWithValue("$dataInizio", dataInizio.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue("$dataFine", dataFine.ToString("yyyy-MM-dd"));
+
+        using var reader = command.ExecuteReader();
+        var items = new List<IndennitaFuoriSedeSummary>();
+
+        while (reader.Read())
+        {
+            items.Add(new IndennitaFuoriSedeSummary
+            {
+                PerId = reader.GetInt32(0),
+                Cognome = reader.GetString(1),
+                Nome = reader.GetString(2),
+                Qualifica = reader.GetString(3),
+                DateServizio = reader.IsDBNull(4)
+                    ? []
+                    : reader.GetString(4)
+                        .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .Select(DateOnly.Parse)
+                        .ToList(),
+            });
+        }
+
+        return items;
+    }
+
     private static List<ReportPersonaleMensileRiga> GetReportPersonaleServizi(
         SqliteConnection connection,
         DateOnly dataInizio,

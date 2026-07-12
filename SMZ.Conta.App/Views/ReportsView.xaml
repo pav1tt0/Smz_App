@@ -425,41 +425,28 @@
             </TabItem>
 
             <TabItem Header="Contabilita mensile">
-                <Grid Margin="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="18" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="8">
                     <Border Style="{DynamicResource CardStyle}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1.4*" />
-                                <ColumnDefinition Width="18" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="{Binding ContabilitaPeriodoTitolo}"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AppTextBrush}" />
+                            <TextBlock Margin="0,8,0,0"
+                                       Text="{Binding ContabilitaStato}"
+                                       Foreground="{DynamicResource AppMutedTextBrush}"
+                                       TextWrapping="Wrap" />
+                            <TextBlock Margin="0,6,0,0"
+                                       Text="{Binding ElaborazioneMensileStato}"
+                                       Foreground="{DynamicResource AppMutedTextBrush}"
+                                       FontSize="12"
+                                       TextWrapping="Wrap" />
 
-                            <StackPanel>
-                                <TextBlock Text="{Binding ContabilitaPeriodoTitolo}"
-                                           FontSize="20"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}" />
-                                <TextBlock Margin="0,8,0,0"
-                                           Text="{Binding ContabilitaStato}"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,6,0,0"
-                                           Text="{Binding ElaborazioneMensileStato}"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           FontSize="12"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="2"
-                                        Orientation="Horizontal"
-                                        VerticalAlignment="Center">
-                                <StackPanel Width="170">
+                            <WrapPanel Margin="0,14,0,0">
+                                <StackPanel Width="170"
+                                            Margin="0,0,12,0">
                                     <TextBlock Text="Mese"
                                                Foreground="{DynamicResource AppMutedTextBrush}" />
                                     <ComboBox ItemsSource="{Binding ContabilitaMesiDisponibili}"
@@ -468,42 +455,42 @@
                                 </StackPanel>
 
                                 <StackPanel Width="110"
-                                            Margin="12,0,0,0">
+                                            Margin="0,0,12,0">
                                     <TextBlock Text="Anno"
                                                Foreground="{DynamicResource AppMutedTextBrush}" />
                                     <ComboBox ItemsSource="{Binding ContabilitaAnniDisponibili}"
                                               SelectedItem="{Binding ContabilitaAnnoSelezionato, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
 
-                                <Button Margin="12,20,0,0"
+                                <Button Margin="0,20,8,0"
                                         Content="Aggiorna"
                                         Command="{Binding ReloadContabilitaCommand}" />
 
-                                <Button Margin="12,20,0,0"
+                                <Button Margin="0,20,8,0"
                                         Content="Esporta Excel"
                                         Command="{Binding ExportContabilitaExcelCommand}"
                                         Style="{DynamicResource SecondaryButtonStyle}" />
 
-                                <Button Margin="8,20,0,0"
+                                <Button Margin="0,20,8,0"
                                         Content="Esporta CSV"
                                         Command="{Binding ExportContabilitaCsvCommand}"
                                         Style="{DynamicResource SecondaryButtonStyle}" />
 
-                                <Button Margin="8,20,0,0"
+                                <Button Margin="0,20,0,0"
                                         Content="Stampa"
                                         Command="{Binding PrintContabilitaMensileCommand}"
                                         Style="{DynamicResource SecondaryButtonStyle}" />
-                            </StackPanel>
-                        </Grid>
+                            </WrapPanel>
+                        </StackPanel>
                     </Border>
 
-                    <Border Grid.Row="2"
+                    <Border Margin="0,18,0,0"
                             Style="{DynamicResource CardStyle}">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="14" />
-                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <StackPanel>
@@ -567,7 +554,143 @@
                             </DataGrid>
                         </Grid>
                     </Border>
-                </Grid>
+
+                    <Border Margin="0,18,0,0"
+                            Style="{DynamicResource CardStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="14" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <DockPanel LastChildFill="True">
+                                <Button DockPanel.Dock="Right"
+                                        Content="Assistenza Word"
+                                        Command="{Binding ExportAssistenzaSmzDocxCommand}"
+                                        Style="{DynamicResource SecondaryButtonStyle}" />
+                                <StackPanel>
+                                    <TextBlock Text="Assistenza SMZ e sanitari"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource AppTextBrush}" />
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="{Binding ContabilitaSupportoStato}"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DockPanel>
+
+                            <Grid Grid.Row="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <DataGrid ItemsSource="{Binding ContabilitaSanitariItems}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          IsReadOnly="True"
+                                          HeadersVisibility="Column"
+                                          RowHeaderWidth="0"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Qual."
+                                                            Width="80"
+                                                            Binding="{Binding QualificaDisplay}" />
+                                        <DataGridTextColumn Header="Sanitario"
+                                                            Width="*"
+                                                            Binding="{Binding Nominativo}" />
+                                        <DataGridTextColumn Header="Trentesimi"
+                                                            Width="90"
+                                                            Binding="{Binding TrentesimiMaturati}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+
+                                <DataGrid Grid.Column="2"
+                                          ItemsSource="{Binding ContabilitaSupportiItems}"
+                                          AutoGenerateColumns="False"
+                                          CanUserAddRows="False"
+                                          IsReadOnly="True"
+                                          HeadersVisibility="Column"
+                                          RowHeaderWidth="0"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                          ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Qual."
+                                                            Width="80"
+                                                            Binding="{Binding QualificaDisplay}" />
+                                        <DataGridTextColumn Header="Assistenza"
+                                                            Width="*"
+                                                            Binding="{Binding Nominativo}" />
+                                        <DataGridTextColumn Header="Trentesimi"
+                                                            Width="90"
+                                                            Binding="{Binding TrentesimiMaturati}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <Border Margin="0,18,0,0"
+                            Style="{DynamicResource CardStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="14" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <DockPanel LastChildFill="True">
+                                <Button DockPanel.Dock="Right"
+                                        Content="Fuori sede Word"
+                                        Command="{Binding ExportIndennitaFuoriSedeDocxCommand}"
+                                        Style="{DynamicResource SecondaryButtonStyle}" />
+                                <StackPanel>
+                                    <TextBlock Text="Indennita fuori sede"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource AppTextBrush}" />
+                                    <TextBlock Margin="0,8,0,0"
+                                               Text="{Binding IndennitaFuoriSedeStato}"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DockPanel>
+
+                            <DataGrid Grid.Row="2"
+                                      ItemsSource="{Binding IndennitaFuoriSedeItems}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      RowHeaderWidth="0"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="PerID"
+                                                        Width="65"
+                                                        Binding="{Binding PerId}" />
+                                    <DataGridTextColumn Header="Qual."
+                                                        Width="85"
+                                                        Binding="{Binding QualificaDisplay}" />
+                                    <DataGridTextColumn Header="Cognome e nome"
+                                                        Width="220"
+                                                        Binding="{Binding Nominativo}" />
+                                    <DataGridTextColumn Header="Servizi svolti in data"
+                                                        Width="*"
+                                                        Binding="{Binding DateServizioDescrizione}" />
+                                    <DataGridTextColumn Header="GG."
+                                                        Width="70"
+                                                        Binding="{Binding GiornateImpiego}" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
             <TabItem Header="Altri report">

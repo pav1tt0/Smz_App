@@ -86,6 +86,7 @@ internal static class Program
         var repository = new PersonaleRepository();
         repository.SavePersonale(CreaPersonale(201, "Bianchi", "Luca", "BNCLCU81A01H501J", "luca.bianchi"), isNewRecord: true);
         repository.SavePersonale(CreaPersonale(202, "Verdi", "Anna", "VRDNNA82A41H501K", "anna.verdi"), isNewRecord: true);
+        repository.SavePersonale(CreaSanitario(203, "Neri", "Paolo", "NREPLA83A01H501L", "paolo.neri"), isNewRecord: true);
 
         var cataloghi = repository.GetCataloghiServizio();
         var gruppoSmz = cataloghi.GruppiOperativi.Single(item => item.Codice == "SMZ");
@@ -102,11 +103,12 @@ internal static class Program
             DataServizio = new DateOnly(2026, 3, 18),
             NumeroOrdineServizio = "TEST-001",
             OrarioServizio = "08.00/14.00",
-            TipoServizio = "InSede",
+            TipoServizio = "FuoriSede",
             LocalitaOperativaId = localita.LocalitaOperativaId,
             ScopoImmersioneId = scopo.ScopoImmersioneId,
             UnitaNavaleId = unita.UnitaNavaleId,
             ResponsabileServizioPerId = 201,
+            FuoriSede = true,
             AttivitaSvolta = "Test automatico",
             Partecipanti =
             [
@@ -120,6 +122,13 @@ internal static class Program
                 new ServizioPartecipante
                 {
                     PerId = 202,
+                    GruppoOperativoId = gruppoSmz.GruppoOperativoId,
+                    Presente = true,
+                    RuoloOperativoId = ruoloOperatore.RuoloOperativoId,
+                },
+                new ServizioPartecipante
+                {
+                    PerId = 203,
                     GruppoOperativoId = gruppoSmz.GruppoOperativoId,
                     Presente = true,
                     RuoloOperativoId = ruoloOperatore.RuoloOperativoId,
@@ -149,6 +158,16 @@ internal static class Program
                     ],
                 },
             ],
+            SupportiOccasionali =
+            [
+                new ServizioSupportoOccasionale
+                {
+                    Nominativo = "Gialli Sara",
+                    Qualifica = "Assistente",
+                    Ruolo = "Assistenza SMZ",
+                    Presente = true,
+                },
+            ],
         };
 
         var servizioId = repository.SaveServizioGiornaliero(servizio);
@@ -157,8 +176,10 @@ internal static class Program
 
         AssertEqual(new DateOnly(2026, 3, 18), loaded.DataServizio, "Data servizio");
         AssertEqual("TEST-001", loaded.NumeroOrdineServizio, "Numero ordine servizio");
-        AssertEqual(2, loaded.Partecipanti.Count, "Numero partecipanti");
+        AssertTrue(loaded.FuoriSede, "Indennita fuori sede non riletta dal servizio.");
+        AssertEqual(3, loaded.Partecipanti.Count, "Numero partecipanti");
         AssertEqual(1, loaded.Immersioni.Count, "Numero immersioni");
+        AssertEqual(1, loaded.SupportiOccasionali.Count, "Numero supporti occasionali");
 
         var immersione = loaded.Immersioni.Single();
         AssertEqual(new TimeOnly(9, 15), immersione.OrarioInizio, "Orario inizio immersione");
@@ -167,6 +188,15 @@ internal static class Program
         AssertEqual(1, immersione.Partecipazioni.Count, "Numero partecipazioni immersione");
         AssertEqual(10, immersione.Partecipazioni.Single().ProfonditaMetri, "Profondita immersione");
         AssertEqual(1.5m, immersione.Partecipazioni.Single().OreImmersione, "Ore immersione");
+
+        var fuoriSede = repository.GetIndennitaFuoriSedeMensile(2026, 3);
+        AssertEqual(3, fuoriSede.Count, "Operatori fuori sede");
+        AssertTrue(fuoriSede.All(item => item.GiornateImpiego == 1), "Conteggio giornate fuori sede non corretto.");
+        AssertTrue(fuoriSede.All(item => item.DateServizio.Single() == new DateOnly(2026, 3, 18)), "Date fuori sede non corrette.");
+
+        var contabilita = repository.GetContabilitaGiornateImpiego(2026, 3);
+        AssertTrue(contabilita.Sanitari.Any(item => item.PerId == 203 && item.TrentesimiMaturati == 1), "Sanitario non conteggiato nei trentesimi.");
+        AssertTrue(contabilita.SupportiOccasionali.Any(item => item.Nominativo == "Gialli Sara" && item.TrentesimiMaturati == 1), "Assistenza SMZ non conteggiata nei trentesimi.");
     }
 
     private static Personale CreaPersonale(int perId, string cognome, string nome, string codiceFiscale, string mail)
@@ -182,6 +212,14 @@ internal static class Program
             StatoServizio = StatoServizioPersonaleCatalogo.Attivo,
             Mail1Utente = mail,
         };
+    }
+
+    private static Personale CreaSanitario(int perId, string cognome, string nome, string codiceFiscale, string mail)
+    {
+        var personale = CreaPersonale(perId, cognome, nome, codiceFiscale, mail);
+        personale.ProfiloPersonale = ProfiliPersonaleCatalogo.Sanitario;
+        personale.RuoloSanitario = "Sanitario";
+        return personale;
     }
 
     private static void AssertTrue(bool condition, string message)

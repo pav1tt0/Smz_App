@@ -27,6 +27,14 @@ public sealed partial class PersonaleRepository
         return GetRegistroImmersioniMensile(connection, dataInizio, dataFine);
     }
 
+    public List<IndennitaFuoriSedeSummary> GetIndennitaFuoriSedeMensile(int anno, int mese)
+    {
+        using var connection = OpenConnection();
+        var dataInizio = new DateOnly(anno, mese, 1);
+        var dataFine = dataInizio.AddMonths(1).AddDays(-1);
+        return GetIndennitaFuoriSede(connection, dataInizio, dataFine);
+    }
+
     public List<ReportPersonaleMensileRiga> GetReportPersonaleMensile(int anno, int mese)
     {
         var dataInizio = new DateOnly(anno, mese, 1);

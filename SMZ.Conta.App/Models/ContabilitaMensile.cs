@@ -65,6 +65,27 @@ public sealed class ContabilitaSupportoSummary
                 : $"{QualificaDisplay} | {Ruolo}";
 }
 
+public sealed class IndennitaFuoriSedeSummary
+{
+    public int PerId { get; set; }
+
+    public string Cognome { get; set; } = string.Empty;
+
+    public string Nome { get; set; } = string.Empty;
+
+    public string Qualifica { get; set; } = string.Empty;
+
+    public List<DateOnly> DateServizio { get; set; } = [];
+
+    public int GiornateImpiego => DateServizio.Count;
+
+    public string Nominativo => $"{Cognome} {Nome}".Trim();
+
+    public string QualificaDisplay => QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
+
+    public string DateServizioDescrizione => string.Join(", ", DateServizio.Select(item => item.ToString("dd/MM/yyyy")));
+}
+
 public sealed class ContabilitaGiornateImpiegoSnapshot
 {
     public List<ContabilitaSmzSummary> SmzImmersioni { get; init; } = [];

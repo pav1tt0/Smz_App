@@ -76,6 +76,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _saveElaborazioneMensileCommand;
     private readonly RelayCommand _exportContabilitaCsvCommand;
     private readonly RelayCommand _exportContabilitaExcelCommand;
+    private readonly RelayCommand _exportAssistenzaSmzDocxCommand;
+    private readonly RelayCommand _exportIndennitaFuoriSedeDocxCommand;
     private readonly RelayCommand _clearContabilitaSmzFiltersCommand;
     private readonly RelayCommand _clearReportPersonaleFiltersCommand;
     private readonly RelayCommand _saveLocalitaOperativeCommand;
@@ -274,6 +276,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _saveElaborazioneMensileCommand = new RelayCommand(SalvaElaborazioneMensile);
         _exportContabilitaCsvCommand = new RelayCommand(EsportaContabilitaCsv);
         _exportContabilitaExcelCommand = new RelayCommand(EsportaContabilitaExcel);
+        _exportAssistenzaSmzDocxCommand = new RelayCommand(EsportaAssistenzaSmzDocx);
+        _exportIndennitaFuoriSedeDocxCommand = new RelayCommand(EsportaIndennitaFuoriSedeDocx);
         _clearContabilitaSmzFiltersCommand = new RelayCommand(PulisciFiltriContabilitaSmz);
         _clearReportPersonaleFiltersCommand = new RelayCommand(PulisciFiltriReportPersonale);
         _saveLocalitaOperativeCommand = new RelayCommand(SalvaLocalitaOperative);
@@ -304,6 +308,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ContabilitaSmzApparatiDisponibili = new ObservableCollection<string>();
         ContabilitaSanitariItems = new ObservableCollection<ContabilitaSanitarioSummary>();
         ContabilitaSupportiItems = new ObservableCollection<ContabilitaSupportoSummary>();
+        IndennitaFuoriSedeItems = new ObservableCollection<IndennitaFuoriSedeSummary>();
         RegistroImmersioniItems = new ObservableCollection<RegistroImmersioneRiga>();
         RegistroImmersioniCategorieItems = new ObservableCollection<RegistroImmersioneCategoriaSummary>();
         ReportPersonaleItems = new ObservableCollection<ReportPersonaleMensileRiga>();
@@ -700,6 +705,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<ContabilitaSanitarioSummary> ContabilitaSanitariItems { get; }
 
     public ObservableCollection<ContabilitaSupportoSummary> ContabilitaSupportiItems { get; }
+
+    public ObservableCollection<IndennitaFuoriSedeSummary> IndennitaFuoriSedeItems { get; }
 
     public ObservableCollection<RegistroImmersioneRiga> RegistroImmersioniItems { get; }
 
@@ -1304,6 +1311,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public int ContabilitaSupportoTotaleGiornate => ContabilitaSupportiItems.Sum(item => item.GiornateImpiego);
 
+    public int IndennitaFuoriSedeTotaleOperatori => IndennitaFuoriSedeItems.Count;
+
+    public int IndennitaFuoriSedeTotaleGiornate => IndennitaFuoriSedeItems.Sum(item => item.GiornateImpiego);
+
     public string ContabilitaSanitariStato =>
         ContabilitaSanitariItems.Count == 0
             ? "Nessun sanitario presente nel periodo selezionato."
@@ -1313,6 +1324,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ContabilitaSupportiItems.Count == 0
             ? "Nessuna Assistenza SMZ presente nel periodo selezionato."
             : $"{ContabilitaSupportiItems.Count} nominativi di Assistenza SMZ con {ContabilitaSupportoTotaleGiornate} giornate utili.";
+
+    public string IndennitaFuoriSedeStato =>
+        IndennitaFuoriSedeItems.Count == 0
+            ? "Nessun servizio fuori sede registrato nel periodo selezionato."
+            : $"{IndennitaFuoriSedeTotaleOperatori} operatori con {IndennitaFuoriSedeTotaleGiornate} giornate fuori sede complessive.";
 
     public string RegistroImmersioniPeriodoTitolo =>
         ContabilitaMeseSelezionato is null
@@ -1543,6 +1559,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public RelayCommand ExportContabilitaCsvCommand => _exportContabilitaCsvCommand;
 
     public RelayCommand ExportContabilitaExcelCommand => _exportContabilitaExcelCommand;
+
+    public RelayCommand ExportAssistenzaSmzDocxCommand => _exportAssistenzaSmzDocxCommand;
+
+    public RelayCommand ExportIndennitaFuoriSedeDocxCommand => _exportIndennitaFuoriSedeDocxCommand;
 
     public RelayCommand ClearContabilitaSmzFiltersCommand => _clearContabilitaSmzFiltersCommand;
 
