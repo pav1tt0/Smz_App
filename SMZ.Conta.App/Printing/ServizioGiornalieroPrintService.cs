@@ -29,7 +29,7 @@ public sealed class ServizioGiornalieroPrintService
         var document = BuildDocument(servizio);
         document.PageWidth = dialog.PrintableAreaWidth;
         document.PageHeight = dialog.PrintableAreaHeight;
-        document.PagePadding = new Thickness(42);
+        document.PagePadding = new Thickness(30);
         document.ColumnWidth = document.PageWidth - document.PagePadding.Left - document.PagePadding.Right;
         dialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "Foglio servizio SMZ");
     }
@@ -48,36 +48,39 @@ public sealed class ServizioGiornalieroPrintService
         var document = new FlowDocument
         {
             FontFamily = PrintTheme.DocumentFont,
-            FontSize = 11,
-            PagePadding = new Thickness(42),
+            FontSize = 9.5,
+            PagePadding = new Thickness(30),
             Foreground = PrintTheme.TextBrush,
         };
 
-        document.Blocks.Add(PrintTheme.RepublicEmblem(56));
-        AddCentered(document, "POLIZIA DI STATO", 16, FontWeights.Bold);
-        AddCentered(document, "CENTRO NAUTICO E SOMMOZZATORI", 13, FontWeights.Bold);
-        AddCentered(document, "Nucleo Sommozzatori", 12, FontWeights.Normal);
-        AddCentered(document, "La Spezia", 12, FontWeights.Normal);
+        document.Blocks.Add(PrintTheme.RepublicEmblem(44));
+        AddCentered(document, "POLIZIA DI STATO", 15, FontWeights.Bold);
+        AddCentered(document, "CENTRO NAUTICO E SOMMOZZATORI", 12, FontWeights.Bold);
+        AddCentered(document, "Nucleo Sommozzatori - La Spezia", 10.5, FontWeights.Normal);
         document.Blocks.Add(CreateDivider());
         document.Blocks.Add(CreateRecipientBlock());
 
-        AddLabelParagraph(document, "OGGETTO", $"Riferimento Ordine di Servizio nr. {servizio.NumeroOrdineServizio} del {servizio.DataServizio:dd/MM/yyyy}.");
-        AddLabelParagraph(document, "Relazione", $"Attivita specialistiche svolte a {EmptyDash(localita)} per il servizio di {EmptyDash(scopo)} con orario {EmptyDash(servizio.OrarioServizio)}.");
-        AddLabelParagraph(document, "Responsabile Team SMZ", EmptyDash(responsabile));
+        AddLabelParagraph(document, "OGGETTO", $"Relazione sul servizio n. {servizio.NumeroOrdineServizio} del {servizio.DataServizio:dd/MM/yyyy}");
+        document.Blocks.Add(BuildDatiServizioTable(servizio, localita, scopo, unita, responsabile));
+
+        document.Blocks.Add(PrintTheme.SectionTitle("Attività svolta ed eventuali variazioni di servizio"));
+        document.Blocks.Add(new Paragraph(new Run(EmptyDash(servizio.AttivitaSvolta)))
+        {
+            Margin = new Thickness(3, 0, 3, 8),
+            TextAlignment = TextAlignment.Justify,
+        });
+
+        if (servizio.Immersioni.Count > 0)
+        {
+            document.Blocks.Add(PrintTheme.SectionTitle("Riepilogo immersioni"));
+            document.Blocks.Add(BuildImmersioniTable(servizio, cataloghi));
+        }
 
         document.Blocks.Add(PrintTheme.SectionTitle("Personale impiegato"));
         document.Blocks.Add(BuildPersonaleTable(servizio, persone, cataloghi));
 
-        document.Blocks.Add(PrintTheme.SectionTitle("Attivita svolta ed eventuali variazioni di servizio"));
-        document.Blocks.Add(new Paragraph(new Run(EmptyDash(servizio.AttivitaSvolta))) { Margin = new Thickness(0, 0, 0, 8) });
-
         document.Blocks.Add(PrintTheme.SectionTitle("Trattamento economico accessorio", new Thickness(0, 12, 0, 6)));
         document.Blocks.Add(BuildRiepilogoTable(servizio));
-
-        if (!string.IsNullOrWhiteSpace(unita))
-        {
-            AddLabelParagraph(document, "Servizio svolto a bordo dell'unita navale", unita);
-        }
 
         if (!string.IsNullOrWhiteSpace(servizio.Note))
         {
@@ -97,6 +100,48 @@ public sealed class ServizioGiornalieroPrintService
         document.Blocks.Add(firma);
 
         return document;
+    }
+
+    private static Table BuildDatiServizioTable(
+        ServizioGiornaliero servizio,
+        string localita,
+        string scopo,
+        string unita,
+        string responsabile)
+    {
+        var table = CreateTable(95, 220, 95, 220);
+        AddInfoRow(table, "Data", servizio.DataServizio.ToString("dd/MM/yyyy"), "Orario", EmptyDash(servizio.OrarioServizio));
+        AddInfoRow(table, "Località", EmptyDash(localita), "Tipo servizio", servizio.FuoriSede ? "Fuori sede" : "In sede");
+        AddInfoRow(table, "Scopo", EmptyDash(scopo), "Unità navale", EmptyDash(unita));
+        AddInfoRow(table, "Responsabile", EmptyDash(responsabile), "Ordine pubblico", servizio.IndennitaOrdinePubblico ? "SÌ" : "NO");
+        return table;
+    }
+
+    private static Table BuildImmersioniTable(ServizioGiornaliero servizio, CataloghiServizioSnapshot cataloghi)
+    {
+        var table = CreateTable(38, 75, 62, 135, 135, 170);
+        AddHeaderRow(table, "N.", "Orario", "Prof. max", "Località", "Scopo", "Note");
+        foreach (var immersione in servizio.Immersioni.OrderBy(item => item.NumeroImmersione))
+        {
+            var localita = cataloghi.LocalitaOperative.FirstOrDefault(item => item.LocalitaOperativaId == immersione.LocalitaOperativaId)?.Descrizione ?? string.Empty;
+            var scopo = cataloghi.ScopiImmersione.FirstOrDefault(item => item.ScopoImmersioneId == immersione.ScopoImmersioneId)?.Descrizione ?? string.Empty;
+            var profondita = immersione.Partecipazioni.Select(item => item.ProfonditaMetri)
+                .Concat(immersione.PartecipazioniEsterne.Select(item => item.ProfonditaMetri))
+                .Where(item => item.HasValue)
+                .Select(item => item!.Value)
+                .DefaultIfEmpty()
+                .Max();
+            var orario = $"{immersione.OrarioInizio?.ToString("HH:mm") ?? "--:--"} - {immersione.OrarioFine?.ToString("HH:mm") ?? "--:--"}";
+            AddRow(table,
+                immersione.NumeroImmersione.ToString(CultureInfo.CurrentCulture),
+                orario,
+                profondita > 0 ? $"{profondita} m" : string.Empty,
+                EmptyDash(localita),
+                EmptyDash(scopo),
+                immersione.Note);
+        }
+
+        return table;
     }
 
     private Table BuildPersonaleTable(
@@ -334,6 +379,17 @@ public sealed class ServizioGiornalieroPrintService
             row.Cells.Add(CreateCell(values[columnIndex], true, rowIndex, columnIndex));
         }
 
+        table.RowGroups[0].Rows.Add(row);
+    }
+
+    private static void AddInfoRow(Table table, string label1, string value1, string label2, string value2)
+    {
+        var row = new TableRow();
+        var rowIndex = table.RowGroups[0].Rows.Count;
+        row.Cells.Add(CreateCell(label1, true, rowIndex, 0));
+        row.Cells.Add(CreateCell(value1, false, rowIndex, 1));
+        row.Cells.Add(CreateCell(label2, true, rowIndex, 2));
+        row.Cells.Add(CreateCell(value2, false, rowIndex, 3));
         table.RowGroups[0].Rows.Add(row);
     }
 
