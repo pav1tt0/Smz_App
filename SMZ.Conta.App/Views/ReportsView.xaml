@@ -424,7 +424,7 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Contabilita mensile">
+            <TabItem Header="Contabilità immersioni">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled"
                               CanContentScroll="False"

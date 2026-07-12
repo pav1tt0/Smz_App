@@ -886,8 +886,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         builder.AppendLine("</sheetData>");
-        builder.AppendLine("""<mergeCells count="5"><mergeCell ref="A1:L1"/><mergeCell ref="A2:L2"/><mergeCell ref="A3:L3"/><mergeCell ref="A5:L5"/><mergeCell ref="A6:L6"/></mergeCells>""");
-        builder.AppendLine("""<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>""");
+        builder.AppendLine("""<mergeCells count="9"><mergeCell ref="A6:L6"/><mergeCell ref="A7:L7"/><mergeCell ref="A8:L8"/><mergeCell ref="A9:L9"/><mergeCell ref="A11:L11"/><mergeCell ref="C12:H12"/><mergeCell ref="A14:L14"/><mergeCell ref="A15:L15"/><mergeCell ref="A16:L16"/></mergeCells>""");
+        builder.AppendLine("""<pageMargins left="0.25" right="0.25" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>""");
+        builder.AppendLine("""<pageSetup paperSize="9" orientation="portrait" fitToWidth="1" fitToHeight="0"/>""");
         builder.AppendLine("</worksheet>");
         return builder.ToString();
     }
@@ -896,12 +897,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         var rows = new List<string>();
         var rowIndex = 1;
-        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(1, 1, "POLIZIA DI STATO", 1)]));
-        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(2, 1, "Centro Nautico e Sommozzatori", 2)]));
-        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(3, 1, "Nucleo Sommozzatori", 2)]));
+        for (var index = 0; index < 5; index++)
+        {
+            rows.Add(BuildXlsxRow(rowIndex++, []));
+        }
+
+        rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex++, 1, "POLIZIA DI STATO", 1)]));
+        rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex++, 1, "Centro Nautico e Sommozzatori", 2)]));
+        rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex++, 1, "Nucleo Sommozzatori", 2)]));
+        rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex++, 1, "La Spezia", 2)]));
         rows.Add(BuildXlsxRow(rowIndex++, []));
-        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(5, 1, "D I C H I A R A Z I O N E", 3)]));
-        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(6, 1, $"Indennita di rischio per operatori subacquei - {ContabilitaPeriodoTitolo}", 2)]));
+        rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex++, 1, $"OGGETTO: Indennità di rischio per operatori subacquei del mese di {ContabilitaPeriodoTitolo}", 2)]));
+        rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex++, 1, "D I C H I A R A Z I O N E", 3)]));
+        rows.Add(BuildXlsxRow(rowIndex++, []));
+        rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex++, 1, "Il sottoscritto ____________________, visti gli atti d'ufficio, dichiara che il sottoelencato personale ha effettuato", 2)]));
+        rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex++, 1, "ore d'immersione come a fianco di ciascuno indicato per lo svolgimento di servizi operativi di specialità in sede e", 2)]));
+        rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex++, 1, $"fuori sede nel mese di {ContabilitaPeriodoTitolo}", 2)]));
         rows.Add(BuildXlsxRow(rowIndex++, []));
         rows.Add(BuildXlsxRow(rowIndex++, BuildHeaderCells(rowIndex - 1)));
 
@@ -952,21 +963,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
         }
 
-        rows.Add(BuildXlsxRow(rowIndex, new List<string>
+        var totalRowIndex = rowIndex++;
+        rows.Add(BuildXlsxRow(totalRowIndex, new List<string>
         {
-            BlankCell(rowIndex, 1, 7),
-            TextCell(rowIndex, 2, "TOTALE GENERALE", 7),
-            BlankCell(rowIndex, 3, 7),
-            BlankCell(rowIndex, 4, 7),
-            BlankCell(rowIndex, 5, 7),
-            NumberCell(rowIndex, 6, ContabilitaSmzItems.Sum(item => item.OreOrd), 8),
-            NumberCell(rowIndex, 7, ContabilitaSmzItems.Sum(item => item.OreAdd), 8),
-            NumberCell(rowIndex, 8, ContabilitaSmzItems.Sum(item => item.OreSper), 8),
-            NumberCell(rowIndex, 9, ContabilitaSmzItems.Sum(item => item.OreCi), 8),
-            NumberCell(rowIndex, 10, totaleGenerale, 8),
-            NumberCell(rowIndex, 11, 0m, 8),
-            NumberCell(rowIndex, 12, totaleGenerale, 8),
+            BlankCell(totalRowIndex, 1, 7),
+            TextCell(totalRowIndex, 2, "TOTALE GENERALE", 7),
+            BlankCell(totalRowIndex, 3, 7),
+            BlankCell(totalRowIndex, 4, 7),
+            BlankCell(totalRowIndex, 5, 7),
+            NumberCell(totalRowIndex, 6, ContabilitaSmzItems.Sum(item => item.OreOrd), 8),
+            NumberCell(totalRowIndex, 7, ContabilitaSmzItems.Sum(item => item.OreAdd), 8),
+            NumberCell(totalRowIndex, 8, ContabilitaSmzItems.Sum(item => item.OreSper), 8),
+            NumberCell(totalRowIndex, 9, ContabilitaSmzItems.Sum(item => item.OreCi), 8),
+            NumberCell(totalRowIndex, 10, totaleGenerale, 8),
+            NumberCell(totalRowIndex, 11, 0m, 8),
+            NumberCell(totalRowIndex, 12, totaleGenerale, 8),
         }));
+        rows.Add(BuildXlsxRow(rowIndex++, []));
+        rows.Add(BuildXlsxRow(rowIndex++, [TextCell(rowIndex - 1, 1, "La Spezia, _______________", 2)]));
+        rows.Add(BuildXlsxRow(rowIndex++, []));
+        rows.Add(BuildXlsxRow(rowIndex, [TextCell(rowIndex, 2, "IL DIRETTORE", 2), TextCell(rowIndex, 7, "per il Responsabile Nucleo SMZ", 2)]));
         return rows;
     }
 
@@ -981,13 +997,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private static IEnumerable<ContabilitaMensileOperatoreRow> BuildRigheMensiliOperatore(IEnumerable<ContabilitaSmzSummary> items)
     {
         var source = items.ToList();
-        foreach (var template in GetRigheTariffarieMensili())
+        foreach (var gruppo in source
+                     .GroupBy(item => new { Apparato = NormalizeApparatoContabile(item.Apparato), item.FasciaProfondita })
+                     .OrderBy(item => item.Key.Apparato)
+                     .ThenBy(item => item.Key.FasciaProfondita))
         {
-            var matches = source
-                .Where(item =>
-                    string.Equals(NormalizeApparatoContabile(item.Apparato), template.Apparato, StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(item.FasciaProfondita, template.FasciaProfondita, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            var matches = gruppo.ToList();
 
             var oreOrd = matches.Sum(item => item.OreOrd);
             var oreAdd = matches.Sum(item => item.OreAdd);
@@ -998,33 +1013,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 : matches.Sum(item => item.Importo);
 
             yield return new ContabilitaMensileOperatoreRow(
-                template.Apparato,
-                template.FasciaProfondita,
-                template.Tariffa,
+                gruppo.Key.Apparato,
+                gruppo.Key.FasciaProfondita,
+                matches.Max(item => item.Tariffa),
                 oreOrd,
                 oreAdd,
                 oreSper,
                 oreCi,
                 importo);
         }
-    }
-
-    private static IEnumerable<ContabilitaMensileTariffaRow> GetRigheTariffarieMensili()
-    {
-        yield return new ContabilitaMensileTariffaRow("A.R.O.", "00/12", 30m);
-        yield return new ContabilitaMensileTariffaRow("A.R.A.", "00/12", 5m);
-        yield return new ContabilitaMensileTariffaRow("A.R.A.", "13/25", 10m);
-        yield return new ContabilitaMensileTariffaRow("A.R.A.", "26/40", 20m);
-        yield return new ContabilitaMensileTariffaRow("A.R.A.", "41/55", 28m);
-        yield return new ContabilitaMensileTariffaRow("A.R.A.", "56/80", 38m);
-        yield return new ContabilitaMensileTariffaRow("A.R.M.", "00/12", 10m);
-        yield return new ContabilitaMensileTariffaRow("A.R.M.", "13/25", 15m);
-        yield return new ContabilitaMensileTariffaRow("A.R.M.", "26/40", 18m);
-        yield return new ContabilitaMensileTariffaRow("A.R.M.", "41/55", 24m);
-        yield return new ContabilitaMensileTariffaRow("C.I.", "00/12", 2.48m);
-        yield return new ContabilitaMensileTariffaRow("C.I.", "13/25", 2.48m);
-        yield return new ContabilitaMensileTariffaRow("C.I.", "26/40", 2.48m);
-        yield return new ContabilitaMensileTariffaRow("C.I.", "41/55", 2.48m);
     }
 
     private static string NormalizeApparatoContabile(string apparato)
@@ -1064,7 +1061,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             var dialog = new PrintDialog
             {
-                PrintTicket = { PageOrientation = PageOrientation.Landscape },
+                PrintTicket = { PageOrientation = PageOrientation.Portrait },
             };
 
             if (dialog.ShowDialog() != true)
@@ -1098,55 +1095,90 @@ public sealed partial class MainWindowViewModel : ObservableObject
             Foreground = PrintTheme.TextBrush,
         };
 
-        document.Blocks.Add(new Paragraph(new Run($"CONTABILITA MENSILE IMMERSIONI - {ContabilitaPeriodoTitolo.ToUpper(CultureInfo.CurrentCulture)}"))
+        document.Blocks.Add(new Paragraph(new Run("POLIZIA DI STATO"))
         {
-            FontSize = 15,
+            FontSize = 13,
             FontWeight = FontWeights.Bold,
             TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(0, 0, 0, 6),
+            Margin = new Thickness(0),
         });
-        document.Blocks.Add(new Paragraph(new Run("Riepilogo operatori SMZ"))
+        document.Blocks.Add(new Paragraph(new Run("Centro Nautico e Sommozzatori\nNucleo Sommozzatori\nLa Spezia"))
+        {
+            FontSize = 10,
+            TextAlignment = TextAlignment.Center,
+            Margin = new Thickness(0, 0, 0, 12),
+        });
+        document.Blocks.Add(new Paragraph(new Run($"OGGETTO: Indennità di rischio per operatori subacquei del mese di {ContabilitaPeriodoTitolo}"))
         {
             FontSize = 10,
             FontWeight = FontWeights.Bold,
-            Background = PrintTheme.SectionBackground,
-            Padding = new Thickness(5, 3, 5, 3),
             Margin = new Thickness(0, 0, 0, 8),
         });
+        document.Blocks.Add(new Paragraph(new Run("D I C H I A R A Z I O N E"))
+        {
+            FontSize = 11,
+            FontWeight = FontWeights.Bold,
+            TextAlignment = TextAlignment.Center,
+            Margin = new Thickness(0, 0, 0, 8),
+        });
+        document.Blocks.Add(new Paragraph(new Run($"Il sottoscritto ____________________, visti gli atti d'ufficio, dichiara che il sottoelencato personale ha effettuato ore d'immersione come a fianco di ciascuno indicato per lo svolgimento di servizi operativi di specialità in sede e fuori sede nel mese di {ContabilitaPeriodoTitolo}."))
+        {
+            FontSize = 9,
+            TextAlignment = TextAlignment.Justify,
+            Margin = new Thickness(0, 0, 0, 10),
+        });
         document.Blocks.Add(BuildContabilitaPrintTable());
+        document.Blocks.Add(new Paragraph(new Run("La Spezia, _______________")) { Margin = new Thickness(0, 12, 0, 16) });
+        document.Blocks.Add(new Paragraph(new Run("IL DIRETTORE                                      per il Responsabile Nucleo SMZ"))
+        {
+            FontWeight = FontWeights.Bold,
+            TextAlignment = TextAlignment.Center,
+        });
         return document;
     }
 
     private Table BuildContabilitaPrintTable()
     {
         var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 0, 0, 6) };
-        foreach (var width in new[] { 58d, 76d, 42d, 62d, 150d, 58d, 58d, 50d, 48d, 48d, 48d, 48d, 62d })
+        foreach (var width in new[] { 48d, 118d, 48d, 44d, 44d, 44d, 44d, 44d, 44d, 58d, 48d, 58d })
         {
             table.Columns.Add(new TableColumn { Width = new GridLength(width) });
         }
 
         table.RowGroups.Add(new TableRowGroup());
-        AddPrintHeader(table, "Data", "Ordine", "PerID", "Qual.", "Cognome e nome", "Appar.", "Prof.", "Tariffa", "ORD", "ADD", "SPER", "C.I.", "Importo");
-        foreach (var item in ContabilitaSmzItems)
+        AddPrintHeader(table, "Qual", "Cognome e Nome", "Appar.", "Prof.", "Tariffa", "ORE ORD", "ORE ADD", "ORE SPER", "ORE C.I.", "Importo", "Med. Rag.", "TOTALE");
+        foreach (var group in ContabilitaSmzItems
+                     .GroupBy(item => new { item.PerId, item.Cognome, item.Nome, item.Qualifica })
+                     .OrderBy(item => item.Key.Cognome)
+                     .ThenBy(item => item.Key.Nome))
         {
-            AddPrintRow(
-                table,
-                item.DataServizioDescrizione,
-                item.NumeroOrdineServizio,
-                item.PerId.ToString(CultureInfo.CurrentCulture),
-                item.QualificaDisplay,
-                item.Nominativo,
-                item.Apparato,
-                item.FasciaProfondita,
-                item.TariffaDisplay,
-                item.OreOrdDisplay,
-                item.OreAddDisplay,
-                item.OreSperDisplay,
-                item.OreCiDisplay,
-                item.ImportoDisplay);
+            var righe = BuildRigheMensiliOperatore(group).Where(HasValoriContabili).ToList();
+            var totale = righe.Sum(item => item.Importo);
+            for (var index = 0; index < righe.Count; index++)
+            {
+                var item = righe[index];
+                AddPrintRow(table,
+                    index == 0 ? QualificaFormatter.AbbreviaPerVisualizzazione(group.Key.Qualifica) : string.Empty,
+                    index == 0 ? $"{group.Key.Cognome} {group.Key.Nome}".Trim() : string.Empty,
+                    item.Apparato,
+                    item.FasciaProfondita,
+                    FormatDecimal(item.Tariffa),
+                    FormatDecimal(item.OreOrd),
+                    FormatDecimal(item.OreAdd),
+                    FormatDecimal(item.OreSper),
+                    FormatDecimal(item.OreCi),
+                    FormatDecimal(item.Importo),
+                    string.Empty,
+                    index == righe.Count - 1 ? FormatDecimal(totale) : string.Empty);
+            }
         }
 
-        AddPrintTotalRow(table, string.Empty, string.Empty, string.Empty, string.Empty, "TOTALI", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, ContabilitaSmzTotaleOreDisplay, ContabilitaSmzTotaleImportiDisplay);
+        AddPrintTotalRow(table, string.Empty, "TOTALE GENERALE", string.Empty, string.Empty, string.Empty,
+            FormatDecimal(ContabilitaSmzItems.Sum(item => item.OreOrd)),
+            FormatDecimal(ContabilitaSmzItems.Sum(item => item.OreAdd)),
+            FormatDecimal(ContabilitaSmzItems.Sum(item => item.OreSper)),
+            FormatDecimal(ContabilitaSmzItems.Sum(item => item.OreCi)),
+            ContabilitaSmzTotaleImportiDisplay, string.Empty, ContabilitaSmzTotaleImportiDisplay);
         return table;
     }
 
@@ -1203,7 +1235,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         };
 
     private static TextAlignment GetContabilitaPrintAlignment(int columnIndex) =>
-        columnIndex is 2 or >= 6 ? TextAlignment.Right : TextAlignment.Left;
+        columnIndex >= 4 ? TextAlignment.Right : TextAlignment.Left;
 
     private static bool HasValoriContabili(ContabilitaMensileOperatoreRow riga) =>
         riga.OreOrd != 0m
@@ -1399,8 +1431,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     private static string Xml(string value) => WebUtility.HtmlEncode(value);
-
-    private sealed record ContabilitaMensileTariffaRow(string Apparato, string FasciaProfondita, decimal Tariffa);
 
     private sealed record AssistenzaSmzDocxRow(string Nominativo, int Trentesimi, string SortKey);
 
