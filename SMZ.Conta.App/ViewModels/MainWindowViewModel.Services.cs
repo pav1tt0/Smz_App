@@ -501,7 +501,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ServizioOperatoriSubEsterniBozza.Add(item);
         }
 
-        SincronizzaPartecipazioniImmersioneBozza();
+        SincronizzaPartecipazioniImmersioneBozza(applicaDettaglioContabileUnico: false);
 
         var perIdByServizioPartecipanteId = servizio.Partecipanti.ToDictionary(item => item.ServizioPartecipanteId, item => item.PerId);
         var perIdByServizioOperatoreEsternoId = servizio.OperatoriSubEsterni.ToDictionary(item => item.ServizioOperatoreSubEsternoId, item => item.PerId);
@@ -586,7 +586,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         SelectedSupportoOccasionale = null;
         SelectedOperatoreSubEsterno = null;
 
-        SincronizzaPartecipazioniImmersioneBozza();
+        SincronizzaPartecipazioniImmersioneBozza(applicaDettaglioContabileUnico: false);
         SincronizzaPartecipazioniContabiliUnicheBozza(aggiornaDaPartecipazioni: true);
         AggiornaContestoServizio();
         AggiornaRiepilogoBozzaServizio();

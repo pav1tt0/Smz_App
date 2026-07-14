@@ -234,12 +234,16 @@
                                                                         <Run Text=" - Immersioni " />
                                                                         <Run Text="{Binding ImmersioniTotali}" />
                                                                     </TextBlock>
+                                                                    <TextBlock Margin="0,7,0,0"
+                                                                               Text="{Binding DettaglioImmersioniDescrizione}"
+                                                                               Foreground="{DynamicResource AppMutedTextBrush}"
+                                                                               TextWrapping="Wrap" />
                                                                 </StackPanel>
                                                             </Border>
                                                         </ToolTip>
                                                     </Border.ToolTip>
 
-                                                    <Grid MinHeight="32">
+                                                    <Grid MinHeight="50">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="92" />
                                                             <ColumnDefinition Width="78" />
@@ -249,6 +253,10 @@
                                                             <ColumnDefinition Width="102" />
                                                             <ColumnDefinition Width="112" />
                                                         </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
 
                                                         <TextBlock Text="{Binding DataServizio, StringFormat={}{0:dd/MM/yyyy}}"
                                                                    FontSize="15"
@@ -288,7 +296,17 @@
                                                                    VerticalAlignment="Center"
                                                                    Foreground="{DynamicResource AppMutedTextBrush}"
                                                                    Text="{Binding ImmersioniTotali, StringFormat=Immersioni: {0}}" />
+                                                        <TextBlock Grid.Row="1"
+                                                                   Grid.Column="2"
+                                                                   Grid.ColumnSpan="4"
+                                                                   Margin="0,4,8,0"
+                                                                   Text="{Binding DettaglioImmersioniDescrizione}"
+                                                                   Foreground="{DynamicResource AppMutedTextBrush}"
+                                                                   FontSize="11"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   ToolTip="{Binding DettaglioImmersioniDescrizione}" />
                                                         <Button Grid.Column="6"
+                                                                Grid.RowSpan="2"
                                                                 Content="Apri"
                                                                 Width="96"
                                                                 MinWidth="0"

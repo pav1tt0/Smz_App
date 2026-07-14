@@ -1,6 +1,8 @@
 using Microsoft.Data.Sqlite;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Models;
+using SMZ.Conta.App.Printing;
+using SMZ.Conta.App.ViewModels;
 
 namespace SMZ.Conta.Tests;
 
@@ -19,6 +21,7 @@ internal static class Program
             Run("database isolato", TestDatabaseIsolato);
             Run("salvataggio e lettura anagrafica", TestSalvataggioELetturaPersonale);
             Run("salvataggio e lettura servizio con immersione", TestSalvataggioELetturaServizio);
+            Run("ripartizione straordinario stampa servizio", TestRipartizioneStraordinarioStampa);
 
             Console.WriteLine("Tutti i test SMZ sono passati.");
             return 0;
@@ -189,6 +192,24 @@ internal static class Program
         AssertEqual(10, immersione.Partecipazioni.Single().ProfonditaMetri, "Profondita immersione");
         AssertEqual(1.5m, immersione.Partecipazioni.Single().OreImmersione, "Ore immersione");
 
+        var riepilogoSalvato = repository.GetServiziGiornalieriRecenti()
+            .Single(item => item.ServizioGiornalieroId == servizioId);
+        AssertEqual("A.R.A./ASAS", riepilogoSalvato.ApparatiDescrizione, "Apparati nel riepilogo servizi salvati");
+        AssertEqual(10, riepilogoSalvato.ProfonditaMassimaMetri, "Profondita nel riepilogo servizi salvati");
+        AssertEqual(1.5m, riepilogoSalvato.OreImmersioneTotali, "Ore nel riepilogo servizi salvati");
+        AssertEqual("ORE ORD", riepilogoSalvato.CategorieOreDescrizione, "Categoria nel riepilogo servizi salvati");
+
+        var viewModel = new MainWindowViewModel
+        {
+            SelectedServizioSalvato = riepilogoSalvato,
+        };
+        viewModel.OpenServizioCommand.Execute(null);
+        var dettaglioRiaperto = viewModel.ServizioPartecipazioniContabiliUnicheBozza.Single(item => item.PerId == 202);
+        AssertEqual(tipologia.TipologiaImmersioneOperativaId, dettaglioRiaperto.TipologiaImmersioneOperativa?.TipologiaImmersioneOperativaId, "Apparato dopo riapertura servizio");
+        AssertEqual("10", dettaglioRiaperto.ProfonditaMetri, "Profondita dopo riapertura servizio");
+        AssertEqual("1,5", dettaglioRiaperto.OreImmersione.Replace('.', ','), "Ore dopo riapertura servizio");
+        AssertEqual(categoria.CategoriaContabileOreId, dettaglioRiaperto.CategoriaContabileOre?.CategoriaContabileOreId, "Categoria dopo riapertura servizio");
+
         var fuoriSede = repository.GetIndennitaFuoriSedeMensile(2026, 3);
         AssertEqual(3, fuoriSede.Count, "Operatori fuori sede");
         AssertTrue(fuoriSede.All(item => item.GiornateImpiego == 1), "Conteggio giornate fuori sede non corretto.");
@@ -197,6 +218,40 @@ internal static class Program
         var contabilita = repository.GetContabilitaGiornateImpiego(2026, 3);
         AssertTrue(contabilita.Sanitari.Any(item => item.PerId == 203 && item.TrentesimiMaturati == 1), "Sanitario non conteggiato nei trentesimi.");
         AssertTrue(contabilita.SupportiOccasionali.Any(item => item.Nominativo == "Gialli Sara" && item.TrentesimiMaturati == 1), "Assistenza SMZ non conteggiata nei trentesimi.");
+    }
+
+    private static void TestRipartizioneStraordinarioStampa()
+    {
+        var feriale = ServizioGiornalieroPrintService.CalcolaStraordinario(new ServizioGiornaliero
+        {
+            DataServizio = new DateOnly(2026, 3, 18),
+            StraordinarioAttivo = true,
+            StraordinarioInizio = "20:00",
+            StraordinarioFine = "23:30",
+        });
+        AssertEqual(2m, feriale.Feriali, "Straordinario feriale");
+        AssertEqual(1.5m, feriale.Notturne, "Straordinario notturno");
+        AssertEqual(0m, feriale.Festive, "Straordinario festivo non dovuto");
+
+        var festivoConPassaggioGiorno = ServizioGiornalieroPrintService.CalcolaStraordinario(new ServizioGiornaliero
+        {
+            DataServizio = new DateOnly(2026, 3, 22),
+            StraordinarioAttivo = true,
+            StraordinarioInizio = "23:00",
+            StraordinarioFine = "07:00",
+        });
+        AssertEqual(1m, festivoConPassaggioGiorno.FestiveNotturne, "Straordinario festivo notturno");
+        AssertEqual(6m, festivoConPassaggioGiorno.Notturne, "Straordinario notturno dopo mezzanotte");
+        AssertEqual(1m, festivoConPassaggioGiorno.Feriali, "Straordinario feriale diurno dopo mezzanotte");
+
+        var pasquetta = ServizioGiornalieroPrintService.CalcolaStraordinario(new ServizioGiornaliero
+        {
+            DataServizio = new DateOnly(2026, 4, 6),
+            StraordinarioAttivo = true,
+            StraordinarioInizio = "08:00",
+            StraordinarioFine = "10:00",
+        });
+        AssertEqual(2m, pasquetta.Festive, "Straordinario nel lunedi di Pasqua");
     }
 
     private static Personale CreaPersonale(int perId, string cognome, string nome, string codiceFiscale, string mail)

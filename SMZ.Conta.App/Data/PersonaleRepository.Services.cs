@@ -60,6 +60,80 @@ public sealed partial class PersonaleRepository
                        FROM ServizioImmersioni si
                        WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
                    ) AS ImmersioniTotali,
+                   COALESCE((
+                       SELECT GROUP_CONCAT(Descrizione, ', ')
+                       FROM (
+                           SELECT DISTINCT tio.Descrizione AS Descrizione
+                           FROM ServizioImmersioni si
+                           INNER JOIN ServizioPartecipantiImmersioni spi
+                               ON spi.ServizioImmersioneId = si.ServizioImmersioneId
+                           INNER JOIN TipologieImmersioneOperative tio
+                               ON tio.TipologiaImmersioneOperativaId = spi.TipologiaImmersioneOperativaId
+                           WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                           UNION
+                           SELECT DISTINCT tio.Descrizione AS Descrizione
+                           FROM ServizioImmersioni si
+                           INNER JOIN ServizioOperatoriSubEsterniImmersioni sei
+                               ON sei.ServizioImmersioneId = si.ServizioImmersioneId
+                           INNER JOIN TipologieImmersioneOperative tio
+                               ON tio.TipologiaImmersioneOperativaId = sei.TipologiaImmersioneOperativaId
+                           WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                           ORDER BY Descrizione
+                       )
+                   ), '') AS ApparatiDescrizione,
+                   (
+                       SELECT MAX(ProfonditaMetri)
+                       FROM (
+                           SELECT spi.ProfonditaMetri
+                           FROM ServizioImmersioni si
+                           INNER JOIN ServizioPartecipantiImmersioni spi
+                               ON spi.ServizioImmersioneId = si.ServizioImmersioneId
+                           WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                           UNION ALL
+                           SELECT sei.ProfonditaMetri
+                           FROM ServizioImmersioni si
+                           INNER JOIN ServizioOperatoriSubEsterniImmersioni sei
+                               ON sei.ServizioImmersioneId = si.ServizioImmersioneId
+                           WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                       )
+                   ) AS ProfonditaMassimaMetri,
+                   COALESCE((
+                       SELECT SUM(OreImmersione)
+                       FROM (
+                           SELECT spi.OreImmersione
+                           FROM ServizioImmersioni si
+                           INNER JOIN ServizioPartecipantiImmersioni spi
+                               ON spi.ServizioImmersioneId = si.ServizioImmersioneId
+                           WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                           UNION ALL
+                           SELECT sei.OreImmersione
+                           FROM ServizioImmersioni si
+                           INNER JOIN ServizioOperatoriSubEsterniImmersioni sei
+                               ON sei.ServizioImmersioneId = si.ServizioImmersioneId
+                           WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                       )
+                   ), 0) AS OreImmersioneTotali,
+                   COALESCE((
+                       SELECT GROUP_CONCAT(Descrizione, ', ')
+                       FROM (
+                           SELECT DISTINCT cco.Descrizione AS Descrizione
+                           FROM ServizioImmersioni si
+                           INNER JOIN ServizioPartecipantiImmersioni spi
+                               ON spi.ServizioImmersioneId = si.ServizioImmersioneId
+                           INNER JOIN CategorieContabiliOre cco
+                               ON cco.CategoriaContabileOreId = spi.CategoriaContabileOreId
+                           WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                           UNION
+                           SELECT DISTINCT cco.Descrizione AS Descrizione
+                           FROM ServizioImmersioni si
+                           INNER JOIN ServizioOperatoriSubEsterniImmersioni sei
+                               ON sei.ServizioImmersioneId = si.ServizioImmersioneId
+                           INNER JOIN CategorieContabiliOre cco
+                               ON cco.CategoriaContabileOreId = sei.CategoriaContabileOreId
+                           WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                           ORDER BY Descrizione
+                       )
+                   ), '') AS CategorieOreDescrizione,
                    s.AggiornatoIl
             FROM ServiziGiornalieri s
             LEFT JOIN LocalitaOperative lo ON lo.LocalitaOperativaId = s.LocalitaOperativaId
@@ -107,7 +181,11 @@ public sealed partial class PersonaleRepository
                 PartecipantiTotali = reader.GetInt32(10),
                 PresentiTotali = reader.GetInt32(11),
                 ImmersioniTotali = reader.GetInt32(12),
-                AggiornatoIl = DateTime.Parse(reader.GetString(13)),
+                ApparatiDescrizione = reader.GetString(13),
+                ProfonditaMassimaMetri = reader.IsDBNull(14) ? null : reader.GetInt32(14),
+                OreImmersioneTotali = reader.GetDecimal(15),
+                CategorieOreDescrizione = reader.GetString(16),
+                AggiornatoIl = DateTime.Parse(reader.GetString(17)),
             });
         }
 

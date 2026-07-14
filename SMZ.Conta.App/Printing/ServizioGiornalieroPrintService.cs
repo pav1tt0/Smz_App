@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -47,8 +48,8 @@ public sealed class ServizioGiornalieroPrintService
 
         var document = new FlowDocument
         {
-            FontFamily = PrintTheme.DocumentFont,
-            FontSize = 9.5,
+            FontFamily = new FontFamily("Times New Roman"),
+            FontSize = 9,
             PagePadding = new Thickness(30),
             Foreground = PrintTheme.TextBrush,
         };
@@ -60,37 +61,22 @@ public sealed class ServizioGiornalieroPrintService
         document.Blocks.Add(CreateDivider());
         document.Blocks.Add(CreateRecipientBlock());
 
-        AddLabelParagraph(document, "OGGETTO", $"Relazione sul servizio n. {servizio.NumeroOrdineServizio} del {servizio.DataServizio:dd/MM/yyyy}");
-        document.Blocks.Add(BuildDatiServizioTable(servizio, localita, scopo, unita, responsabile));
+        AddOggetto(document, servizio, localita, scopo, responsabile);
 
-        document.Blocks.Add(PrintTheme.SectionTitle("Attività svolta ed eventuali variazioni di servizio"));
-        document.Blocks.Add(new Paragraph(new Run(EmptyDash(servizio.AttivitaSvolta)))
-        {
-            Margin = new Thickness(3, 0, 3, 8),
-            TextAlignment = TextAlignment.Justify,
-        });
+        var personaleRows = BuildPersonaleRows(servizio, persone, cataloghi);
+        AddPersonaleSection(document, personaleRows, "SMZ", "Personale SOMMOZZATORE", alwaysShow: true);
+        AddPersonaleSection(document, personaleRows, "OSSALC", "Personale O.S.S.A.L.C.");
+        AddPersonaleSection(document, personaleRows, "SUPPORTO", "Personale ASS. IMMERSIONE");
+        AddPersonaleSection(document, personaleRows, "SANITARIA", "Personale ASS. SANITARIA");
 
-        if (servizio.Immersioni.Count > 0)
-        {
-            document.Blocks.Add(PrintTheme.SectionTitle("Riepilogo immersioni"));
-            document.Blocks.Add(BuildImmersioniTable(servizio, cataloghi));
-        }
-
-        document.Blocks.Add(PrintTheme.SectionTitle("Personale impiegato"));
-        document.Blocks.Add(BuildPersonaleTable(servizio, persone, cataloghi));
-
-        document.Blocks.Add(PrintTheme.SectionTitle("Trattamento economico accessorio", new Thickness(0, 12, 0, 6)));
-        document.Blocks.Add(BuildRiepilogoTable(servizio));
-
-        if (!string.IsNullOrWhiteSpace(servizio.Note))
-        {
-            AddLabelParagraph(document, "Note", servizio.Note);
-        }
+        AddActivityDeclaration(document, servizio);
+        AddEconomicDeclaration(document);
+        document.Blocks.Add(BuildRiepilogoTable(servizio, cataloghi, unita, localita));
 
         var firma = new Paragraph
         {
             TextAlignment = TextAlignment.Right,
-            Margin = new Thickness(0, 34, 0, 0),
+            Margin = new Thickness(0, 26, 0, 0),
         };
         firma.Inlines.Add(new Run("Il Responsabile del Team"));
         firma.Inlines.Add(new LineBreak());
@@ -102,120 +88,233 @@ public sealed class ServizioGiornalieroPrintService
         return document;
     }
 
-    private static Table BuildDatiServizioTable(
+    private static void AddOggetto(
+        FlowDocument document,
         ServizioGiornaliero servizio,
         string localita,
         string scopo,
-        string unita,
         string responsabile)
     {
-        var table = CreateTable(95, 220, 95, 220);
-        AddInfoRow(table, "Data", servizio.DataServizio.ToString("dd/MM/yyyy"), "Orario", EmptyDash(servizio.OrarioServizio));
-        AddInfoRow(table, "Località", EmptyDash(localita), "Tipo servizio", servizio.FuoriSede ? "Fuori sede" : "In sede");
-        AddInfoRow(table, "Scopo", EmptyDash(scopo), "Unità navale", EmptyDash(unita));
-        AddInfoRow(table, "Responsabile", EmptyDash(responsabile), "Ordine pubblico", servizio.IndennitaOrdinePubblico ? "SÌ" : "NO");
-        return table;
-    }
+        var oggetto = new Paragraph { Margin = new Thickness(0, 4, 0, 7) };
+        oggetto.Inlines.Add(new Run("OGGETTO: ") { FontWeight = FontWeights.Bold });
+        oggetto.Inlines.Add(new Run($"Riferimento Ordine di Servizio nr. {EmptyField(servizio.NumeroOrdineServizio)} del {servizio.DataServizio:dd/MM/yyyy}."));
+        document.Blocks.Add(oggetto);
 
-    private static Table BuildImmersioniTable(ServizioGiornaliero servizio, CataloghiServizioSnapshot cataloghi)
-    {
-        var table = CreateTable(38, 75, 62, 135, 135, 170);
-        AddHeaderRow(table, "N.", "Orario", "Prof. max", "Località", "Scopo", "Note");
-        foreach (var immersione in servizio.Immersioni.OrderBy(item => item.NumeroImmersione))
+        document.Blocks.Add(new Paragraph(new Run(
+            $"Relazione sulle attività specialistiche svolte a {EmptyField(localita)} per il servizio di {EmptyField(scopo)}"))
         {
-            var localita = cataloghi.LocalitaOperative.FirstOrDefault(item => item.LocalitaOperativaId == immersione.LocalitaOperativaId)?.Descrizione ?? string.Empty;
-            var scopo = cataloghi.ScopiImmersione.FirstOrDefault(item => item.ScopoImmersioneId == immersione.ScopoImmersioneId)?.Descrizione ?? string.Empty;
-            var profondita = immersione.Partecipazioni.Select(item => item.ProfonditaMetri)
-                .Concat(immersione.PartecipazioniEsterne.Select(item => item.ProfonditaMetri))
-                .Where(item => item.HasValue)
-                .Select(item => item!.Value)
-                .DefaultIfEmpty()
-                .Max();
-            var orario = $"{immersione.OrarioInizio?.ToString("HH:mm") ?? "--:--"} - {immersione.OrarioFine?.ToString("HH:mm") ?? "--:--"}";
-            AddRow(table,
-                immersione.NumeroImmersione.ToString(CultureInfo.CurrentCulture),
-                orario,
-                profondita > 0 ? $"{profondita} m" : string.Empty,
-                EmptyDash(localita),
-                EmptyDash(scopo),
-                immersione.Note);
-        }
-
-        return table;
+            Margin = new Thickness(0, 0, 0, 4),
+            TextAlignment = TextAlignment.Justify,
+        });
+        document.Blocks.Add(new Paragraph(new Run($"con orario {EmptyField(FormatOrarioServizio(servizio.OrarioServizio))}"))
+        {
+            Margin = new Thickness(0, 0, 0, 7),
+        });
+        document.Blocks.Add(new Paragraph(new Run(
+            $"Il sottoscritto {EmptyField(responsabile)}, responsabile del Team SMZ composto dal seguente personale:"))
+        {
+            Margin = new Thickness(0, 0, 0, 7),
+            TextAlignment = TextAlignment.Justify,
+        });
     }
 
-    private Table BuildPersonaleTable(
+    private static List<PersonaleStampaRow> BuildPersonaleRows(
         ServizioGiornaliero servizio,
         IReadOnlyDictionary<int, Personale> persone,
         CataloghiServizioSnapshot cataloghi)
     {
-        var table = CreateTable(120, 210, 170, 140, 70);
-        AddHeaderRow(table, "Qualifica", "Cognome e nome", "Mansione", "Apparecchiatura", "Ore imm.");
+        var gruppoById = cataloghi.GruppiOperativi.ToDictionary(item => item.GruppoOperativoId, item => item.Codice);
+        var ruoloById = cataloghi.RuoliOperativi.ToDictionary(item => item.RuoloOperativoId, item => item.Codice);
+        var rows = new List<PersonaleStampaRow>();
 
-        foreach (var partecipante in servizio.Partecipanti.Where(item => item.Presente).OrderBy(item => GetPersonOrder(item.PerId, persone)))
+        foreach (var partecipante in servizio.Partecipanti.Where(item => item.Presente))
         {
             if (!persone.TryGetValue(partecipante.PerId, out var persona))
             {
                 continue;
             }
 
-            var immersioni = servizio.Immersioni
-                .SelectMany(immersione => immersione.Partecipazioni.Select(partecipazione => (immersione, partecipazione)))
-                .Where(item => ResolvePerId(item.partecipazione, servizio) == partecipante.PerId)
-                .ToList();
-            var apparato = immersioni
-                .Select(item => cataloghi.TipologieImmersione.FirstOrDefault(tipo => tipo.TipologiaImmersioneOperativaId == item.partecipazione.TipologiaImmersioneOperativaId)?.Descrizione)
-                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? string.Empty;
-            var ore = immersioni.Sum(item => item.partecipazione.OreImmersione ?? 0m);
-
-            AddRow(
-                table,
-                QualificaFormatter.AbbreviaPerVisualizzazione(persona.Qualifica),
-                persona.NominativoCompleto,
-                BuildMansione(servizio, partecipante.PerId),
-                apparato,
-                ore > 0 ? ore.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty);
+            rows.Add(new PersonaleStampaRow(
+                gruppoById.GetValueOrDefault(partecipante.GruppoOperativoId, "SMZ"),
+                FormatPersona(persona),
+                BuildMansione(servizio, partecipante.PerId, partecipante.RuoloOperativoId, ruoloById),
+                BuildApparati(servizio, partecipante.PerId, cataloghi),
+                GetPersonOrder(partecipante.PerId, persone)));
         }
 
-        foreach (var operatore in servizio.OperatoriSubEsterni.OrderBy(item => item.Nominativo))
+        foreach (var operatore in servizio.OperatoriSubEsterni)
         {
-            var immersioni = servizio.Immersioni
-                .SelectMany(immersione => immersione.PartecipazioniEsterne.Select(partecipazione => (immersione, partecipazione)))
-                .Where(item => item.partecipazione.ServizioOperatoreSubEsternoId == operatore.ServizioOperatoreSubEsternoId)
-                .ToList();
-            var apparato = immersioni
-                .Select(item => cataloghi.TipologieImmersione.FirstOrDefault(tipo => tipo.TipologiaImmersioneOperativaId == item.partecipazione.TipologiaImmersioneOperativaId)?.Descrizione)
-                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? string.Empty;
-            var ore = immersioni.Sum(item => item.partecipazione.OreImmersione ?? 0m);
+            var qualifica = QualificaFormatter.AbbreviaPerVisualizzazione(operatore.Qualifica);
+            var nominativo = string.IsNullOrWhiteSpace(qualifica)
+                ? operatore.Nominativo
+                : $"{qualifica} {operatore.Nominativo}";
+            if (!string.IsNullOrWhiteSpace(operatore.Reparto))
+            {
+                nominativo += $" ({operatore.Reparto})";
+            }
 
-            AddRow(
-                table,
-                QualificaFormatter.AbbreviaPerVisualizzazione(operatore.Qualifica),
-                $"{operatore.Nominativo} ({operatore.Reparto})",
+            rows.Add(new PersonaleStampaRow(
+                gruppoById.GetValueOrDefault(operatore.GruppoOperativoId, "SMZ"),
+                nominativo,
                 BuildMansioneEsterna(servizio, operatore.ServizioOperatoreSubEsternoId),
-                apparato,
-                ore > 0 ? ore.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty);
+                BuildApparatiEsterni(servizio, operatore.ServizioOperatoreSubEsternoId, cataloghi),
+                long.MaxValue));
         }
 
-        return table;
+        foreach (var supporto in servizio.SupportiOccasionali.Where(item => item.Presente))
+        {
+            var qualifica = QualificaFormatter.AbbreviaPerVisualizzazione(supporto.Qualifica);
+            var nominativo = string.IsNullOrWhiteSpace(qualifica)
+                ? supporto.Nominativo
+                : $"{qualifica} {supporto.Nominativo}";
+            var gruppo = supporto.Ruolo.Contains("sanitar", StringComparison.OrdinalIgnoreCase)
+                ? "SANITARIA"
+                : "SUPPORTO";
+            rows.Add(new PersonaleStampaRow(
+                gruppo,
+                nominativo,
+                NormalizeMansione(supporto.Ruolo),
+                string.Empty,
+                long.MaxValue));
+        }
+
+        return rows
+            .OrderBy(item => item.Ordine)
+            .ThenBy(item => item.Nominativo, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
     }
 
-    private static Table BuildRiepilogoTable(ServizioGiornaliero servizio)
+    private static void AddPersonaleSection(
+        FlowDocument document,
+        IReadOnlyCollection<PersonaleStampaRow> source,
+        string gruppo,
+        string title,
+        bool alwaysShow = false)
     {
-        var table = CreateTable(120, 100, 100, 140, 100, 100);
-        AddHeaderRow(table, "Straordinario", "Presenze", "Ore imm.", "Fuori sede", "C.I.", "Ord. Pub.");
-        var oreImmersione = servizio.Immersioni
-            .Sum(item =>
-                item.Partecipazioni.Sum(partecipazione => partecipazione.OreImmersione ?? 0m)
-                + item.PartecipazioniEsterne.Sum(partecipazione => partecipazione.OreImmersione ?? 0m));
-        AddRow(
-            table,
-            servizio.StraordinarioAttivo ? $"{servizio.StraordinarioInizio}-{servizio.StraordinarioFine}" : string.Empty,
-            (servizio.Partecipanti.Count(item => item.Presente) + servizio.OperatoriSubEsterni.Count).ToString(CultureInfo.CurrentCulture),
-            oreImmersione > 0 ? oreImmersione.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty,
-            servizio.FuoriSede ? "SI" : string.Empty,
-            string.Empty,
-            servizio.IndennitaOrdinePubblico ? "SI" : string.Empty);
+        var rows = source.Where(item => string.Equals(item.Gruppo, gruppo, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (!alwaysShow && rows.Count == 0)
+        {
+            return;
+        }
+
+        var table = CreateRelativeTable(4.5, 2.5, 2.4);
+        var titleRow = new TableRow { FontWeight = FontWeights.Bold };
+        var titleCell = CreateCell(title, true, 0, 0);
+        titleCell.ColumnSpan = 3;
+        titleRow.Cells.Add(titleCell);
+        table.RowGroups[0].Rows.Add(titleRow);
+        AddHeaderRow(table, "COGNOME E NOME", "Mansione", "Apparecchiatura");
+
+        if (rows.Count == 0)
+        {
+            AddRow(table, string.Empty, string.Empty, string.Empty);
+        }
+        else
+        {
+            foreach (var row in rows)
+            {
+                AddRow(table, row.Nominativo, row.Mansione, row.Apparato);
+            }
+        }
+
+        document.Blocks.Add(table);
+    }
+
+    private static void AddActivityDeclaration(FlowDocument document, ServizioGiornaliero servizio)
+    {
+        document.Blocks.Add(new Paragraph(new Run(
+            "Riferisce sulle attività specialistiche svolte in data odierna ed eventuali variazioni di servizio:"))
+        {
+            Margin = new Thickness(0, 7, 0, 4),
+        });
+
+        var dettaglio = string.Join(
+            Environment.NewLine,
+            new[] { servizio.AttivitaSvolta, servizio.Note }.Where(value => !string.IsNullOrWhiteSpace(value)));
+        document.Blocks.Add(new Paragraph(new Run(EmptyField(dettaglio)))
+        {
+            Margin = new Thickness(0, 0, 0, 9),
+            TextAlignment = TextAlignment.Justify,
+        });
+    }
+
+    private static void AddEconomicDeclaration(FlowDocument document)
+    {
+        var paragraph = new Paragraph { Margin = new Thickness(0, 4, 0, 7), TextAlignment = TextAlignment.Justify };
+        paragraph.Inlines.Add(new Run("Premesso quanto sopra lo scrivente "));
+        paragraph.Inlines.Add(new Run("DICHIARA") { FontWeight = FontWeights.Bold });
+        paragraph.Inlines.Add(new Run(" che il personale in elenco indicato ha maturato il diritto al seguente trattamento economico accessorio:"));
+        document.Blocks.Add(paragraph);
+    }
+
+    private static Table BuildRiepilogoTable(
+        ServizioGiornaliero servizio,
+        CataloghiServizioSnapshot cataloghi,
+        string unita,
+        string localita)
+    {
+        var table = CreateRelativeTable(0.54, 0.57, 0.57, 0.85, 0.57, 0.57, 0.57, 0.57, 0.99, 0.99, 0.99, 0.99, 2.41);
+        table.FontSize = 7;
+
+        var row1 = new TableRow { FontWeight = FontWeights.Bold };
+        row1.Cells.Add(CreateSummaryCell("Ore Straordinario", true, 0, 0, columnSpan: 4));
+        row1.Cells.Add(CreateSummaryCell("Presenze", true, 0, 4, columnSpan: 3));
+        row1.Cells.Add(CreateSummaryCell("Ore Immersione", true, 0, 7, columnSpan: 5));
+        row1.Cells.Add(CreateSummaryCell("Indennità supplementare di fuori sede di cui all’art. 12 D.P.R. 57/2022", true, 0, 12));
+        table.RowGroups[0].Rows.Add(row1);
+
+        var row2 = new TableRow { FontWeight = FontWeights.Bold };
+        foreach (var value in new[] { "Fer.", "Fest.", "Nott.", "Fest. Nott.", "Est.", "Nott.", "Fest.", string.Empty, "ARA", "ARO", "ARM", "C.I.", string.Empty })
+        {
+            row2.Cells.Add(CreateSummaryCell(value, true, 1, row2.Cells.Count));
+        }
+        table.RowGroups[0].Rows.Add(row2);
+
+        var straordinario = CalcolaStraordinario(servizio);
+        var presenze = CalcolaPresenze(servizio);
+        var immersioni = CalcolaRiepilogoImmersioni(servizio, cataloghi);
+        var fuoriSede = servizio.FuoriSede
+            ? $"UNITÀ NAVALE: {EmptyField(unita)}"
+            : string.Empty;
+
+        var row3 = new TableRow();
+        foreach (var value in new[]
+                 {
+                     FormatOre(straordinario.Feriali),
+                     FormatOre(straordinario.Festive),
+                     FormatOre(straordinario.Notturne),
+                     FormatOre(straordinario.FestiveNotturne),
+                     presenze.Esterna ? "X" : string.Empty,
+                     presenze.Notturna ? "X" : string.Empty,
+                     presenze.Festiva ? "X" : string.Empty,
+                     "h",
+                     FormatOre(immersioni.Ara.Ore),
+                     FormatOre(immersioni.Aro.Ore),
+                     FormatOre(immersioni.Arm.Ore),
+                     FormatOre(immersioni.Ci.Ore),
+                     fuoriSede,
+                 })
+        {
+            row3.Cells.Add(CreateSummaryCell(value, false, 2, row3.Cells.Count));
+        }
+        table.RowGroups[0].Rows.Add(row3);
+
+        var row4 = new TableRow();
+        foreach (var value in new[]
+                 {
+                     string.Empty, string.Empty, string.Empty, string.Empty,
+                     string.Empty, string.Empty, string.Empty,
+                     "mt",
+                     FormatMetri(immersioni.Ara.Metri),
+                     FormatMetri(immersioni.Aro.Metri),
+                     FormatMetri(immersioni.Arm.Metri),
+                     FormatMetri(immersioni.Ci.Metri),
+                     servizio.FuoriSede ? $"LOCALITÀ: {EmptyField(localita)}" : string.Empty,
+                 })
+        {
+            row4.Cells.Add(CreateSummaryCell(value, false, 3, row4.Cells.Count));
+        }
+        table.RowGroups[0].Rows.Add(row4);
         return table;
     }
 
@@ -245,31 +344,112 @@ public sealed class ServizioGiornalieroPrintService
         return result;
     }
 
-    private static string BuildMansione(ServizioGiornaliero servizio, int perId)
+    private static string BuildMansione(
+        ServizioGiornaliero servizio,
+        int perId,
+        int? ruoloOperativoId,
+        IReadOnlyDictionary<int, string> ruoloById)
     {
         var ruoli = new List<string>();
-        foreach (var immersione in servizio.Immersioni.OrderBy(item => item.NumeroImmersione))
+        foreach (var immersione in servizio.Immersioni)
         {
-            AddRole(ruoli, immersione.NumeroImmersione, "Direttore", immersione.DirettoreImmersionePerId, perId);
-            AddRole(ruoli, immersione.NumeroImmersione, "Soccorso", immersione.OperatoreSoccorsoPerId, perId);
-            AddRole(ruoli, immersione.NumeroImmersione, "BLSD", immersione.AssistenteBlsdPerId, perId);
-            AddRole(ruoli, immersione.NumeroImmersione, "Sanitario", immersione.AssistenteSanitarioPerId, perId);
+            AddRole(ruoli, "Direttore immersione", immersione.DirettoreImmersionePerId, perId);
+            AddRole(ruoli, "Operatore soccorso", immersione.OperatoreSoccorsoPerId, perId);
+            AddRole(ruoli, "Assistenza BLSD", immersione.AssistenteBlsdPerId, perId);
+            AddRole(ruoli, "Assistenza sanitaria", immersione.AssistenteSanitarioPerId, perId);
         }
 
-        var immersioniEffettuate = servizio.Immersioni
-            .Where(immersione => immersione.Partecipazioni.Any(partecipazione => ResolvePerId(partecipazione, servizio) == perId))
-            .Select(immersione => $"Imm. {immersione.NumeroImmersione}");
-        ruoli.AddRange(immersioniEffettuate);
-        return ruoli.Count == 0 ? "Presente" : string.Join(", ", ruoli);
+        if (ruoloOperativoId is { } ruoloId && ruoloById.TryGetValue(ruoloId, out var codiceRuolo))
+        {
+            var ruolo = NormalizeMansione(codiceRuolo);
+            if (!string.IsNullOrWhiteSpace(ruolo) && !ruoli.Contains(ruolo, StringComparer.OrdinalIgnoreCase))
+            {
+                ruoli.Add(ruolo);
+            }
+        }
+
+        return string.Join(", ", ruoli);
     }
 
     private static string BuildMansioneEsterna(ServizioGiornaliero servizio, long servizioOperatoreSubEsternoId)
     {
-        var immersioniEffettuate = servizio.Immersioni
-            .Where(immersione => immersione.PartecipazioniEsterne.Any(partecipazione => partecipazione.ServizioOperatoreSubEsternoId == servizioOperatoreSubEsternoId))
-            .Select(immersione => $"Imm. {immersione.NumeroImmersione}");
-        var result = string.Join(", ", immersioniEffettuate);
-        return string.IsNullOrWhiteSpace(result) ? "Presente" : result;
+        var operatore = servizio.OperatoriSubEsterni.FirstOrDefault(item =>
+            item.ServizioOperatoreSubEsternoId == servizioOperatoreSubEsternoId
+            || item.PerId == servizioOperatoreSubEsternoId);
+        if (operatore is null || operatore.PerId <= 0)
+        {
+            return string.Empty;
+        }
+
+        return BuildMansione(servizio, operatore.PerId, null, new Dictionary<int, string>());
+    }
+
+    private static string BuildApparati(
+        ServizioGiornaliero servizio,
+        int perId,
+        CataloghiServizioSnapshot cataloghi)
+    {
+        var tipologie = servizio.Immersioni
+            .SelectMany(immersione => immersione.Partecipazioni)
+            .Where(partecipazione => ResolvePerId(partecipazione, servizio) == perId)
+            .Select(partecipazione => partecipazione.TipologiaImmersioneOperativaId);
+        return FormatApparati(tipologie, cataloghi);
+    }
+
+    private static string BuildApparatiEsterni(
+        ServizioGiornaliero servizio,
+        long servizioOperatoreSubEsternoId,
+        CataloghiServizioSnapshot cataloghi)
+    {
+        var operatore = servizio.OperatoriSubEsterni.FirstOrDefault(item =>
+            item.ServizioOperatoreSubEsternoId == servizioOperatoreSubEsternoId
+            || item.PerId == servizioOperatoreSubEsternoId);
+        var ids = new HashSet<long> { servizioOperatoreSubEsternoId };
+        if (operatore is not null)
+        {
+            ids.Add(operatore.ServizioOperatoreSubEsternoId);
+            ids.Add(operatore.PerId);
+        }
+
+        var tipologie = servizio.Immersioni
+            .SelectMany(immersione => immersione.PartecipazioniEsterne)
+            .Where(partecipazione => ids.Contains(partecipazione.ServizioOperatoreSubEsternoId))
+            .Select(partecipazione => partecipazione.TipologiaImmersioneOperativaId);
+        return FormatApparati(tipologie, cataloghi);
+    }
+
+    private static string FormatApparati(IEnumerable<int?> tipologieIds, CataloghiServizioSnapshot cataloghi)
+    {
+        var descrizioneById = cataloghi.TipologieImmersione.ToDictionary(
+            item => item.TipologiaImmersioneOperativaId,
+            item => item.Descrizione);
+        return string.Join(", ", tipologieIds
+            .Where(item => item.HasValue && descrizioneById.ContainsKey(item.Value))
+            .Select(item => descrizioneById[item!.Value])
+            .Distinct(StringComparer.CurrentCultureIgnoreCase));
+    }
+
+    private static string NormalizeMansione(string value)
+    {
+        if (value.Contains("DIRETT", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Direttore immersione";
+        }
+
+        if (value.Contains("SOCCORS", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Operatore soccorso";
+        }
+
+        if (value.Contains("BLSD", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("BLS-D", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Assistenza BLSD";
+        }
+
+        return value.Contains("SANIT", StringComparison.OrdinalIgnoreCase)
+            ? "Assistenza sanitaria"
+            : string.Empty;
     }
 
     private static int ResolvePerId(ServizioPartecipanteImmersione partecipazione, ServizioGiornaliero servizio)
@@ -278,12 +458,237 @@ public sealed class ServizioGiornalieroPrintService
         return partecipante?.PerId ?? (int)partecipazione.ServizioPartecipanteId;
     }
 
-    private static void AddRole(ICollection<string> ruoli, int numeroImmersione, string ruolo, int? rolePerId, int perId)
+    private static void AddRole(ICollection<string> ruoli, string ruolo, int? rolePerId, int perId)
     {
-        if (rolePerId == perId)
+        if (rolePerId == perId && !ruoli.Contains(ruolo, StringComparer.OrdinalIgnoreCase))
         {
-            ruoli.Add($"Imm. {numeroImmersione}: {ruolo}");
+            ruoli.Add(ruolo);
         }
+    }
+
+    public static StraordinarioStampaSummary CalcolaStraordinario(ServizioGiornaliero servizio)
+    {
+        if (!servizio.StraordinarioAttivo
+            || !TryBuildInterval(
+                servizio.DataServizio,
+                servizio.StraordinarioInizio,
+                servizio.StraordinarioFine,
+                out var inizio,
+                out var fine))
+        {
+            return default;
+        }
+
+        decimal feriali = 0;
+        decimal festive = 0;
+        decimal notturne = 0;
+        decimal festiveNotturne = 0;
+        for (var cursor = inizio; cursor < fine; cursor = cursor.AddMinutes(1))
+        {
+            var prossimo = cursor.AddMinutes(1) < fine ? cursor.AddMinutes(1) : fine;
+            var durata = (prossimo.Ticks - cursor.Ticks) / (decimal)TimeSpan.TicksPerHour;
+            var festivo = IsFestivo(DateOnly.FromDateTime(cursor));
+            var notturno = IsNotturno(cursor.TimeOfDay);
+            if (festivo && notturno)
+            {
+                festiveNotturne += durata;
+            }
+            else if (festivo)
+            {
+                festive += durata;
+            }
+            else if (notturno)
+            {
+                notturne += durata;
+            }
+            else
+            {
+                feriali += durata;
+            }
+        }
+
+        return new StraordinarioStampaSummary(
+            decimal.Round(feriali, 6),
+            decimal.Round(festive, 6),
+            decimal.Round(notturne, 6),
+            decimal.Round(festiveNotturne, 6));
+    }
+
+    private static PresenzeStampaSummary CalcolaPresenze(ServizioGiornaliero servizio)
+    {
+        var presenti = servizio.Partecipanti.Count(item => item.Presente)
+                       + servizio.OperatoriSubEsterni.Count
+                       + servizio.SupportiOccasionali.Count(item => item.Presente);
+        if (presenti == 0)
+        {
+            return default;
+        }
+
+        var notturna = false;
+        var festiva = IsFestivo(servizio.DataServizio);
+        if (TryBuildInterval(servizio.DataServizio, servizio.OrarioServizio, out var inizio, out var fine))
+        {
+            for (var cursor = inizio; cursor < fine; cursor = cursor.AddMinutes(1))
+            {
+                notturna |= IsNotturno(cursor.TimeOfDay);
+                festiva |= IsFestivo(DateOnly.FromDateTime(cursor));
+                if (notturna && festiva)
+                {
+                    break;
+                }
+            }
+        }
+
+        return new PresenzeStampaSummary(true, notturna, festiva);
+    }
+
+    private static ImmersioniStampaSummary CalcolaRiepilogoImmersioni(
+        ServizioGiornaliero servizio,
+        CataloghiServizioSnapshot cataloghi)
+    {
+        var codiceById = cataloghi.TipologieImmersione.ToDictionary(
+            item => item.TipologiaImmersioneOperativaId,
+            item => item.Codice);
+        var values = new Dictionary<string, ApparatoAccumulator>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["ARA"] = new(),
+            ["ARO"] = new(),
+            ["ARM"] = new(),
+            ["CI"] = new(),
+        };
+
+        foreach (var partecipazione in servizio.Immersioni.SelectMany(item => item.Partecipazioni))
+        {
+            AddImmersione(values, codiceById, partecipazione.TipologiaImmersioneOperativaId, partecipazione.OreImmersione, partecipazione.ProfonditaMetri);
+        }
+
+        foreach (var partecipazione in servizio.Immersioni.SelectMany(item => item.PartecipazioniEsterne))
+        {
+            AddImmersione(values, codiceById, partecipazione.TipologiaImmersioneOperativaId, partecipazione.OreImmersione, partecipazione.ProfonditaMetri);
+        }
+
+        return new ImmersioniStampaSummary(
+            values["ARA"].ToSummary(),
+            values["ARO"].ToSummary(),
+            values["ARM"].ToSummary(),
+            values["CI"].ToSummary());
+    }
+
+    private static void AddImmersione(
+        IDictionary<string, ApparatoAccumulator> values,
+        IReadOnlyDictionary<int, string> codiceById,
+        int? tipologiaId,
+        decimal? ore,
+        int? metri)
+    {
+        if (tipologiaId is null || !codiceById.TryGetValue(tipologiaId.Value, out var codice))
+        {
+            return;
+        }
+
+        var key = codice.StartsWith("ARA", StringComparison.OrdinalIgnoreCase) ? "ARA" : codice;
+        if (values.TryGetValue(key, out var value))
+        {
+            value.Ore += ore ?? 0m;
+            value.Metri = Math.Max(value.Metri, metri ?? 0);
+        }
+    }
+
+    private static bool TryBuildInterval(
+        DateOnly data,
+        string inizioValue,
+        string fineValue,
+        out DateTime inizio,
+        out DateTime fine)
+    {
+        inizio = default;
+        fine = default;
+        if (!TryParseMinutes(inizioValue, out var minutiInizio)
+            || !TryParseMinutes(fineValue, out var minutiFine))
+        {
+            return false;
+        }
+
+        var giorno = data.ToDateTime(TimeOnly.MinValue);
+        inizio = giorno.AddMinutes(minutiInizio);
+        fine = giorno.AddMinutes(minutiFine);
+        if (fine < inizio)
+        {
+            fine = fine.AddDays(1);
+        }
+
+        return true;
+    }
+
+    private static bool TryBuildInterval(DateOnly data, string value, out DateTime inizio, out DateTime fine)
+    {
+        var matches = Regex.Matches(value ?? string.Empty, @"\d{1,2}[\.:]\d{2}");
+        if (matches.Count < 2)
+        {
+            inizio = default;
+            fine = default;
+            return false;
+        }
+
+        return TryBuildInterval(data, matches[0].Value, matches[1].Value, out inizio, out fine);
+    }
+
+    private static bool TryParseMinutes(string value, out int minutes)
+    {
+        minutes = 0;
+        var normalized = value.Trim().Replace('.', ':');
+        var parts = normalized.Split(':');
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out var hours)
+            || !int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var mins)
+            || hours is < 0 or > 24
+            || mins is < 0 or > 59
+            || hours == 24 && mins != 0)
+        {
+            return false;
+        }
+
+        minutes = hours * 60 + mins;
+        return true;
+    }
+
+    private static bool IsNotturno(TimeSpan value) =>
+        value >= TimeSpan.FromHours(22) || value < TimeSpan.FromHours(6);
+
+    private static bool IsFestivo(DateOnly data)
+    {
+        if (data.DayOfWeek == DayOfWeek.Sunday)
+        {
+            return true;
+        }
+
+        if ((data.Month, data.Day) is
+            (1, 1) or (1, 6) or (4, 25) or (5, 1) or (6, 2) or
+            (8, 15) or (11, 1) or (12, 8) or (12, 25) or (12, 26))
+        {
+            return true;
+        }
+
+        return data == GetPasqua(data.Year).AddDays(1);
+    }
+
+    private static DateOnly GetPasqua(int year)
+    {
+        var a = year % 19;
+        var b = year / 100;
+        var c = year % 100;
+        var d = b / 4;
+        var e = b % 4;
+        var f = (b + 8) / 25;
+        var g = (b - f + 1) / 3;
+        var h = (19 * a + b - d - g + 15) % 30;
+        var i = c / 4;
+        var k = c % 4;
+        var l = (32 + 2 * e + 2 * i - h - k) % 7;
+        var m = (a + 11 * h + 22 * l) / 451;
+        var month = (h + l - 7 * m + 114) / 31;
+        var day = (h + l - 7 * m + 114) % 31 + 1;
+        return new DateOnly(year, month, day);
     }
 
     private static long GetPersonOrder(int perId, IReadOnlyDictionary<int, Personale> persone)
@@ -350,20 +755,12 @@ public sealed class ServizioGiornalieroPrintService
         return new BlockUIContainer(panel);
     }
 
-    private static void AddLabelParagraph(FlowDocument document, string label, string value)
-    {
-        var paragraph = new Paragraph { Margin = new Thickness(0, 4, 0, 4) };
-        paragraph.Inlines.Add(new Run($"{label}: ") { FontWeight = FontWeights.Bold });
-        paragraph.Inlines.Add(new Run(value));
-        document.Blocks.Add(paragraph);
-    }
-
-    private static Table CreateTable(params double[] widths)
+    private static Table CreateRelativeTable(params double[] weights)
     {
         var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 0, 0, 8) };
-        foreach (var width in widths)
+        foreach (var weight in weights)
         {
-            table.Columns.Add(new TableColumn { Width = new GridLength(width) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(weight, GridUnitType.Star) });
         }
 
         table.RowGroups.Add(new TableRowGroup());
@@ -379,17 +776,6 @@ public sealed class ServizioGiornalieroPrintService
             row.Cells.Add(CreateCell(values[columnIndex], true, rowIndex, columnIndex));
         }
 
-        table.RowGroups[0].Rows.Add(row);
-    }
-
-    private static void AddInfoRow(Table table, string label1, string value1, string label2, string value2)
-    {
-        var row = new TableRow();
-        var rowIndex = table.RowGroups[0].Rows.Count;
-        row.Cells.Add(CreateCell(label1, true, rowIndex, 0));
-        row.Cells.Add(CreateCell(value1, false, rowIndex, 1));
-        row.Cells.Add(CreateCell(label2, true, rowIndex, 2));
-        row.Cells.Add(CreateCell(value2, false, rowIndex, 3));
         table.RowGroups[0].Rows.Add(row);
     }
 
@@ -420,8 +806,79 @@ public sealed class ServizioGiornalieroPrintService
                 : rowIndex % 2 == 0 ? PrintTheme.AlternateRowBackground : Brushes.Transparent,
         };
 
+    private static TableCell CreateSummaryCell(
+        string value,
+        bool header,
+        int rowIndex,
+        int columnIndex,
+        int columnSpan = 1)
+    {
+        var cell = new TableCell(new Paragraph(new Run(value))
+        {
+            Margin = new Thickness(0),
+            TextAlignment = TextAlignment.Center,
+        })
+        {
+            BorderBrush = PrintTheme.BorderBrush,
+            BorderThickness = new Thickness(PrintTheme.BorderThickness),
+            Padding = new Thickness(2, 3, 2, 3),
+            Background = header
+                ? PrintTheme.HeaderBackground
+                : rowIndex % 2 == 0 ? PrintTheme.AlternateRowBackground : Brushes.Transparent,
+            ColumnSpan = columnSpan,
+        };
+        return cell;
+    }
+
     private static TextAlignment GetCellAlignment(int columnIndex) =>
         columnIndex >= 4 ? TextAlignment.Right : TextAlignment.Left;
 
-    private static string EmptyDash(string value) => string.IsNullOrWhiteSpace(value) ? "________________" : value.Trim();
+    private static string FormatOrarioServizio(string value)
+    {
+        var matches = Regex.Matches(value ?? string.Empty, @"\d{1,2}[\.:]\d{2}");
+        return matches.Count >= 2
+            ? $"{matches[0].Value.Replace(':', '.')} - {matches[1].Value.Replace(':', '.')}"
+            : value?.Trim() ?? string.Empty;
+    }
+
+    private static string FormatOre(decimal value) =>
+        value > 0 ? value.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty;
+
+    private static string FormatMetri(int value) =>
+        value > 0 ? value.ToString(CultureInfo.CurrentCulture) : string.Empty;
+
+    private static string EmptyField(string value) =>
+        string.IsNullOrWhiteSpace(value) ? "________________" : value.Trim();
+
+    public readonly record struct StraordinarioStampaSummary(
+        decimal Feriali,
+        decimal Festive,
+        decimal Notturne,
+        decimal FestiveNotturne);
+
+    private readonly record struct PresenzeStampaSummary(bool Esterna, bool Notturna, bool Festiva);
+
+    private readonly record struct ApparatoStampaSummary(decimal Ore, int Metri);
+
+    private readonly record struct ImmersioniStampaSummary(
+        ApparatoStampaSummary Ara,
+        ApparatoStampaSummary Aro,
+        ApparatoStampaSummary Arm,
+        ApparatoStampaSummary Ci);
+
+    private sealed record PersonaleStampaRow(
+        string Gruppo,
+        string Nominativo,
+        string Mansione,
+        string Apparato,
+        long Ordine);
+
+    private sealed class ApparatoAccumulator
+    {
+        public decimal Ore { get; set; }
+
+        public int Metri { get; set; }
+
+        public ApparatoStampaSummary ToSummary() => new(Ore, Metri);
+    }
 }

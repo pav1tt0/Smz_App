@@ -203,5 +203,26 @@ public sealed class ServizioGiornalieroSummary
 
     public int ImmersioniTotali { get; set; }
 
+    public string ApparatiDescrizione { get; set; } = string.Empty;
+
+    public int? ProfonditaMassimaMetri { get; set; }
+
+    public decimal OreImmersioneTotali { get; set; }
+
+    public string CategorieOreDescrizione { get; set; } = string.Empty;
+
+    public string ProfonditaMassimaDescrizione =>
+        ProfonditaMassimaMetri is { } metri ? $"{metri} m" : string.Empty;
+
+    public string OreImmersioneTotaliDescrizione =>
+        OreImmersioneTotali > 0 ? OreImmersioneTotali.ToString("0.##") : string.Empty;
+
+    public string DettaglioImmersioniDescrizione => ImmersioniTotali == 0
+        ? "Nessuna immersione registrata."
+        : $"Apparati: {ValoreDettaglio(ApparatiDescrizione)}  |  Profondità max: {ValoreDettaglio(ProfonditaMassimaDescrizione)}  |  Ore: {ValoreDettaglio(OreImmersioneTotaliDescrizione)}  |  Categorie: {ValoreDettaglio(CategorieOreDescrizione)}";
+
     public DateTime AggiornatoIl { get; set; }
+
+    private static string ValoreDettaglio(string value) =>
+        string.IsNullOrWhiteSpace(value) ? "—" : value;
 }

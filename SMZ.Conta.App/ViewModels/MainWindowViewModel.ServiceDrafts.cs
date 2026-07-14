@@ -157,7 +157,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void SincronizzaPartecipazioniImmersioneBozza()
+    private void SincronizzaPartecipazioniImmersioneBozza(bool applicaDettaglioContabileUnico = true)
     {
         var operatoriSubPresenti = GetOperatoriSubPresentiOrdinati();
 
@@ -221,7 +221,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(ServizioPartecipazioniContabiliBozza));
-        SincronizzaPartecipazioniContabiliUnicheBozza(aggiornaDaPartecipazioni: false);
+        if (applicaDettaglioContabileUnico)
+        {
+            SincronizzaPartecipazioniContabiliUnicheBozza(aggiornaDaPartecipazioni: false);
+        }
     }
 
     private List<PersonaleListItemViewModel> GetOperatoriSmzPresentiOrdinati() =>
@@ -345,6 +348,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
             .FirstOrDefault(item => item.PerId == row.PerId && item.InImmersione);
         if (partecipazione is null)
         {
+            row.TipologiaImmersioneOperativa = null;
+            row.ProfonditaMetri = string.Empty;
+            row.FasciaProfondita = null;
+            row.OreImmersione = string.Empty;
+            row.CategoriaContabileOre = null;
+            row.TariffaProposta = null;
+            row.ImportoStimato = null;
+            row.Note = string.Empty;
             return;
         }
 

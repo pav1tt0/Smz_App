@@ -608,10 +608,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            Directory.CreateDirectory(DatabasePaths.ExportDirectory);
-
             var fileName = $"indennita-fuori-sede-{ContabilitaAnnoSelezionato:D4}-{ContabilitaMeseSelezionato.NumeroMese:D2}.docx";
-            var filePath = Path.Combine(DatabasePaths.ExportDirectory, fileName);
+            var filePath = SelezionaPercorsoEsportazioneWord(fileName);
+            if (filePath is null)
+            {
+                return;
+            }
+
             WriteIndennitaFuoriSedeDocx(filePath);
 
             Stato = $"Prospetto fuori sede creato: {filePath}";
@@ -637,10 +640,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         try
         {
-            Directory.CreateDirectory(DatabasePaths.ExportDirectory);
-
             var fileName = $"assistenza-smz-{ContabilitaAnnoSelezionato:D4}-{ContabilitaMeseSelezionato.NumeroMese:D2}.docx";
-            var filePath = Path.Combine(DatabasePaths.ExportDirectory, fileName);
+            var filePath = SelezionaPercorsoEsportazioneWord(fileName);
+            if (filePath is null)
+            {
+                return;
+            }
+
             WriteAssistenzaSmzDocx(filePath);
 
             Stato = $"Prospetto assistenza SMZ creato: {filePath}";
@@ -655,6 +661,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
             MessageBox.Show(ex.Message, "Assistenza SMZ", MessageBoxButton.OK, MessageBoxImage.Warning);
             Stato = "Export assistenza SMZ non riuscito.";
         }
+    }
+
+    private static string? SelezionaPercorsoEsportazioneWord(string fileName)
+    {
+        Directory.CreateDirectory(DatabasePaths.ExportDirectory);
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Salva documento Word",
+            Filter = "Documento Word (*.docx)|*.docx",
+            DefaultExt = ".docx",
+            AddExtension = true,
+            OverwritePrompt = true,
+            InitialDirectory = DatabasePaths.ExportDirectory,
+            FileName = fileName,
+        };
+
+        return dialog.ShowDialog() == true
+            ? dialog.FileName
+            : null;
     }
 
     private void WriteAssistenzaSmzDocx(string filePath)
