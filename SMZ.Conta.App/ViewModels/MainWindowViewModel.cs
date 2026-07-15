@@ -205,7 +205,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly List<ReportPersonaleMensileRiga> _reportPersonaleSource = [];
 
     public MainWindowViewModel()
+        : this(AccessSession.SystemAdministrator)
     {
+    }
+
+    public MainWindowViewModel(AccessSession session)
+    {
+        InitializeAccessManagement(session);
         _backupSettings = _backupService.LoadSettings();
         _servizioScambioService = new ServizioScambioService(_repository);
         _servizioGiornalieroPrintService = new ServizioGiornalieroPrintService(_repository);
@@ -250,12 +256,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
             IsSchedaPersonaleVisibile = true;
         });
         SaveCommand = new RelayCommand(SalvaPersonale);
-        _deleteCommand = new RelayCommand(DisattivaPersonaleDaOggi, () => PerId > 0);
-        _deleteDefinitivoCommand = new RelayCommand(EliminaPersonaleDefinitivamente, () => PerId > 0);
+        _deleteCommand = new RelayCommand(DisattivaPersonaleDaOggi, () => IsAdministrator && PerId > 0);
+        _deleteDefinitivoCommand = new RelayCommand(EliminaPersonaleDefinitivamente, () => IsAdministrator && PerId > 0);
         _openSelectedPersonaleCommand = new RelayCommand(ApriSchedaSelezionata);
         _closeSchedaPersonaleCommand = new RelayCommand(() => IsSchedaPersonaleVisibile = false);
-        _restoreArchivioCommand = new RelayCommand(RipristinaArchivioDaParametro, () => SelectedArchivio is not null);
-        _deleteArchivioDefinitivoCommand = new RelayCommand(EliminaArchivioDefinitivamenteDaParametro, () => SelectedArchivio is not null);
+        _restoreArchivioCommand = new RelayCommand(RipristinaArchivioDaParametro, () => IsAdministrator && SelectedArchivio is not null);
+        _deleteArchivioDefinitivoCommand = new RelayCommand(EliminaArchivioDefinitivamenteDaParametro, () => IsAdministrator && SelectedArchivio is not null);
         SaveAbilitazioneCommand = new RelayCommand(SalvaAbilitazioneInEditor);
         ClearAbilitazioneEditorCommand = new RelayCommand(PulisciEditorAbilitazione);
         RemoveAbilitazioneCommand = new RelayCommand(RimuoviAbilitazioneRiga);
@@ -387,7 +393,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         NuovoPersonale();
         AggiornaStatoBackup();
         EseguiBackupLocaleAutomaticoAvvio();
-        SezioneAttivaIndex = HomeSectionIndex;
+        SezioneAttivaIndex = IsAdministrator ? HomeSectionIndex : PersonalSectionIndex;
+        IsWelcomeVisible = false;
     }
 
     private void AggiornaDataOraHeader()
@@ -536,6 +543,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         get => _sezioneAttivaIndex;
         set
         {
+            if (!IsAdministrator && value != PersonalSectionIndex)
+            {
+                value = PersonalSectionIndex;
+            }
+
             if (SetProperty(ref _sezioneAttivaIndex, value))
             {
                 OnPropertyChanged(nameof(IsHomeSection));

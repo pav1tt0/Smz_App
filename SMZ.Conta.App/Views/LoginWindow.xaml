@@ -1,0 +1,74 @@
+<Window x:Class="SMZ.Conta.App.Views.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Accesso SMZ"
+        Icon="/SMZ.App;component/Assets/logo_smz.ico"
+        Width="520" Height="650"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="#071A33"
+        FontFamily="Bahnschrift">
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="44" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="Margin" Value="0,6,0,0" />
+        </Style>
+        <Style TargetType="PasswordBox">
+            <Setter Property="Height" Value="44" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="Margin" Value="0,6,0,0" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="46" />
+            <Setter Property="Background" Value="#0E5AA7" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="42,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <Image Source="/SMZ.App;component/Assets/logo_smz.png"
+                   Width="145" Height="145" Stretch="Uniform" />
+            <TextBlock Text="CENTRO NAUTICO E SMZ"
+                       Margin="0,14,0,0" TextAlignment="Center"
+                       Foreground="White" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock x:Name="ModeTitleText"
+                       Margin="0,8,0,0" TextAlignment="Center"
+                       Foreground="#C8D8E9" FontSize="16" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" VerticalAlignment="Center">
+            <TextBlock Text="PerID" Foreground="White" FontSize="15" />
+            <TextBox x:Name="PerIdTextBox" MaxLength="9" />
+
+            <TextBlock Text="Password" Margin="0,18,0,0" Foreground="White" FontSize="15" />
+            <PasswordBox x:Name="PasswordInput" />
+
+            <StackPanel x:Name="ConfirmationPanel" Visibility="Collapsed">
+                <TextBlock Text="Conferma password" Margin="0,18,0,0" Foreground="White" FontSize="15" />
+                <PasswordBox x:Name="PasswordConfirmationInput" />
+                <TextBlock Margin="0,10,0,0"
+                           Text="La password deve contenere almeno 10 caratteri. Non verrà mai salvata in chiaro."
+                           Foreground="#AFC4D9" FontSize="13" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <TextBlock x:Name="ErrorText" Margin="0,14,0,0"
+                       Foreground="#FF9FA8" FontSize="14" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Button x:Name="SubmitButton" Grid.Row="2" Click="SubmitButton_Click" IsDefault="True" />
+    </Grid>
+</Window>

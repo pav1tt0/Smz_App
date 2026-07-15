@@ -1,0 +1,32 @@
+<Window x:Class="SMZ.Conta.App.Views.CreateAccessUserWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nuovo account" Width="470" Height="470"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Background="#F3F6FA" FontFamily="Bahnschrift">
+    <Grid Margin="32">
+        <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock Text="Crea account" FontSize="25" FontWeight="SemiBold" Foreground="#0D1B3D" />
+            <TextBlock Margin="0,8,0,18" Text="Il PerID deve essere già presente nell'anagrafica del personale."
+                       Foreground="#52647A" TextWrapping="Wrap" />
+            <TextBlock Text="PerID" />
+            <TextBox x:Name="PerIdInput" Height="40" Margin="0,5,0,14" Padding="10,7" MaxLength="9" />
+            <TextBlock Text="Livello di accesso" />
+            <ComboBox x:Name="RoleInput" Height="40" Margin="0,5,0,14" Padding="8,5" SelectedIndex="0">
+                <ComboBoxItem Content="Base" Tag="Base" />
+                <ComboBoxItem Content="Amministratore" Tag="Administrator" />
+            </ComboBox>
+            <TextBlock Text="Password temporanea" />
+            <PasswordBox x:Name="PasswordInput" Height="40" Margin="0,5,0,14" Padding="10,7" />
+            <TextBlock Text="Conferma password" />
+            <PasswordBox x:Name="ConfirmationInput" Height="40" Margin="0,5,0,0" Padding="10,7" />
+            <TextBlock x:Name="ErrorText" Margin="0,12,0,0" Foreground="#D40F1F" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Annulla" Width="110" Height="40" Margin="0,0,10,0" IsCancel="True" />
+            <Button Content="Crea" Width="110" Height="40" Click="CreateButton_Click" IsDefault="True"
+                    Background="#0E5AA7" Foreground="White" BorderThickness="0" />
+        </StackPanel>
+    </Grid>
+</Window>

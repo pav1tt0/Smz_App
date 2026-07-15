@@ -22,6 +22,7 @@ internal static class Program
             Run("salvataggio e lettura anagrafica", TestSalvataggioELetturaPersonale);
             Run("salvataggio e lettura servizio con immersione", TestSalvataggioELetturaServizio);
             Run("ripartizione straordinario stampa servizio", TestRipartizioneStraordinarioStampa);
+            Run("autenticazione e ruoli di accesso", TestAccessi);
 
             Console.WriteLine("Tutti i test SMZ sono passati.");
             return 0;
@@ -254,6 +255,43 @@ internal static class Program
         AssertEqual(2m, pasquetta.Festive, "Straordinario nel lunedi di Pasqua");
     }
 
+    private static void TestAccessi()
+    {
+        AssertEqual("PerID 80262", new AccessSession(80262, "PerID 80262", AccessRole.Administrator, false).UserDisplayName,
+            "Visualizzazione PerID senza anagrafica");
+        var accessService = new AccessService();
+        AssertTrue(!accessService.HasUsers(), "Il database di test non dovrebbe contenere account iniziali.");
+
+        var administrator = accessService.CreateFirstAdministrator(101, "PasswordAdmin!2026");
+        AssertTrue(administrator.IsAdministrator, "Il primo account non e amministratore.");
+        AssertThrows(() => accessService.Authenticate(101, "password-errata"), "Una password errata e stata accettata.");
+
+        var authenticatedAdministrator = accessService.Authenticate(101, "PasswordAdmin!2026");
+        AssertEqual(101, authenticatedAdministrator.PerId, "PerID amministratore autenticato");
+
+        accessService.CreateUser(101, 201, AccessRole.Base, "PasswordBase!2026");
+        var baseSession = accessService.Authenticate(201, "PasswordBase!2026");
+        AssertTrue(!baseSession.IsAdministrator, "L'account Base risulta amministratore.");
+        AssertTrue(baseSession.MustChangePassword, "Il cambio password iniziale non e richiesto.");
+
+        accessService.ChangePassword(201, "PasswordBase!2026", "NuovaPasswordBase!2026");
+        baseSession = accessService.Authenticate(201, "NuovaPasswordBase!2026");
+        AssertTrue(!baseSession.MustChangePassword, "Il cambio password richiesto non e stato azzerato.");
+
+        var baseViewModel = new MainWindowViewModel(baseSession);
+        baseViewModel.SezioneAttivaIndex = 0;
+        AssertEqual(2, baseViewModel.SezioneAttivaIndex, "Sezione consentita al profilo Base");
+        AssertTrue(!baseViewModel.IsWelcomeVisible, "Il profilo Base non entra direttamente nella sezione Personale.");
+        AssertTrue(!baseViewModel.DeleteCommand.CanExecute(null), "Il profilo Base puo cessare il personale.");
+
+        accessService.SetUserRole(101, 201, AccessRole.Administrator);
+        AssertTrue(accessService.GetUsers().Single(user => user.PerId == 201).Role == AccessRole.Administrator,
+            "Il cambio ruolo non e stato salvato.");
+        accessService.SetUserActive(101, 201, false);
+        AssertThrows(() => accessService.Authenticate(201, "NuovaPasswordBase!2026"), "Un account sospeso ha effettuato l'accesso.");
+        AssertThrows(() => accessService.SetUserActive(101, 101, false), "L'amministratore ha sospeso il proprio account.");
+    }
+
     private static Personale CreaPersonale(int perId, string cognome, string nome, string codiceFiscale, string mail)
     {
         return new Personale
@@ -291,5 +329,19 @@ internal static class Program
         {
             throw new InvalidOperationException($"{fieldName}: atteso '{expected}', trovato '{actual}'.");
         }
+    }
+
+    private static void AssertThrows(Action action, string message)
+    {
+        try
+        {
+            action();
+        }
+        catch
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(message);
     }
 }

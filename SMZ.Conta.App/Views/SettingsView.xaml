@@ -8,22 +8,24 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="18" />
                             <RowDefinition Height="*" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
                         <Border Style="{DynamicResource CardStyle}">
                             <StackPanel>
-                                <TextBlock Text="Impostazioni operative"
+                                <TextBlock Text="Amministrazione"
                                            FontSize="22"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}" />
                                 <TextBlock Margin="0,8,0,0"
-                                           Text="Cataloghi e tariffe sono separati dalle pagine operative per evitare modifiche accidentali durante l'uso quotidiano."
+                                           Text="Gestisci utenti, livelli di accesso, cataloghi operativi e tariffe del gestionale."
                                            Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
-                        <Grid Grid.Row="2">
+                        <Grid Grid.Row="4">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="18" />
@@ -192,7 +194,7 @@
                             </Border>
                         </Grid>
 
-                        <Border Grid.Row="4"
+                        <Border Grid.Row="6"
                                 Style="{DynamicResource CardStyle}">
                             <Grid>
                                 <Grid.RowDefinitions>
@@ -262,6 +264,60 @@
                                         <DataGridCheckBoxColumn Header="Attiva"
                                                                 Width="90"
                                                                 Binding="{Binding Attiva, UpdateSourceTrigger=PropertyChanged}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Row="2" Style="{DynamicResource CardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Gestione utenti"
+                                                   FontSize="18" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource AppTextBrush}" />
+                                        <TextBlock Margin="0,6,0,0"
+                                                   Text="Account identificati dal PerID. Le password reimpostate devono essere cambiate al primo accesso."
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Nuovo account"
+                                            Command="{Binding CreateAccessUserCommand}"
+                                            Margin="16,0,0,0" MinWidth="140"
+                                            Style="{DynamicResource AccentButtonStyle}" />
+                                </Grid>
+
+                                <StackPanel Grid.Row="1" Margin="0,14,0,0" Orientation="Horizontal">
+                                    <Button Content="Reset password" Command="{Binding ResetAccessPasswordCommand}"
+                                            Style="{DynamicResource SecondaryButtonStyle}" />
+                                    <Button Content="{Binding SelectedAccessUserActionLabel}"
+                                            Command="{Binding ToggleAccessUserCommand}"
+                                            Style="{DynamicResource SecondaryButtonStyle}" />
+                                    <Button Content="{Binding SelectedAccessUserRoleActionLabel}"
+                                            Command="{Binding ToggleAccessRoleCommand}"
+                                            Style="{DynamicResource SecondaryButtonStyle}" />
+                                </StackPanel>
+
+                                <DataGrid Grid.Row="2" Margin="0,16,0,0"
+                                          ItemsSource="{Binding AccessUsers}"
+                                          SelectedItem="{Binding SelectedAccessUser}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False"
+                                          IsReadOnly="True" HeadersVisibility="Column" RowHeaderWidth="0"
+                                          MinHeight="240">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="PerID" Width="90" Binding="{Binding PerId}" />
+                                        <DataGridTextColumn Header="Nominativo" Width="*" Binding="{Binding DisplayName}" />
+                                        <DataGridTextColumn Header="Profilo" Width="150" Binding="{Binding RoleDisplayName}" />
+                                        <DataGridTextColumn Header="Stato" Width="110" Binding="{Binding StatusDisplayName}" />
+                                        <DataGridTextColumn Header="Ultimo accesso" Width="170" Binding="{Binding LastAccessDisplay}" />
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Grid>

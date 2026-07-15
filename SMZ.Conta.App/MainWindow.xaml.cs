@@ -1,50 +1,48 @@
 using System.ComponentModel;
 using System.Windows;
-using SMZ.Conta.App.Infrastructure;
+using SMZ.Conta.App.Models;
 using SMZ.Conta.App.ViewModels;
+using SMZ.Conta.App.Views;
 
 namespace SMZ.Conta.App;
 
 public partial class MainWindow : Window
 {
-    private readonly DiveAmbiencePlayer _diveAmbiencePlayer = new();
     private readonly MainWindowViewModel _viewModel;
 
-    public MainWindow()
+    private readonly AccessSession _session;
+
+    public MainWindow(AccessSession session)
     {
         InitializeComponent();
-        _viewModel = new MainWindowViewModel();
+        _session = session;
+        _viewModel = new MainWindowViewModel(session);
         DataContext = _viewModel;
 
-        Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
-        Closed += MainWindow_Closed;
-        _viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
-    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-    {
-        UpdateWelcomeAudio();
-    }
+    public bool LogoutRequested { get; private set; }
 
     private void CloseAppButton_Click(object sender, RoutedEventArgs e)
     {
         Close();
     }
 
-    private void MainWindow_Closed(object? sender, EventArgs e)
+    private void ChangePasswordButton_Click(object sender, RoutedEventArgs e)
     {
-        _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
-        _diveAmbiencePlayer.Dispose();
+        var dialog = new PasswordChangeWindow(new Data.AccessService(), _session, required: false) { Owner = this };
+        dialog.ShowDialog();
+    }
+
+    private void LogoutButton_Click(object sender, RoutedEventArgs e)
+    {
+        LogoutRequested = true;
+        Close();
     }
 
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
-        if (_viewModel.IsWelcomeVisible)
-        {
-            return;
-        }
-
         var areeConModifiche = _viewModel.GetAreeConModificheNonSalvate();
         if (areeConModifiche.Count == 0)
         {
@@ -62,26 +60,8 @@ public partial class MainWindow : Window
         if (result != MessageBoxResult.Yes)
         {
             e.Cancel = true;
+            LogoutRequested = false;
         }
     }
 
-    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(MainWindowViewModel.IsWelcomeVisible)
-            || e.PropertyName == nameof(MainWindowViewModel.IsWelcomeAudioEnabled))
-        {
-            UpdateWelcomeAudio();
-        }
-    }
-
-    private void UpdateWelcomeAudio()
-    {
-        if (_viewModel.IsWelcomeVisible && _viewModel.IsWelcomeAudioEnabled)
-        {
-            _diveAmbiencePlayer.Start();
-            return;
-        }
-
-        _diveAmbiencePlayer.Stop();
-    }
 }

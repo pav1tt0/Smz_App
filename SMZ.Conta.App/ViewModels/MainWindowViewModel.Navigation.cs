@@ -28,15 +28,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void NavigaAllaSezione(object? parameter)
     {
-        if (parameter is int index)
+        var parsed = parameter is int index
+            ? index
+            : parameter is not null && int.TryParse(parameter.ToString(), out var parsedValue)
+                ? parsedValue
+                : -1;
+        if (parsed < 0) return;
+        if (!IsAdministrator && parsed != PersonalSectionIndex)
         {
-            SezioneAttivaIndex = index;
+            SezioneAttivaIndex = PersonalSectionIndex;
+            Stato = "Il profilo Base puo accedere esclusivamente alla sezione Personale.";
             return;
         }
 
-        if (parameter is not null && int.TryParse(parameter.ToString(), out var parsed))
-        {
-            SezioneAttivaIndex = parsed;
-        }
+        SezioneAttivaIndex = parsed;
     }
 }

@@ -1,5 +1,6 @@
 using System.Windows;
 using SMZ.Conta.App.Data;
+using SMZ.Conta.App.Views;
 
 namespace SMZ.Conta.App;
 
@@ -34,9 +35,7 @@ public partial class App : Application
 
         try
         {
-            var mainWindow = new MainWindow();
-            MainWindow = mainWindow;
-            mainWindow.Show();
+            RunAuthenticatedApplication();
         }
         catch (Exception ex)
         {
@@ -47,6 +46,32 @@ public partial class App : Application
                 MessageBoxImage.Error);
 
             Shutdown(-1);
+        }
+    }
+
+    private void RunAuthenticatedApplication()
+    {
+        var accessService = new AccessService();
+        while (true)
+        {
+            var landingWindow = new LandingWindow(accessService);
+            MainWindow = landingWindow;
+            if (landingWindow.ShowDialog() != true || landingWindow.Session is null)
+            {
+                Shutdown();
+                return;
+            }
+
+            var mainWindow = new MainWindow(landingWindow.Session);
+            MainWindow = mainWindow;
+            mainWindow.ShowDialog();
+            if (mainWindow.LogoutRequested)
+            {
+                continue;
+            }
+
+            Shutdown();
+            return;
         }
     }
 }

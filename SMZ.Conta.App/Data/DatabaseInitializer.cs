@@ -519,6 +519,22 @@ public static class DatabaseInitializer
 
             CREATE INDEX IF NOT EXISTS IX_ElaborazioneMensileRighe_ElaborazioneMensileId
                 ON ElaborazioneMensileRighe (ElaborazioneMensileId);
+
+            CREATE TABLE IF NOT EXISTS UtentiAccesso (
+                PerId INTEGER PRIMARY KEY,
+                PasswordHash TEXT NOT NULL,
+                PasswordSalt TEXT NOT NULL,
+                Iterazioni INTEGER NOT NULL,
+                Ruolo TEXT NOT NULL CHECK (Ruolo IN ('Base', 'Amministratore')),
+                Attivo INTEGER NOT NULL DEFAULT 1,
+                CambioPasswordRichiesto INTEGER NOT NULL DEFAULT 1,
+                UltimoAccesso TEXT NULL,
+                CreatoIl TEXT NOT NULL,
+                AggiornatoIl TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_UtentiAccesso_Ruolo_Attivo
+                ON UtentiAccesso (Ruolo, Attivo);
             """;
 
         command.ExecuteNonQuery();

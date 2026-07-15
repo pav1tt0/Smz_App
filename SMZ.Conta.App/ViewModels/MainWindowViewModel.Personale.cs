@@ -156,6 +156,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void DisattivaPersonaleDaOggi()
     {
+        if (!EnsureAdministratorAccess())
+        {
+            return;
+        }
+
         if (PerId == 0)
         {
             return;
@@ -184,6 +189,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
             AggiornaScadenziario();
             CaricaPersonale(perId);
             Stato = "Scheda cessata. Resta disponibile nello storico e nei servizi fino alla data di fine servizio.";
+            if (perId != _session.PerId
+                && _accessService.HasUser(perId)
+                && MessageBox.Show(
+                    $"Il PerID {perId} dispone anche di un account di accesso. Vuoi sospenderlo?",
+                    "Gestione accessi",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question,
+                    MessageBoxResult.Yes) == MessageBoxResult.Yes)
+            {
+                _accessService.SetUserActive(_session.PerId, perId, false);
+                ReloadAccessUsers();
+            }
             EseguiBackupLocaleSilenzioso("disable-person");
         }
         catch (Exception ex)
@@ -195,6 +212,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void EliminaPersonaleDefinitivamente()
     {
+        if (!EnsureAdministratorAccess())
+        {
+            return;
+        }
+
         if (PerId == 0)
         {
             return;
@@ -232,6 +254,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void RipristinaArchivioDaParametro(object? parameter)
     {
+        if (!EnsureAdministratorAccess())
+        {
+            return;
+        }
+
         if (parameter is PersonaleArchivioListItemViewModel archivio)
         {
             SelectedArchivio = archivio;
@@ -290,6 +317,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void EliminaArchivioDefinitivamenteDaParametro(object? parameter)
     {
+        if (!EnsureAdministratorAccess())
+        {
+            return;
+        }
+
         if (parameter is PersonaleArchivioListItemViewModel archivio)
         {
             SelectedArchivio = archivio;

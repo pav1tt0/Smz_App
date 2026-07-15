@@ -245,11 +245,11 @@
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="Foreground" Value="#E9F2FB" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="Padding" Value="14,9" />
-            <Setter Property="Margin" Value="14,0,14,6" />
+            <Setter Property="Padding" Value="14,7" />
+            <Setter Property="Margin" Value="14,0,14,4" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -464,32 +464,37 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Margin="20,18,20,12">
-                    <Image Width="216"
-                           Height="216"
+                <StackPanel Margin="20,12,20,8">
+                    <Image Width="221"
+                           Height="221"
+                           Margin="0,0,0,-8"
                            HorizontalAlignment="Center"
                            Source="Assets/logo_smz.png"
                            Stretch="Uniform" />
-                    <TextBlock Margin="0,10,0,0"
+                    <TextBlock Margin="0,0,0,0"
                                Text="POLIZIA DI STATO"
                                Foreground="#FFFFFF"
                                FontSize="17"
                                FontWeight="SemiBold"
                                TextAlignment="Center" />
-                    <TextBlock Margin="0,6,0,0"
+                    <TextBlock Margin="0,4,0,0"
                                Text="Centro Nautico e SMZ"
                                Foreground="#D0DEEE"
                                FontSize="15"
                                TextAlignment="Center" />
-                    <Border Margin="0,14,0,0"
+                    <Border Margin="0,10,0,0"
                             Height="1"
                             Background="#36506C" />
                 </StackPanel>
 
-                <StackPanel Grid.Row="1"
-                            Margin="0,0,0,12">
+                <ScrollViewer Grid.Row="1"
+                              Margin="0,0,0,8"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
                     <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="0">
+                            CommandParameter="0"
+                            Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButtonStyle}">
                                 <Style.Triggers>
@@ -515,7 +520,8 @@
                     </Button>
 
                     <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="1">
+                            CommandParameter="1"
+                            Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButtonStyle}">
                                 <Style.Triggers>
@@ -577,7 +583,8 @@
                     </Button>
 
                     <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="3">
+                            CommandParameter="3"
+                            Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButtonStyle}">
                                 <Style.Triggers>
@@ -605,7 +612,8 @@
                     </Button>
 
                     <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="4">
+                            CommandParameter="4"
+                            Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButtonStyle}">
                                 <Style.Triggers>
@@ -635,7 +643,8 @@
                     </Button>
 
                     <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="5">
+                            CommandParameter="5"
+                            Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButtonStyle}">
                                 <Style.Triggers>
@@ -664,7 +673,8 @@
                     </Button>
 
                     <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="6">
+                            CommandParameter="6"
+                            Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButtonStyle}">
                                 <Style.Triggers>
@@ -686,20 +696,34 @@
                                 <Ellipse Canvas.Left="9" Canvas.Top="9" Width="8" Height="8" Fill="#0E5AA7" />
                             </Canvas>
                             <TextBlock Grid.Column="1"
-                                       Text="Impostazioni operative"
+                                       Text="Amministrazione"
                                        VerticalAlignment="Center" />
                         </Grid>
                     </Button>
-                </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
 
                 <StackPanel Grid.Row="2"
-                            Margin="20,0,20,14">
+                            Margin="20,0,20,10">
                     <Border Height="1"
                             Background="#36506C"
                             Margin="0,0,0,12" />
-                    <TextBlock Text="Utente: Operatore SMZ"
+                    <TextBlock Text="{Binding CurrentUserDisplay}"
                                Foreground="#E8F1FA"
-                               FontSize="14" />
+                               FontSize="14"
+                               TextWrapping="Wrap" />
+                    <TextBlock Margin="0,4,0,10"
+                               Text="{Binding CurrentRoleDisplay}"
+                               Foreground="#AFC4D9"
+                               FontSize="13" />
+                    <Button Content="Cambia password"
+                            Height="34" MinWidth="0" Margin="0,0,0,7"
+                            Padding="8,4" Click="ChangePasswordButton_Click"
+                            Style="{StaticResource SecondaryButtonStyle}" />
+                    <Button Content="Disconnetti"
+                            Height="34" MinWidth="0" Margin="0"
+                            Padding="8,4" Click="LogoutButton_Click"
+                            Style="{StaticResource SecondaryButtonStyle}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -776,11 +800,13 @@
                           HorizontalScrollBarVisibility="Disabled">
                 <TabControl SelectedIndex="{Binding SezioneAttivaIndex}"
                             Style="{StaticResource HiddenTabControlStyle}">
-                    <TabItem Header="Home">
+                    <TabItem Header="Home"
+                             Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <views:HomeView />
                     </TabItem>
 
-                    <TabItem Header="Servizio giornaliero">
+                    <TabItem Header="Servizio giornaliero"
+                             Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <views:ServizioGiornalieroView />
                     </TabItem>
 
@@ -788,19 +814,23 @@
                         <views:PersonaleView />
                     </TabItem>
 
-                    <TabItem Header="Backup e archivio">
+                    <TabItem Header="Backup e archivio"
+                             Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <views:BackupArchiveView />
                     </TabItem>
 
-                    <TabItem Header="Contabilita">
+                    <TabItem Header="Contabilita"
+                             Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <views:ContabilitaView />
                     </TabItem>
 
-                    <TabItem Header="Stampe e report">
+                    <TabItem Header="Stampe e report"
+                             Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <views:ReportsView />
                     </TabItem>
 
-                    <TabItem Header="Impostazioni">
+                    <TabItem Header="Amministrazione"
+                             Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
                         <views:SettingsView />
                     </TabItem>
                 </TabControl>
@@ -849,8 +879,5 @@
             </Grid>
         </Border>
 
-        <views:WelcomeView Grid.ColumnSpan="2"
-                           Grid.RowSpan="3"
-                           Panel.ZIndex="20" />
     </Grid>
 </Window>

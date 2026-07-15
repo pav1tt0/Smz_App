@@ -9,11 +9,24 @@ Avviare l'app con uno dei file presenti nella cartella principale:
 - `Avvia-SMZ.cmd`
 - `Avvia-SMZ.ps1`
 
-All'avvio compare la welcome page con:
+All'avvio compare la welcome page. Premendo **Entra nel gestionale** viene aperta la pagina di accesso sopra la welcome, che resta visibile e temporaneamente bloccata fino alla chiusura del login.
 
-- pulsante **Entra nel gestionale** per accedere all'applicazione;
+Al primo accesso, se non esistono account, viene richiesto di creare il primo amministratore indicando il proprio **PerID** e una password di almeno 10 caratteri. La password non viene salvata in chiaro.
+
+Agli avvii successivi viene mostrata la pagina di accesso. Inserire:
+
+- il proprio **PerID**;
+- la propria password.
+
+Una password temporanea assegnata da un amministratore deve essere cambiata prima di entrare nel gestionale.
+
+La welcome page contiene:
+
+- pulsante **Entra nel gestionale** per aprire il login;
 - pulsante audio con icona per attivare o disattivare il suono della welcome;
 - pulsante **ESCI** per chiudere direttamente dalla welcome.
+
+Dopo un accesso riuscito si entra direttamente nell'area autorizzata, senza mostrare nuovamente la welcome. Il comando **Disconnetti** torna alla welcome page.
 
 Se si chiude l'app dalla welcome non viene mostrato l'avviso sulle modifiche non salvate. Dopo l'ingresso nel gestionale, invece, la chiusura dell'app controlla eventuali modifiche non salvate.
 
@@ -27,9 +40,13 @@ La barra laterale permette di accedere alle sezioni principali:
 - **Backup e archivio**
 - **Contabilita**
 - **Stampe e report**
-- **Impostazioni operative**
+- **Amministrazione**
 
 La barra superiore mostra data, ora e pulsante **ESCI**. La barra inferiore mostra lo stato operativo e le informazioni sui backup.
+
+La barra laterale mostra anche il nominativo, il PerID e il profilo dell'utente corrente. I comandi **Cambia password** e **Disconnetti** permettono rispettivamente di aggiornare la propria password o tornare alla pagina di accesso.
+
+Il profilo **Base** entra direttamente nella sezione **Personale** e puo consultare, creare e modificare le anagrafiche. Non puo cessare o eliminare personale e non vede le altre aree operative.
 
 ## 3. Dashboard operativa
 
@@ -208,9 +225,20 @@ Permette di generare riepiloghi mensili o annuali sul personale.
 
 Quando disponibili, usare i filtri per anno, mese, nominativo e categoria.
 
-## 9. Impostazioni operative
+## 9. Amministrazione
 
-La sezione **Impostazioni operative** contiene cataloghi e tariffe.
+La sezione **Amministrazione** contiene la gestione utenti, i cataloghi operativi e le tariffe. La gestione degli accessi e mostrata per prima.
+
+### Gestione utenti
+
+La gestione utenti e disponibile esclusivamente agli amministratori. Ogni account e identificato dal PerID di una persona presente in anagrafica.
+
+- **Nuovo account** crea un profilo Base o Amministratore con password temporanea.
+- **Reset password** assegna una password temporanea e obbliga l'utente a cambiarla al prossimo accesso.
+- **Sospendi/Riattiva** impedisce o ripristina l'accesso senza cancellare lo storico dell'account.
+- **Imposta Base/Rendi amministratore** modifica il livello di operativita.
+
+Il programma impedisce di sospendere o declassare l'account in uso e di rimuovere l'ultimo amministratore attivo. Quando una persona viene cessata, viene proposto di sospendere anche il relativo account.
 
 ### Localita operative
 
@@ -304,4 +332,3 @@ Andare in **Backup e archivio**, selezionare la scheda e usare **Ripristina**.
 ### Devo trasferire o proteggere i dati
 
 Usare **Crea backup esterno** e verificare che la cartella esterna sia configurata correttamente.
-
