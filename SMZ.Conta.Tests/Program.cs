@@ -8,6 +8,8 @@ namespace SMZ.Conta.Tests;
 
 internal static class Program
 {
+    private static readonly Version MinimumSupportedSqliteVersion = new(3, 50, 2);
+
     private static int Main()
     {
         var testRoot = Path.Combine(Path.GetTempPath(), "smz-conta-tests", Guid.NewGuid().ToString("N"));
@@ -19,6 +21,7 @@ internal static class Program
             DatabaseInitializer.EnsureDatabase();
 
             Run("database isolato", TestDatabaseIsolato);
+            Run("versione SQLite sicura", TestVersioneSqliteSicura);
             Run("numero ordine servizio automatico", TestNumeroOrdineServizioAutomatico);
             Run("salvataggio e lettura anagrafica", TestSalvataggioELetturaPersonale);
             Run("salvataggio e lettura servizio con immersione", TestSalvataggioELetturaServizio);
@@ -65,6 +68,24 @@ internal static class Program
         AssertTrue(
             DatabasePaths.DatabasePath.Contains(Path.Combine("smz-conta-tests"), StringComparison.OrdinalIgnoreCase),
             $"Il database non punta alla cartella temporanea: {DatabasePaths.DatabasePath}");
+    }
+
+    private static void TestVersioneSqliteSicura()
+    {
+        using var connection = new SqliteConnection($"Data Source={DatabasePaths.DatabasePath}");
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT sqlite_version();";
+        var versionText = Convert.ToString(command.ExecuteScalar()) ?? string.Empty;
+
+        AssertTrue(
+            Version.TryParse(versionText, out var sqliteVersion),
+            $"Versione SQLite non riconosciuta: {versionText}");
+        AssertTrue(
+            sqliteVersion >= MinimumSupportedSqliteVersion,
+            $"SQLite {sqliteVersion} non e sicuro: richiesta almeno la versione {MinimumSupportedSqliteVersion}.");
+        Console.WriteLine($"SQLite runtime: {sqliteVersion}");
     }
 
     private static void TestNumeroOrdineServizioAutomatico()
