@@ -1,5 +1,6 @@
 using System.Windows;
 using SMZ.Conta.App.Data;
+using SMZ.Conta.App.Models;
 using SMZ.Conta.App.Views;
 
 namespace SMZ.Conta.App;
@@ -51,6 +52,18 @@ public partial class App : Application
 
     private void RunAuthenticatedApplication()
     {
+#if DEBUG
+        var developmentSession = new AccessSession(
+            0,
+            "Modalità test - login disattivato",
+            AccessRole.Administrator,
+            false);
+        var developmentWindow = new MainWindow(developmentSession);
+        MainWindow = developmentWindow;
+        developmentWindow.ShowDialog();
+        Shutdown();
+        return;
+#else
         var accessService = new AccessService();
         while (true)
         {
@@ -73,5 +86,6 @@ public partial class App : Application
             Shutdown();
             return;
         }
+#endif
     }
 }
