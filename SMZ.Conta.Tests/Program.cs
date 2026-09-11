@@ -19,6 +19,7 @@ internal static class Program
             DatabaseInitializer.EnsureDatabase();
 
             Run("database isolato", TestDatabaseIsolato);
+            Run("numero ordine servizio automatico", TestNumeroOrdineServizioAutomatico);
             Run("salvataggio e lettura anagrafica", TestSalvataggioELetturaPersonale);
             Run("salvataggio e lettura servizio con immersione", TestSalvataggioELetturaServizio);
             Run("ripartizione straordinario stampa servizio", TestRipartizioneStraordinarioStampa);
@@ -64,6 +65,24 @@ internal static class Program
         AssertTrue(
             DatabasePaths.DatabasePath.Contains(Path.Combine("smz-conta-tests"), StringComparison.OrdinalIgnoreCase),
             $"Il database non punta alla cartella temporanea: {DatabasePaths.DatabasePath}");
+    }
+
+    private static void TestNumeroOrdineServizioAutomatico()
+    {
+        var viewModel = new MainWindowViewModel();
+
+        viewModel.ServizioData = "01/01/2026";
+        AssertEqual("001", viewModel.ServizioNumeroOrdine, "Numero ordine primo giorno dell'anno");
+
+        viewModel.ServizioData = "29/02/2024";
+        AssertEqual("060", viewModel.ServizioNumeroOrdine, "Numero ordine in anno bisestile");
+
+        viewModel.ServizioData = "31/12/2024";
+        AssertEqual("366", viewModel.ServizioNumeroOrdine, "Numero ordine ultimo giorno di anno bisestile");
+
+        viewModel.ServizioNumeroOrdine = "MANUALE";
+        viewModel.ServizioData = "01/03/2024";
+        AssertEqual("MANUALE", viewModel.ServizioNumeroOrdine, "Numero ordine modificato manualmente");
     }
 
     private static void TestSalvataggioELetturaPersonale()
@@ -205,6 +224,8 @@ internal static class Program
             SelectedServizioSalvato = riepilogoSalvato,
         };
         viewModel.OpenServizioCommand.Execute(null);
+        viewModel.ServizioData = "19/03/2026";
+        AssertEqual("TEST-001", viewModel.ServizioNumeroOrdine, "Numero ordine del servizio esistente");
         var dettaglioRiaperto = viewModel.ServizioPartecipazioniContabiliUnicheBozza.Single(item => item.PerId == 202);
         AssertEqual(tipologia.TipologiaImmersioneOperativaId, dettaglioRiaperto.TipologiaImmersioneOperativa?.TipologiaImmersioneOperativaId, "Apparato dopo riapertura servizio");
         AssertEqual("10", dettaglioRiaperto.ProfonditaMetri, "Profondita dopo riapertura servizio");

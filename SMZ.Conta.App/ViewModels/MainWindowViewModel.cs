@@ -162,6 +162,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private long _servizioGiornalieroId;
     private string _servizioData = DateTime.Today.ToString("dd/MM/yyyy");
     private string _servizioNumeroOrdine = string.Empty;
+    private string _servizioNumeroOrdineAutomatico = string.Empty;
     private string _servizioOrario = string.Empty;
     private string _servizioOrarioFissoSelezionato = string.Empty;
     private bool _servizioOrarioDerogaAttiva;
@@ -919,13 +920,42 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public string ServizioData
     {
         get => _servizioData;
-        set => SetProperty(ref _servizioData, value);
+        set
+        {
+            if (SetProperty(ref _servizioData, value ?? string.Empty))
+            {
+                AggiornaNumeroOrdineServizioDaData();
+            }
+        }
     }
 
     public string ServizioNumeroOrdine
     {
         get => _servizioNumeroOrdine;
         set => SetProperty(ref _servizioNumeroOrdine, value);
+    }
+
+    private void AggiornaNumeroOrdineServizioDaData()
+    {
+        if (IsExistingServizio
+            || (!string.IsNullOrWhiteSpace(_servizioNumeroOrdine)
+                && !string.Equals(_servizioNumeroOrdine, _servizioNumeroOrdineAutomatico, StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        if (!DateOnly.TryParseExact(
+                _servizioData.Trim(),
+                "dd/MM/yyyy",
+                CultureInfo.GetCultureInfo("it-IT"),
+                DateTimeStyles.None,
+                out var dataServizio))
+        {
+            return;
+        }
+
+        _servizioNumeroOrdineAutomatico = dataServizio.DayOfYear.ToString("D3", CultureInfo.InvariantCulture);
+        ServizioNumeroOrdine = _servizioNumeroOrdineAutomatico;
     }
 
     public string ServizioOrario

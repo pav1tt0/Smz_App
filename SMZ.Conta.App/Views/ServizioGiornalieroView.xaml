@@ -413,7 +413,8 @@
                                             <StackPanel Grid.Column="2">
                                                 <TextBlock Text="N. ordine servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding ServizioNumeroOrdine, UpdateSourceTrigger=PropertyChanged}"
-                                                         MaxLength="40" />
+                                                         MaxLength="40"
+                                                         ToolTip="Calcolato automaticamente dalla data come giorno progressivo dell'anno; puo essere modificato." />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="4">

@@ -152,8 +152,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _servizioGiornalieroId = 0;
         SelectedServizioSalvato = null;
         IsServizioApertoDaReport = false;
-        ServizioData = DateTime.Today.ToString("dd/MM/yyyy");
+        _servizioNumeroOrdineAutomatico = string.Empty;
         ServizioNumeroOrdine = string.Empty;
+        ServizioData = DateTime.Today.ToString("dd/MM/yyyy");
+        AggiornaNumeroOrdineServizioDaData();
         ServizioOrarioDerogaAttiva = false;
         ServizioOrarioDerogaInizio = string.Empty;
         ServizioOrarioDerogaFine = string.Empty;
@@ -417,6 +419,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         _servizioGiornalieroId = servizio.ServizioGiornalieroId;
+        _servizioNumeroOrdineAutomatico = string.Empty;
         ServizioData = FormatDate(servizio.DataServizio);
         ServizioNumeroOrdine = servizio.NumeroOrdineServizio;
         ServizioOrario = servizio.OrarioServizio;
@@ -599,8 +602,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _servizioGiornalieroId = 0;
         SelectedServizioSalvato = null;
         IsServizioApertoDaReport = false;
-        ServizioData = DateTime.Today.ToString("dd/MM/yyyy");
+        _servizioNumeroOrdineAutomatico = string.Empty;
         ServizioNumeroOrdine = string.Empty;
+        ServizioData = DateTime.Today.ToString("dd/MM/yyyy");
+        AggiornaNumeroOrdineServizioDaData();
         ServizioOrario = string.Empty;
         ServizioStraordinarioAttivo = false;
         ServizioStraordinarioInizio = string.Empty;
