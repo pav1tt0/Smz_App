@@ -120,7 +120,7 @@
                                              Background="Transparent">
                                         <ListBox.ItemsPanel>
                                             <ItemsPanelTemplate>
-                                                <WrapPanel Orientation="Horizontal" />
+                                                <UniformGrid Columns="4" />
                                             </ItemsPanelTemplate>
                                         </ListBox.ItemsPanel>
                                         <ListBox.ItemContainerStyle>
@@ -133,7 +133,8 @@
                                         </ListBox.ItemContainerStyle>
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <Button Width="300"
+                                                <Button MaxWidth="300"
+                                                        HorizontalAlignment="Stretch"
                                                         Padding="0"
                                                         Background="Transparent"
                                                         BorderThickness="0"
