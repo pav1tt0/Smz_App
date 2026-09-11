@@ -102,5 +102,37 @@
         </Style>
     </Window.Resources>
 
-    <views:WelcomeView />
+    <Grid>
+        <views:WelcomeView />
+
+        <Border x:Name="LoadingOverlay"
+                Panel.ZIndex="10"
+                Background="#E6071528"
+                Visibility="Collapsed">
+            <StackPanel Width="420"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <TextBlock Text="SMZ LA SPEZIA"
+                           HorizontalAlignment="Center"
+                           Foreground="#FFFFFF"
+                           FontSize="30"
+                           FontWeight="Bold" />
+                <TextBlock Margin="0,16,0,20"
+                           Text="Caricamento in corso..."
+                           HorizontalAlignment="Center"
+                           Foreground="#DDEEFF"
+                           FontSize="19"
+                           FontWeight="SemiBold" />
+                <ProgressBar Height="7"
+                             IsIndeterminate="True"
+                             Foreground="#5CA8F2"
+                             Background="#294B6D" />
+                <TextBlock Margin="0,14,0,0"
+                           Text="Preparazione dei dati e della schermata principale"
+                           HorizontalAlignment="Center"
+                           Foreground="#AFC8DF"
+                           FontSize="14" />
+            </StackPanel>
+        </Border>
+    </Grid>
 </Window>

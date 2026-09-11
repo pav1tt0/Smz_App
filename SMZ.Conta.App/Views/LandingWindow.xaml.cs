@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Threading;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Infrastructure;
 using SMZ.Conta.App.Models;
@@ -26,6 +28,10 @@ public partial class LandingWindow : Window
 
     public AccessSession? Session { get; private set; }
 
+    public MainWindow? PreparedMainWindow { get; private set; }
+
+    public StartupLoadingWindow? TransitionWindow { get; private set; }
+
     private void OpenLogin()
     {
         var loginWindow = new LoginWindow(_accessService) { Owner = this };
@@ -47,7 +53,30 @@ public partial class LandingWindow : Window
         }
 
         Session = session;
-        DialogResult = true;
+        LoadingOverlay.Visibility = Visibility.Visible;
+        Cursor = Cursors.Wait;
+        _diveAmbiencePlayer.Stop();
+        Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { }));
+
+        try
+        {
+            PreparedMainWindow = new MainWindow(session);
+            TransitionWindow = new StartupLoadingWindow();
+            TransitionWindow.Show();
+            Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { }));
+            DialogResult = true;
+        }
+        catch
+        {
+            TransitionWindow?.Close();
+            TransitionWindow = null;
+            PreparedMainWindow = null;
+            Session = null;
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            Cursor = null;
+            UpdateWelcomeAudio();
+            throw;
+        }
     }
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)

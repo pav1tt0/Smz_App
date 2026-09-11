@@ -75,9 +75,25 @@ public partial class App : Application
                 return;
             }
 
-            var mainWindow = new MainWindow(landingWindow.Session);
+            var mainWindow = landingWindow.PreparedMainWindow ?? new MainWindow(landingWindow.Session);
+            var transitionWindow = landingWindow.TransitionWindow;
             MainWindow = mainWindow;
-            mainWindow.ShowDialog();
+            EventHandler? contentRenderedHandler = null;
+            contentRenderedHandler = (_, _) =>
+            {
+                mainWindow.ContentRendered -= contentRenderedHandler;
+                transitionWindow?.Close();
+            };
+            mainWindow.ContentRendered += contentRenderedHandler;
+            try
+            {
+                mainWindow.ShowDialog();
+            }
+            finally
+            {
+                mainWindow.ContentRendered -= contentRenderedHandler;
+                transitionWindow?.Close();
+            }
             if (mainWindow.LogoutRequested)
             {
                 continue;
