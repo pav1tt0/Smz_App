@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using Microsoft.Data.Sqlite;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Models;
@@ -27,6 +28,7 @@ internal static class Program
             Run("salvataggio e lettura servizio con immersione", TestSalvataggioELetturaServizio);
             Run("ripartizione straordinario stampa servizio", TestRipartizioneStraordinarioStampa);
             Run("autenticazione e ruoli di accesso", TestAccessi);
+            Run("ripristino backup sicuro", TestRipristinoBackupSicuro);
 
             Console.WriteLine("Tutti i test SMZ sono passati.");
             return 0;
@@ -334,6 +336,95 @@ internal static class Program
         AssertThrows(() => accessService.SetUserActive(101, 101, false), "L'amministratore ha sospeso il proprio account.");
     }
 
+    private static void TestRipristinoBackupSicuro()
+    {
+        const int presenteNelBackupPerId = 901;
+        const int aggiuntoDopoBackupPerId = 902;
+        const string exportFileName = "restore-test.txt";
+
+        var repository = new PersonaleRepository();
+        repository.SavePersonale(
+            CreaPersonale(presenteNelBackupPerId, "Backup", "Originale", "BCKRGN80A01H501M", "backup.originale"),
+            isNewRecord: true);
+
+        Directory.CreateDirectory(DatabasePaths.ExportDirectory);
+        var exportFilePath = Path.Combine(DatabasePaths.ExportDirectory, exportFileName);
+        File.WriteAllText(exportFilePath, "contenuto-del-backup");
+
+        var backupService = new BackupService();
+        var validBackup = backupService.CreateLocalBackup("test-restore");
+
+        repository.SavePersonale(
+            CreaPersonale(aggiuntoDopoBackupPerId, "Corrente", "DaPreservare", "CRRDPR80A01H501N", "corrente.preservare"),
+            isNewRecord: true);
+        File.WriteAllText(exportFilePath, "contenuto-corrente");
+
+        var unsafeBackupPath = Path.Combine(DatabasePaths.BackupsDirectory, "percorso-non-sicuro.smzbak");
+        using (var archive = ZipFile.Open(unsafeBackupPath, ZipArchiveMode.Create))
+        {
+            var unsafeEntry = archive.CreateEntry("../intrusione.txt");
+            using var writer = new StreamWriter(unsafeEntry.Open());
+            writer.Write("contenuto non autorizzato");
+        }
+
+        var backupCountBeforeUnsafeRestore = Directory
+            .EnumerateFiles(DatabasePaths.LocalBackupDirectory, "*.smzbak", SearchOption.TopDirectoryOnly)
+            .Count();
+        var unsafeRestoreException = CaptureException(
+            () => backupService.RestoreBackup(unsafeBackupPath),
+            "Un archivio con attraversamento di percorso e stato accettato.");
+        AssertTrue(
+            unsafeRestoreException.Message.Contains("percorso non sicuro", StringComparison.OrdinalIgnoreCase),
+            "Il percorso non sicuro non e stato riconosciuto esplicitamente.");
+        AssertEqual(
+            backupCountBeforeUnsafeRestore,
+            Directory.EnumerateFiles(DatabasePaths.LocalBackupDirectory, "*.smzbak", SearchOption.TopDirectoryOnly).Count(),
+            "Backup di sicurezza creati per un archivio non valido");
+        AssertTrue(
+            repository.GetPersonaleById(aggiuntoDopoBackupPerId) is not null,
+            "Un backup non valido ha modificato il database corrente.");
+        AssertEqual(
+            "contenuto-corrente",
+            File.ReadAllText(exportFilePath),
+            "Export dopo rifiuto backup non valido");
+
+        Directory.Delete(DatabasePaths.ExportDirectory, recursive: true);
+        File.WriteAllText(DatabasePaths.ExportDirectory, "blocco controllato del test");
+
+        var rollbackException = CaptureException(
+            () => backupService.RestoreBackup(validBackup.BackupPath),
+            "Un errore durante l'applicazione del backup non e stato segnalato.");
+        AssertTrue(
+            rollbackException.Message.Contains("ripristinati automaticamente", StringComparison.OrdinalIgnoreCase),
+            "Il test non ha raggiunto il rollback successivo allo scambio del database.");
+        AssertTrue(
+            repository.GetPersonaleById(aggiuntoDopoBackupPerId) is not null,
+            "Il rollback non ha ripristinato il database precedente.");
+        AssertTrue(
+            File.Exists(DatabasePaths.ExportDirectory),
+            "Il rollback ha alterato il file usato per simulare l'errore sugli export.");
+
+        File.Delete(DatabasePaths.ExportDirectory);
+        Directory.CreateDirectory(DatabasePaths.ExportDirectory);
+        File.WriteAllText(exportFilePath, "contenuto-corrente");
+
+        var restoreResult = backupService.RestoreBackup(validBackup.BackupPath);
+        var restoredRepository = new PersonaleRepository();
+        AssertTrue(
+            restoredRepository.GetPersonaleById(presenteNelBackupPerId) is not null,
+            "Il record presente nel backup non e stato ripristinato.");
+        AssertTrue(
+            restoredRepository.GetPersonaleById(aggiuntoDopoBackupPerId) is null,
+            "Il database attivo non e stato sostituito dal backup validato.");
+        AssertEqual(
+            "contenuto-del-backup",
+            File.ReadAllText(exportFilePath),
+            "Export ripristinato");
+        AssertTrue(
+            File.Exists(restoreResult.SafetyBackupPath),
+            "Il backup di sicurezza precedente al restore non e stato conservato.");
+    }
+
     private static Personale CreaPersonale(int perId, string cognome, string nome, string codiceFiscale, string mail)
     {
         return new Personale
@@ -382,6 +473,20 @@ internal static class Program
         catch
         {
             return;
+        }
+
+        throw new InvalidOperationException(message);
+    }
+
+    private static Exception CaptureException(Action action, string message)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception ex)
+        {
+            return ex;
         }
 
         throw new InvalidOperationException(message);

@@ -12,11 +12,14 @@ public partial class MainWindow : Window
 
     private readonly AccessSession _session;
 
+    private bool _skipUnsavedChangesPrompt;
+
     public MainWindow(AccessSession session)
     {
         InitializeComponent();
         _session = session;
         _viewModel = new MainWindowViewModel(session);
+        _viewModel.ReauthenticationRequired += ViewModel_ReauthenticationRequired;
         DataContext = _viewModel;
 
         Closing += MainWindow_Closing;
@@ -41,8 +44,20 @@ public partial class MainWindow : Window
         Close();
     }
 
+    private void ViewModel_ReauthenticationRequired(object? sender, EventArgs e)
+    {
+        _skipUnsavedChangesPrompt = true;
+        LogoutRequested = true;
+        Close();
+    }
+
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
+        if (_skipUnsavedChangesPrompt)
+        {
+            return;
+        }
+
         var areeConModifiche = _viewModel.GetAreeConModificheNonSalvate();
         if (areeConModifiche.Count == 0)
         {

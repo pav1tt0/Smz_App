@@ -16,6 +16,8 @@ namespace SMZ.Conta.App.ViewModels;
 
 public sealed partial class MainWindowViewModel : ObservableObject
 {
+    public event EventHandler? ReauthenticationRequired;
+
     private void CreaBackupLocaleManuale()
     {
         try
@@ -124,8 +126,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
+        var areeConModifiche = GetAreeConModificheNonSalvate();
+        var avvisoModifiche = areeConModifiche.Count == 0
+            ? string.Empty
+            : $"\n\nAttenzione: le modifiche non salvate in {string.Join(", ", areeConModifiche)} andranno perse.";
         var conferma = MessageBox.Show(
-            $"Ripristinare il backup selezionato?\n\n{dialog.FileName}\n\nPrima del ripristino verra creato un backup di sicurezza locale del database attuale.",
+            $"Ripristinare il backup selezionato?\n\n{dialog.FileName}\n\nIl file verra controllato prima di sostituire i dati. Sara creato un backup di sicurezza del database attuale e, al termine, sara necessario accedere nuovamente.{avvisoModifiche}",
             "Ripristina backup",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
@@ -138,14 +144,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             var result = _backupService.RestoreBackup(dialog.FileName);
-            RicaricaDatiApplicazioneDaDatabase();
             AggiornaStatoBackup();
-            Stato = $"Backup ripristinato: {Path.GetFileName(result.RestoredBackupPath)}";
+            Stato = $"Backup ripristinato: {Path.GetFileName(result.RestoredBackupPath)}. Nuovo accesso richiesto.";
             MessageBox.Show(
-                $"Ripristino completato.\n\nBackup applicato:\n{result.RestoredBackupPath}\n\nBackup di sicurezza creato prima del restore:\n{result.SafetyBackupPath}",
+                $"Ripristino completato e verificato.\n\nBackup applicato:\n{result.RestoredBackupPath}\n\nBackup di sicurezza creato prima del restore:\n{result.SafetyBackupPath}\n\nLa sessione corrente verra chiusa: accedi nuovamente con un account presente nel database ripristinato.",
                 "Ripristino backup",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
+            ReauthenticationRequired?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
