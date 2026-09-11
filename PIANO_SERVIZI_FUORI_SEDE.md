@@ -34,7 +34,7 @@ Non è consigliato copiare fuori sede l'intero database SQLite, perché contiene
 - [x] Dopo l'importazione vengono ricaricati servizi, anni e dati mensili ed è avviato un backup locale.
 - [x] La contabilita fuori sede ricava dal database personale presente, date e giornate di impiego.
 - [x] È disponibile il prospetto mensile dell'indennita fuori sede esportabile in Word.
-- [x] Nella copia di lavoro corrente, il numero dell'ordine viene proposto automaticamente usando il giorno progressivo dell'anno (`001`-`366`). Questa modifica è ancora da inserire in un commit.
+- [x] Il numero dell'ordine viene proposto automaticamente usando il giorno progressivo dell'anno (`001`-`366`); la modifica è stata pubblicata nel commit `73a79da`.
 
 ### Funzioni mancanti o incomplete
 
