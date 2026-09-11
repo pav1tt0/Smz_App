@@ -120,7 +120,7 @@
                                              Background="Transparent">
                                         <ListBox.ItemsPanel>
                                             <ItemsPanelTemplate>
-                                                <UniformGrid Columns="4" />
+                                                <UniformGrid Columns="3" />
                                             </ItemsPanelTemplate>
                                         </ListBox.ItemsPanel>
                                         <ListBox.ItemContainerStyle>
