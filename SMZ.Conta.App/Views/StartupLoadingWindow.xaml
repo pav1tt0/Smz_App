@@ -7,7 +7,6 @@
         ResizeMode="NoResize"
         WindowState="Maximized"
         ShowInTaskbar="False"
-        ShowActivated="False"
         Topmost="True"
         Background="#071528"
         FontFamily="Bahnschrift">
