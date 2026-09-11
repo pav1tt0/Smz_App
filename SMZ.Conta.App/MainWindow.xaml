@@ -8,10 +8,10 @@
         mc:Ignorable="d"
         Title="{Binding Titolo}"
         Icon="Assets/logo_smz.png"
-        Width="1660"
-        Height="960"
-        MinWidth="1460"
-        MinHeight="780"
+        Width="1280"
+        Height="760"
+        MinWidth="900"
+        MinHeight="560"
         WindowState="Maximized"
         Background="#071528"
         FontFamily="Bahnschrift">
@@ -797,7 +797,7 @@
                 Background="{StaticResource AppWorkspaceBrush}">
             <ScrollViewer Margin="20"
                           VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Disabled">
+                          HorizontalScrollBarVisibility="Auto">
                 <TabControl SelectedIndex="{Binding SezioneAttivaIndex}"
                             Style="{StaticResource HiddenTabControlStyle}">
                     <TabItem Header="Home"

@@ -4,8 +4,8 @@
         xmlns:views="clr-namespace:SMZ.Conta.App.Views"
         Title="SMZ La Spezia"
         Icon="/SMZ.App;component/Assets/logo_smz.ico"
-        Width="1660" Height="960"
-        MinWidth="1100" MinHeight="700"
+        Width="1280" Height="760"
+        MinWidth="900" MinHeight="560"
         WindowState="Maximized"
         Background="#071528"
         FontFamily="Bahnschrift">
