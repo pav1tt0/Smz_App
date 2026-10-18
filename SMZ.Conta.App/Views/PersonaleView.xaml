@@ -909,7 +909,7 @@
                                                     <RowDefinition Height="Auto" />
                                                 </Grid.RowDefinitions>
 
-                                                <TextBlock Text="Visite mediche obbligatorie"
+                                                <TextBlock Text="Visite mediche facoltative"
                                                            FontSize="19"
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource AppTextBrush}" />

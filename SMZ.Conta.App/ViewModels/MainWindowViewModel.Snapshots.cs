@@ -453,34 +453,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void AllineaVisitePredefinite()
     {
-        var visiteEsistenti = VisiteMediche
-            .GroupBy(item => item.TipoVisita.Trim(), StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
-
         var tipoSelezionato = SelectedVisita?.TipoVisita;
-        var righe = new List<VisitaMedicaRowViewModel>();
 
         foreach (var tipo in TipiVisitaMedicaCatalogo)
         {
-            visiteEsistenti.TryGetValue(tipo.Descrizione, out var esistente);
-            var dataUltimaVisita = esistente?.DataUltimaVisita ?? string.Empty;
-            var dataScadenza = CalcolaScadenzaVisita(tipo.Descrizione, TryParseDate(dataUltimaVisita));
-
-            righe.Add(new VisitaMedicaRowViewModel
+            if (VisiteMediche.Any(item => string.Equals(item.TipoVisita.Trim(), tipo.Descrizione, StringComparison.OrdinalIgnoreCase)))
             {
-                VisitaMedicaId = esistente?.VisitaMedicaId,
-                TipoVisita = tipo.Descrizione,
-                DataUltimaVisita = dataUltimaVisita,
-                DataScadenza = FormatDate(dataScadenza),
-                Esito = esistente?.Esito ?? string.Empty,
-                Note = esistente?.Note ?? string.Empty,
-            });
-        }
+                continue;
+            }
 
-        VisiteMediche.Clear();
-        foreach (var riga in righe)
-        {
-            VisiteMediche.Add(riga);
+            VisiteMediche.Add(new VisitaMedicaRowViewModel { TipoVisita = tipo.Descrizione });
         }
 
         SelectedVisita = VisiteMediche.FirstOrDefault(item => string.Equals(item.TipoVisita, tipoSelezionato, StringComparison.OrdinalIgnoreCase))

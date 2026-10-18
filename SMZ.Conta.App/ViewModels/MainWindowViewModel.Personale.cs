@@ -519,11 +519,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
 
             var dataUltimaVisita = ParseDate(VisitaDataUltimaVisita, $"Data ultima visita {VisitaTipoSelezionato.Descrizione}");
-            if (dataUltimaVisita is null)
-            {
-                throw new InvalidOperationException("La data ultima visita e obbligatoria.");
-            }
-
             var dataScadenza = CalcolaScadenzaVisita(VisitaTipoSelezionato.Descrizione, dataUltimaVisita);
             var nuovaRiga = new VisitaMedicaRowViewModel
             {

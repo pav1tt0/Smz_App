@@ -1,0 +1,67 @@
+SMZ TEST - SOLO MARIO ROSSI, PERID 12345
+=====================================
+
+INSTALLAZIONE SUL PC DI PROVA
+1. Copiare il file ZIP sul PC Windows a 64 bit.
+2. Tasto destro sullo ZIP, "Estrai tutto". Aprire la cartella estratta.
+3. Fare doppio clic su INSTALLA-E-AVVIA-SMZ-TEST.cmd.
+4. Attendere l'installazione e l'apertura di SMZ.
+
+Non occorrono diritti di amministratore, .NET da installare o Internet.
+L'installazione crea il collegamento "SMZ TEST - Mario Rossi 12345"
+sul desktop e nel menu Start. Usarlo per gli avvii successivi.
+Dopo l'installazione si puo rimuovere la cartella estratta dallo ZIP.
+
+PRIMO ACCESSO
+Premere il pulsante di ingresso nella schermata iniziale.
+Nella finestra "Prima configurazione: crea l'account amministratore":
+- PerID: 12345
+- Password: scegliere una password di almeno 10 caratteri
+- Ripetere la stessa password nella conferma
+- Premere CREA AMMINISTRATORE
+Non esiste una password preimpostata. Negli accessi successivi usare
+12345 e la password scelta. L'account ha i permessi di amministratore.
+
+CONTENUTO INIZIALE
+Un solo dipendente di prova: Mario Rossi, PerID 12345.
+Codice fiscale: TEST12345, segnaposto fittizio necessario alla scheda.
+Profilo: Operatore Subacqueo. Stato: Attivo. Gli altri campi sono vuoti.
+Nessuna visita, abilitazione personale, misura, scheda archiviata,
+servizio, immersione, elaborazione contabile, esportazione o backup.
+Nessun account gia creato: il primo viene configurato al primo accesso.
+Sono presenti soltanto i cataloghi standard necessari ai menu e ai
+calcoli: abilitazioni disponibili, localita, unita, scopi, gruppi,
+ruoli, apparati, fasce di profondita, categorie e tariffe standard.
+Il database e creato da zero; non deriva dall'anagrafica precedente.
+
+VISITE MEDICHE
+Le tre visite sono facoltative e non bloccano salvataggi, servizi
+o contabilita anche se mancanti o scadute. Scadenze informative:
+bimestrale 2 mesi, mantenimento brevetto 24 mesi, D.Lgs. 81/08 12 mesi.
+
+DOVE SI INSTALLA
+Programma: %LOCALAPPDATA%\Programs\SMZ-Test-MarioRossi-12345
+Database: %LOCALAPPDATA%\SMZ\Test-MarioRossi-12345\smz-conta.db
+Backup ed esportazioni della prova sono nelle sottocartelle dello
+stesso percorso dati. Per aprirlo: Windows+R, incollare
+%LOCALAPPDATA%\SMZ\Test-MarioRossi-12345 e premere Invio.
+
+COESISTENZA E REINSTALLAZIONE
+Questa prova usa una cartella dati distinta da SMZ ordinario.
+L'eventuale database %LOCALAPPDATA%\SMZ\Conta non viene importato
+ne sostituito. Anche l'eseguibile del pacchetto ha un profilo dati
+di test separato. Per l'uso quotidiano preferire il collegamento.
+Ripetere l'installazione aggiorna il programma e conserva i dati
+gia inseriti in QUESTA prova: non azzera il database.
+
+PER RICOMINCIARE DA ZERO
+Chiudere SMZ TEST. Aprire %LOCALAPPDATA%\SMZ con Windows+R.
+Rinominare la sola cartella Test-MarioRossi-12345 aggiungendo
+"-copia" e la data, conservandola come copia della prova precedente.
+Ripetere INSTALLA-E-AVVIA-SMZ-TEST.cmd dal pacchetto estratto.
+Ricomparira soltanto Mario Rossi e si scegliera una nuova password.
+
+SE NON PARTE
+Verificare di avere estratto TUTTO lo ZIP e di non avviare dal suo
+interno. Chiudere SMZ TEST prima di reinstallare. Se compare un
+errore, conservare il testo visualizzato per l'assistenza.

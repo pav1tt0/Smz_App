@@ -1,0 +1,103 @@
+Ciao. Ho completato un audit statico esteso del progetto. L’app compila e i test attuali passano, ma **non la considererei ancora pronta per trattare dati reali sensibili**: ho confermato 4 problemi ad alta priorità e diversi problemi di integrità/logica.
+
+## Problemi ad alta priorità
+
+1. **Dipendenza SQLite vulnerabile**
+
+   `Microsoft.Data.Sqlite 10.0.5` porta `SQLitePCLRaw.lib.e_sqlite3 2.1.11`, interessata da **CVE-2025-6965**, gravità alta, con possibile corruzione della memoria. Inoltre `NuGetAudit` è disattivato sia nell’[app](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/SMZ.Conta.App.csproj:11) sia nei [test](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.Tests/SMZ.Conta.Tests.csproj:7), quindi una compilazione normale non segnala il problema.
+
+   L’advisory indica come vulnerabili le versioni fino alla 2.1.11 e raccomanda SQLite 3.50.2 o superiore. [GitHub Advisory](https://github.com/advisories/GHSA-2m69-gcr7-jv3q) e [NuGet SQLitePCLRaw](https://www.nuget.org/packages/SQLitePCLRaw.lib.e_sqlite3/2.1.12).
+
+   Azione: aggiornare in un ramo isolato, riattivare `NuGetAudit`, verificare la versione SQLite effettivamente caricata e rieseguire l’audit. `Microsoft.Data.Sqlite 10.0.12` richiede già SQLitePCLRaw almeno 2.1.12. [Dipendenze NuGet](https://www.nuget.org/packages/Microsoft.Data.Sqlite/10.0.12).
+
+2. **Database, backup ed esportazioni non cifrati**
+
+   Il database SQLite è salvato in chiaro sotto `%LocalAppData%` ([DatabasePaths.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/Data/DatabasePaths.cs:10)). Contiene dati anagrafici, sanitari, contabili e hash delle credenziali.
+
+   I backup `.smzbak` sono normali archivi ZIP non cifrati e includono sia il database sia la cartella `Export` ([BackupService.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/Data/BackupService.cs:125)). Anche JSON, CSV, DOCX e XLSX vengono prodotti in chiaro.
+
+   Chi ottiene il file del database o un backup può leggere tutti i dati e tentare offline il cracking delle password. Servono cifratura a riposo, protezione delle chiavi, ACL restrittive e una politica sicura per copie esterne ed esportazioni.
+
+3. **Ripristino backup non sicuro e senza rollback**
+
+   [RestoreBackup](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/Data/BackupService.cs:60):
+
+   - estrae l’archivio senza limiti espliciti di dimensione o numero di file;
+   - non verifica firma, manifest, versione o schema;
+   - sostituisce il database attivo prima di verificarne integrità e compatibilità;
+   - può cancellare gli export correnti;
+   - in caso di errore non ripristina automaticamente la copia di sicurezza.
+
+   Dopo il ripristino, la sessione amministrativa rimane inoltre in memoria ([MainWindowViewModel.Backup.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/ViewModels/MainWindowViewModel.Backup.cs:138)). È quindi possibile ripristinare un database nel quale l’utente corrente non esiste o è sospeso e continuare a operare con i privilegi precedenti.
+
+   Il ripristino dovrebbe essere validato in una directory temporanea con `PRAGMA integrity_check`, schema/versione attesi, limiti anti-zip-bomb e autenticità del pacchetto; solo dopo si dovrebbe fare uno scambio atomico, con rollback e logout obbligatorio.
+
+4. **Account ancora utilizzabile dopo la cancellazione del personale**
+
+   La creazione di un utente verifica inizialmente l’esistenza del dipendente ([AccessService.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/Data/AccessService.cs:122)), ma la tabella degli utenti non ha un vincolo verso `Personale`.
+
+   La cancellazione definitiva del dipendente ([PersonaleRepository.PersonaleSave.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/Data/PersonaleRepository.PersonaleSave.cs:151)) non elimina né sospende il relativo account. Un ex dipendente — anche amministratore — può quindi continuare ad autenticarsi.
+
+## Problemi di gravità media
+
+5. **Importazione servizi facilmente duplicabile o manipolabile**
+
+   [ServizioScambioService.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/Data/ServizioScambioService.cs:43) importa JSON non firmati, legge l’intero file in memoria e applica controlli più deboli rispetto all’inserimento da interfaccia.
+
+   L’identificativo del servizio sorgente viene esportato ma non usato per impedire reimportazioni: lo stesso pacchetto può generare più servizi identici e alterare la contabilità. Mancano inoltre controlli completi su immersioni duplicate, ore, profondità, presenza dei partecipanti e coerenza temporale.
+
+6. **Autenticazione e autorizzazione insufficientemente robuste**
+
+   Non risultano:
+
+   - limitazione dei tentativi o blocco temporaneo;
+   - scadenza della sessione per inattività;
+   - rivalutazione dell’account dopo sospensione o cambio ruolo;
+   - audit log delle operazioni;
+   - ruoli granulari per dati sanitari, contabilità ed esportazioni.
+
+   Aspetto positivo: le password usano PBKDF2-SHA256, sale casuale, 310.000 iterazioni e confronto constant-time ([AccessService.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/Data/AccessService.cs:10)).
+
+7. **Le modifiche ai cataloghi predefiniti vengono perse**
+
+   L’interfaccia consente agli amministratori di modificare località e unità navali ([SettingsView.xaml](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/Views/SettingsView.xaml:50)), ma all’avvio il seeding esegue `ON CONFLICT ... DO UPDATE` e riscrive descrizione, provincia, ordine e stato attivo ([DatabaseInitializer.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/Data/DatabaseInitializer.cs:820)).
+
+   Le modifiche sembrano salvate, ma possono tornare ai valori iniziali al riavvio.
+
+8. **Chiusure contabili non realmente immutabili e calcoli con `REAL`**
+
+   Una mensilità “congelata” può essere rigenerata, cancellando e sostituendo le righe precedenti ([MainWindowViewModel.Accounting.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/ViewModels/MainWindowViewModel.Accounting.cs:460)). Non rimangono versione precedente, autore, motivazione o cronologia.
+
+   Inoltre tariffe, ore e importi sono salvati come SQLite `REAL`, quindi con virgola mobile binaria. Per dati destinati ai pagamenti è preferibile usare centesimi e minuti interi, con una regola esplicita di arrotondamento.
+
+9. **Formula injection nei CSV**
+
+   L’escaping CSV protegge virgolette e separatori, ma non neutralizza valori che iniziano con `=`, `+`, `-` o `@` ([MainWindowViewModel.Snapshots.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/ViewModels/MainWindowViewModel.Snapshots.cs:600)).
+
+   Un valore malevolo importato o inserito nei campi anagrafici può diventare una formula quando il CSV viene aperto in Excel. L’export XLSX usa stringhe testuali ed è meno esposto a questo specifico problema.
+
+10. **Politica backup fragile**
+
+   La conservazione mantiene semplicemente gli ultimi 20/30 file ([BackupService.cs](C:/Users/LENOVO/Desktop/SMZ/SMZ.Conta.App/Data/BackupService.cs:265)). Poiché molti salvataggi producono un backup, l’intera cronologia può coprire soltanto poche ore.
+
+   Inoltre:
+
+   - creando la copia di sicurezza prima del ripristino, il pruning può cancellare proprio il backup più vecchio selezionato;
+   - una configurazione JSON corrotta viene ignorata e sostituita silenziosamente con i valori predefiniti;
+   - non risulta una configurazione di firma digitale dell’eseguibile.
+
+## Rischi e copertura
+
+Nel repository sono presenti documenti Office operativi, compreso il nuovo `Foglio di servizio SMZ 2026.docx` già in staging. Alcuni contengono strutture con nominativi e importi. Non ho potuto confermare la visibilità del repository remoto: va verificato che questi documenti siano anonimizzati e che nessun dato reale venga conservato nella cronologia Git.
+
+Le verifiche tecniche hanno dato:
+
+- build Release riuscita con 0 errori e 0 warning;
+- tutti i 5 scenari del test runner superati;
+- nessuna chiave privata, password hardcoded o secret evidente;
+- query applicative generalmente parametrizzate, senza una SQL injection evidente;
+- test però molto limitati: non coprono backup/ripristino, import ostili, duplicazioni, sessioni revocate, CSV, chiusure contabili e migrazioni.
+
+Ordine consigliato: dipendenza SQLite → ripristino sicuro → cifratura → ciclo di vita degli account → importazione/idempotenza → audit e ruoli → contabilità/cataloghi/CSV.
+
+Non ho modificato alcun file e ho lasciato intatto il documento già in staging.

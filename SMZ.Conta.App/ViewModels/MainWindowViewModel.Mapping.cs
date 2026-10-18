@@ -792,58 +792,24 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private List<VisitaMedica> BuildVisite()
     {
-        if (IsProfiloSanitario)
-        {
-            return VisiteMediche
-                .Where(row => !string.IsNullOrWhiteSpace(row.DataUltimaVisita))
-                .Select(row =>
-                {
-                    var tipoVisita = row.TipoVisita.Trim();
-                    var dataUltimaVisita = ParseDate(row.DataUltimaVisita, $"Data ultima visita {row.TipoVisita}");
-                    var dataScadenzaManuale = ParseDate(row.DataScadenza, $"Data scadenza visita {row.TipoVisita}");
-                    var dataScadenza = CalcolaScadenzaVisita(tipoVisita, dataUltimaVisita) ?? dataScadenzaManuale;
-
-                    return new VisitaMedica
-                    {
-                        VisitaMedicaId = row.VisitaMedicaId ?? 0,
-                        PerId = PerId,
-                        TipoVisita = tipoVisita,
-                        DataUltimaVisita = dataUltimaVisita,
-                        DataScadenza = dataScadenza,
-                        Esito = row.Esito.Trim(),
-                        Note = row.Note.Trim(),
-                    };
-                })
-                .ToList();
-        }
-
         var items = new List<VisitaMedica>();
-        var visitePerTipo = VisiteMediche.ToDictionary(
-            row => row.TipoVisita.Trim(),
-            row => row,
-            StringComparer.OrdinalIgnoreCase);
 
-        foreach (var tipo in TipiVisitaMedicaCatalogo)
+        foreach (var row in VisiteMediche)
         {
-            if (!visitePerTipo.TryGetValue(tipo.Descrizione, out var row))
+            // Le righe predefinite vuote sono facoltative; conserva ogni dato gia registrato.
+            if (row.VisitaMedicaId is not > 0
+                && string.IsNullOrWhiteSpace(row.DataUltimaVisita)
+                && string.IsNullOrWhiteSpace(row.DataScadenza)
+                && string.IsNullOrWhiteSpace(row.Esito)
+                && string.IsNullOrWhiteSpace(row.Note))
             {
-                throw new InvalidOperationException($"{tipo.Descrizione}: visita obbligatoria non presente in scheda.");
-            }
-
-            if (string.IsNullOrWhiteSpace(row.DataUltimaVisita))
-            {
-                throw new InvalidOperationException($"{tipo.Descrizione}: la data ultima visita e obbligatoria.");
+                continue;
             }
 
             var tipoVisita = row.TipoVisita.Trim();
             var dataUltimaVisita = ParseDate(row.DataUltimaVisita, $"Data ultima visita {row.TipoVisita}");
             var dataScadenzaManuale = ParseDate(row.DataScadenza, $"Data scadenza visita {row.TipoVisita}");
-            var dataScadenza = CalcolaScadenzaVisita(tipoVisita, dataUltimaVisita) ?? dataScadenzaManuale;
-
-            if (CatalogoVisiteMediche.TrovaPerDescrizione(tipoVisita) is not null && dataUltimaVisita is null)
-            {
-                throw new InvalidOperationException($"{tipoVisita}: la data ultima visita e obbligatoria per calcolare la scadenza.");
-            }
+            var dataScadenza = dataScadenzaManuale ?? CalcolaScadenzaVisita(tipoVisita, dataUltimaVisita);
 
             items.Add(new VisitaMedica
             {

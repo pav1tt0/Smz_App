@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Reflection;
 using Microsoft.Data.Sqlite;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Models;
@@ -22,9 +23,12 @@ internal static class Program
             DatabaseInitializer.EnsureDatabase();
 
             Run("database isolato", TestDatabaseIsolato);
+            Run("separazione dati pacchetto test", TestProfiloDatiPacchetto);
             Run("versione SQLite sicura", TestVersioneSqliteSicura);
             Run("numero ordine servizio automatico", TestNumeroOrdineServizioAutomatico);
             Run("salvataggio e lettura anagrafica", TestSalvataggioELetturaPersonale);
+            Run("visite facoltative nell'anagrafica", TestVisiteFacoltative);
+            Run("conservazione visite gia registrate", TestConservazioneVisite);
             Run("salvataggio e lettura servizio con immersione", TestSalvataggioELetturaServizio);
             Run("ripartizione straordinario stampa servizio", TestRipartizioneStraordinarioStampa);
             Run("autenticazione e ruoli di accesso", TestAccessi);
@@ -70,6 +74,34 @@ internal static class Program
         AssertTrue(
             DatabasePaths.DatabasePath.Contains(Path.Combine("smz-conta-tests"), StringComparison.OrdinalIgnoreCase),
             $"Il database non punta alla cartella temporanea: {DatabasePaths.DatabasePath}");
+    }
+
+    private static void TestProfiloDatiPacchetto()
+    {
+        var originalOverride = Environment.GetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable);
+        var originalProfile = AppContext.GetData(DatabasePaths.DataProfileAppContextKey);
+        try
+        {
+            Environment.SetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable, null);
+            AppContext.SetData(DatabasePaths.DataProfileAppContextKey, null);
+            var localData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            AssertEqual(Path.Combine(localData, "SMZ", "Conta"), DatabasePaths.AppDataDirectory, "Percorso versione ordinaria");
+
+            AppContext.SetData(DatabasePaths.DataProfileAppContextKey, "Test-MarioRossi-12345");
+            AssertEqual(Path.Combine(localData, "SMZ", "Test-MarioRossi-12345"), DatabasePaths.AppDataDirectory, "Percorso pacchetto test");
+
+            Environment.SetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable, originalOverride);
+            AssertEqual(originalOverride, DatabasePaths.AppDataDirectory, "Priorita del database isolato");
+
+            Environment.SetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable, null);
+            AppContext.SetData(DatabasePaths.DataProfileAppContextKey, "..\\Conta");
+            AssertThrows(() => _ = DatabasePaths.AppDataDirectory, "Accettato un profilo dati esterno alla cartella SMZ.");
+        }
+        finally
+        {
+            AppContext.SetData(DatabasePaths.DataProfileAppContextKey, originalProfile);
+            Environment.SetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable, originalOverride);
+        }
     }
 
     private static void TestVersioneSqliteSicura()
@@ -127,11 +159,136 @@ internal static class Program
         AssertTrue(search.Any(item => item.PerId == 101), "Ricerca personale non trova la scheda salvata.");
     }
 
+    private static void TestVisiteFacoltative()
+    {
+        var viewModel = new MainWindowViewModel
+        {
+            PerIdInput = "110",
+            Cognome = "Test",
+            Nome = "Visite facoltative",
+            CodiceFiscale = "TSTVST80A01H501A",
+        };
+
+        var loaded = SalvaSchedaPerTest(viewModel);
+        AssertEqual(0, loaded.VisiteMediche.Count, "Nuova scheda senza visite");
+        viewModel.VisiteMediche.Clear();
+        loaded = SalvaSchedaPerTest(viewModel);
+        AssertEqual(0, loaded.VisiteMediche.Count, "Scheda senza righe visita");
+
+        foreach (var tipo in CatalogoVisiteMediche.Tutte)
+        {
+            viewModel.VisitaTipoSelezionato = tipo;
+            viewModel.VisitaDataUltimaVisita = "01/01/2020";
+            viewModel.VisitaEsito = "Da verificare";
+            viewModel.VisitaNote = "Visita scaduta di test";
+            viewModel.SaveVisitaCommand.Execute(null);
+            loaded = SalvaSchedaPerTest(viewModel);
+            var visita = loaded.VisiteMediche.Single(item => item.TipoVisita == tipo.Descrizione);
+            var mesi = tipo.Codice switch
+            {
+                "BIMESTRALE" => 2,
+                "DLGS_81_08" => 12,
+                _ => 24,
+            };
+            AssertEqual<DateOnly?>(new DateOnly(2020, 1, 1).AddMonths(mesi), visita.DataScadenza, "Scadenza informativa");
+            AssertEqual("Visita scaduta di test", visita.Note, "Note visita scaduta");
+        }
+
+        AssertEqual(3, loaded.VisiteMediche.Count, "Scheda con tutte le visite scadute");
+        AssertTrue(viewModel.OperatoriServizioDisponibili.Any(item => item.PerId == 110), "Operatore escluso dai servizi per visite scadute.");
+
+        viewModel.VisitaDataUltimaVisita = string.Empty;
+        viewModel.VisitaEsito = string.Empty;
+        viewModel.VisitaNote = "Annotazione senza data";
+        viewModel.SaveVisitaCommand.Execute(null);
+        loaded = SalvaSchedaPerTest(viewModel);
+        var senzaData = loaded.VisiteMediche.Single(item => item.TipoVisita == viewModel.VisitaTipoSelezionato!.Descrizione);
+        AssertTrue(senzaData.DataUltimaVisita is null && senzaData.DataScadenza is null, "La visita senza data ha conservato date precedenti.");
+        AssertEqual("Annotazione senza data", senzaData.Note, "Note senza data");
+
+        foreach (var tipo in CatalogoVisiteMediche.Tutte)
+        {
+            viewModel.VisitaTipoSelezionato = tipo;
+            viewModel.RemoveVisitaCommand.Execute(null);
+        }
+
+        loaded = SalvaSchedaPerTest(viewModel);
+        AssertEqual(0, loaded.VisiteMediche.Count, "Rimozione di tutte le visite");
+        AssertTrue(viewModel.OperatoriServizioDisponibili.Any(item => item.PerId == 110), "Operatore escluso dai servizi senza visite.");
+    }
+
+    private static void TestConservazioneVisite()
+    {
+        var repository = new PersonaleRepository();
+        var perId = 111;
+        foreach (var profilo in ProfiliPersonaleCatalogo.Tutti)
+        {
+            var personale = CreaPersonale(perId, "Test", "Conservazione visite", $"TEST{perId}", string.Empty);
+            personale.ProfiloPersonale = profilo;
+            personale.RuoloSanitario = ProfiliPersonaleCatalogo.IsSanitario(profilo) ? "Sanitario" : string.Empty;
+            personale.VisiteMediche =
+            [
+                new VisitaMedica
+                {
+                    TipoVisita = CatalogoVisiteMediche.Tutte.Single(item => item.Codice == "DLGS_81_08").Descrizione,
+                    DataUltimaVisita = new DateOnly(2020, 1, 1),
+                    DataScadenza = new DateOnly(2021, 1, 1),
+                    Esito = "Esito preesistente",
+                    Note = "Scadenza gia registrata",
+                },
+                new VisitaMedica
+                {
+                    TipoVisita = CatalogoVisiteMediche.Tutte.Single(item => item.Codice == "BIMESTRALE").Descrizione,
+                    DataScadenza = new DateOnly(2020, 3, 1),
+                    Note = "Data ultima visita mancante",
+                },
+                new VisitaMedica { TipoVisita = "Visita storica fuori catalogo", Note = "Da conservare" },
+            ];
+            repository.SavePersonale(personale, isNewRecord: true);
+            var viewModel = new MainWindowViewModel();
+            viewModel.SelectedPersonale = viewModel.PersonaleItems.Single(item => item.PerId == perId);
+            viewModel.Telefono1 = "123456";
+            var loaded = SalvaSchedaPerTest(viewModel);
+
+            AssertEqual("123456", loaded.Telefono1, "Modifica anagrafica con visite incomplete");
+            AssertEqual(personale.VisiteMediche.Count, loaded.VisiteMediche.Count, "Numero visite conservate");
+            foreach (var originale in personale.VisiteMediche)
+            {
+                var visita = loaded.VisiteMediche.Single(item => item.TipoVisita == originale.TipoVisita);
+                AssertEqual(originale.DataUltimaVisita, visita.DataUltimaVisita, "Data visita conservata");
+                AssertEqual(originale.DataScadenza, visita.DataScadenza, "Scadenza conservata");
+                AssertEqual(originale.Esito, visita.Esito, "Esito conservato");
+                AssertEqual(originale.Note, visita.Note, "Note conservate");
+            }
+
+            perId++;
+        }
+    }
+
+    private static Personale SalvaSchedaPerTest(MainWindowViewModel viewModel)
+    {
+        // Esegui prima la validazione senza finestre modali, per fallire subito in caso di regressione.
+        var buildModel = typeof(MainWindowViewModel).GetMethod("BuildModelFromEditor", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var personale = (Personale)buildModel.Invoke(viewModel, null)!;
+        viewModel.SaveCommand.Execute(null);
+        AssertEqual($"Scheda salvata con PerID {personale.PerId}", viewModel.Stato, "Salvataggio da interfaccia");
+        return new PersonaleRepository().GetPersonaleById(personale.PerId)
+            ?? throw new InvalidOperationException("Scheda non riletta dopo il salvataggio da interfaccia.");
+    }
+
     private static void TestSalvataggioELetturaServizio()
     {
         var repository = new PersonaleRepository();
         repository.SavePersonale(CreaPersonale(201, "Bianchi", "Luca", "BNCLCU81A01H501J", "luca.bianchi"), isNewRecord: true);
-        repository.SavePersonale(CreaPersonale(202, "Verdi", "Anna", "VRDNNA82A41H501K", "anna.verdi"), isNewRecord: true);
+        var personaleConVisiteScadute = CreaPersonale(202, "Verdi", "Anna", "VRDNNA82A41H501K", "anna.verdi");
+        personaleConVisiteScadute.VisiteMediche = CatalogoVisiteMediche.Tutte.Select(tipo => new VisitaMedica
+        {
+            TipoVisita = tipo.Descrizione,
+            DataUltimaVisita = new DateOnly(2020, 1, 1),
+            DataScadenza = new DateOnly(2020, 1, 1).AddMonths(tipo.MesiValidita!.Value),
+            Esito = "Da verificare",
+        }).ToList();
+        repository.SavePersonale(personaleConVisiteScadute, isNewRecord: true);
         repository.SavePersonale(CreaSanitario(203, "Neri", "Paolo", "NREPLA83A01H501L", "paolo.neri"), isNewRecord: true);
 
         var cataloghi = repository.GetCataloghiServizio();

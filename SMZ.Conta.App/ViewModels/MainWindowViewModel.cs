@@ -2221,11 +2221,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string ScadenzeTitolo => "Scadute e in scadenza entro 90 giorni";
 
-    public string RegoleVisiteTitolo => "Regole visite mediche";
+    public string RegoleVisiteTitolo => "Visite facoltative - scadenze informative";
 
     public string RegoleVisiteDescrizione =>
-        "Mantenimento brevetto M.M.: scadenza automatica a 24 mesi dalla data visita. D.Lgs. 81/08: scadenza automatica a 12 mesi. "
-        + "Visita bimestrale: scadenza automatica a 2 mesi.";
+        "Le visite possono essere lasciate vuote. Visite mancanti o scadute non bloccano il salvataggio, i servizi o la contabilita. "
+        + "Scadenze informative dalla data visita: mantenimento brevetto M.M. a 24 mesi; D.Lgs. 81/08 a 12 mesi; bimestrale a 2 mesi.";
 
     public string AttagliamentoIndicazioni =>
         "Compila le 7 misure principali della scheda taglie. La struttura resta estendibile se in futuro dovrai aggiungere altre misure.";
@@ -2250,10 +2250,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             if (VisitaTipoSelezionato is null)
             {
-                return "Le tre visite sono obbligatorie e gia predisposte in scheda.";
+                return "Le tre visite sono facoltative e gia predisposte in scheda.";
             }
 
-            return VisitaTipoSelezionato.RegolaScadenza;
+            return $"{VisitaTipoSelezionato.RegolaScadenza}. Registrazione facoltativa, senza blocchi operativi.";
         }
     }
 
