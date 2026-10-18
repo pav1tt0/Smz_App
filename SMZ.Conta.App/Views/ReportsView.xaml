@@ -1,63 +1,57 @@
 <UserControl x:Class="SMZ.Conta.App.Views.ReportsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:infra="clr-namespace:SMZ.Conta.App.Infrastructure"
              xmlns:controls="clr-namespace:SMZ.Conta.App.Controls">
-    <Grid Margin="6">
+    <!-- Keep the report tables inside the workspace viewport. The outer
+         ScrollViewer otherwise measures them with unlimited width/height. -->
+    <Grid Margin="6"
+          MaxWidth="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType={x:Type ScrollViewer}}}"
+          MaxHeight="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType={x:Type ScrollViewer}}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="18" />
+            <RowDefinition Height="8" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Border Style="{DynamicResource CardStyle}">
-            <StackPanel>
-                <TextBlock Text="Stampe e Report"
-                           FontSize="22"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource AppTextBrush}" />
-                <TextBlock Margin="0,10,0,0"
-                           Text="Area unica per cercare dati salvati, preparare stampe e consultare report operativi."
-                           Foreground="{DynamicResource AppMutedTextBrush}"
-                           TextWrapping="Wrap" />
-            </StackPanel>
-        </Border>
+        <TextBlock Text="Stampe e report"
+                   FontSize="20"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource AppTextBrush}" />
 
         <TabControl Grid.Row="2">
             <TabItem Header="Servizi">
-                <Grid Margin="8">
+                <Grid Margin="4">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="18" />
+                        <RowDefinition Height="8" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <Border Style="{DynamicResource CardStyle}">
+                    <Border Style="{DynamicResource CardStyle}" Padding="12,8">
                         <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="18" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                            <StackPanel>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right"
+                                           Text="{Binding ServiziSalvatiStato}"
+                                           MaxWidth="350"
+                                           Margin="12,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           TextWrapping="Wrap" />
                                 <TextBlock Text="Stampa servizio giornaliero"
-                                           FontSize="20"
+                                           FontSize="18"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}" />
-                                <TextBlock Margin="0,8,0,0"
-                                           Text="{Binding ServiziSalvatiStato}"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,6,0,0"
-                                           Text="Cerca un servizio salvato per data, mese, numero ordine o localita, poi stampa il servizio selezionato."
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           FontSize="12"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
+                            </DockPanel>
 
-                            <StackPanel Grid.Column="2"
-                                        Orientation="Horizontal"
-                                        VerticalAlignment="Center">
+                            <WrapPanel Grid.Row="1"
+                                       Margin="0,6,0,0"
+                                       VerticalAlignment="Center">
                                 <StackPanel Width="210">
                                     <TextBlock Text="Localita"
                                                Foreground="{DynamicResource AppMutedTextBrush}" />
@@ -85,49 +79,50 @@
                                 </StackPanel>
 
                                 <Button Margin="12,20,0,0"
+                                        MinWidth="0"
+                                        Padding="12,6"
                                         Content="Pulisci"
                                         Command="{Binding ClearServiziSearchCommand}"
                                         Style="{DynamicResource SecondaryButtonStyle}" />
-
-                                <Button Margin="12,20,0,0"
-                                        Content="Stampa servizio"
-                                        Command="{Binding PrintServizioSelezionatoCommand}" />
-                            </StackPanel>
+                            </WrapPanel>
                         </Grid>
                     </Border>
 
                     <Border Grid.Row="2"
-                            Style="{DynamicResource CardStyle}">
+                            Style="{DynamicResource CardStyle}"
+                            Padding="12,10">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="14" />
+                                <RowDefinition Height="8" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
-                            <DockPanel LastChildFill="False">
-                                <StackPanel DockPanel.Dock="Left">
-                                    <TextBlock Text="Servizi trovati"
-                                               FontSize="18"
-                                               FontWeight="SemiBold"
-                                               Foreground="{DynamicResource AppTextBrush}" />
-                                    <TextBlock Margin="0,6,0,0"
-                                               Text="La selezione qui alimenta la stampa del servizio giornaliero."
-                                               Foreground="{DynamicResource AppMutedTextBrush}" />
-                                </StackPanel>
-
+                            <DockPanel>
                                 <StackPanel DockPanel.Dock="Right"
-                                            Orientation="Horizontal">
+                                            Orientation="Horizontal"
+                                            Margin="12,0,0,0">
+                                    <Button Content="Stampa servizio"
+                                            Command="{Binding PrintServizioSelezionatoCommand}"
+                                            MinWidth="0" Padding="12,6" Margin="0,0,8,0" />
                                     <Button Content="Apri servizio"
                                             Command="{Binding OpenServizioCommand}"
+                                            MinWidth="0" Padding="12,6" Margin="0,0,8,0"
                                             Style="{DynamicResource SecondaryButtonStyle}" />
                                     <Button Content="Esporta pacchetto"
                                             Command="{Binding ExportServizioPackageCommand}"
+                                            MinWidth="0" Padding="12,6" Margin="0"
                                             Style="{DynamicResource SecondaryButtonStyle}" />
                                 </StackPanel>
+                                <TextBlock Text="Servizi trovati"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource AppTextBrush}" />
                             </DockPanel>
 
                             <DataGrid Grid.Row="2"
+                                      infra:MouseWheelScrollViewerBehavior.ForwardToParent="False"
                                       ItemsSource="{Binding ServiziSalvati}"
                                       SelectedItem="{Binding SelectedServizioSalvato}"
                                       AutoGenerateColumns="False"
@@ -135,47 +130,75 @@
                                       IsReadOnly="True"
                                       HeadersVisibility="Column"
                                       RowHeaderWidth="0"
-                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                      FontSize="14"
+                                      ColumnWidth="Auto"
+                                      ColumnHeaderHeight="NaN"
+                                      RowHeight="NaN"
+                                      MinRowHeight="40"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Visible"
                                       ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <DataGrid.Resources>
+                                    <Style x:Key="ServiceCellTextStyle" TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="NoWrap" />
+                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                        <Setter Property="Margin" Value="8,6" />
+                                    </Style>
+                                </DataGrid.Resources>
+                                <DataGrid.ColumnHeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader"
+                                           BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                        <Setter Property="MinHeight" Value="48" />
+                                        <Setter Property="Padding" Value="8" />
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                        <Setter Property="ContentTemplate">
+                                            <Setter.Value>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding}"
+                                                               TextWrapping="NoWrap"
+                                                               VerticalAlignment="Center" />
+                                                </DataTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGrid.ColumnHeaderStyle>
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Data"
-                                                        Width="95"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Data"
                                                         Binding="{Binding DataServizio, StringFormat=dd/MM/yyyy}" />
-                                    <DataGridTextColumn Header="Ordine"
-                                                        Width="120"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Ordine"
                                                         Binding="{Binding NumeroOrdineServizio}" />
-                                    <DataGridTextColumn Header="Orario"
-                                                        Width="110"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Orario"
                                                         Binding="{Binding OrarioServizio}" />
-                                    <DataGridTextColumn Header="Localita"
-                                                        Width="1.2*"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Localita"
                                                         Binding="{Binding LocalitaDescrizione}" />
-                                    <DataGridTextColumn Header="Scopo"
-                                                        Width="1.4*"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Scopo"
                                                         Binding="{Binding ScopoDescrizione}" />
-                                    <DataGridTextColumn Header="Mezzo"
-                                                        Width="1*"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Mezzo"
                                                         Binding="{Binding UnitaNavaleDescrizione}" />
-                                    <DataGridTextColumn Header="Presenti"
-                                                        Width="80"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Presenti"
                                                         Binding="{Binding PresentiTotali}" />
-                                    <DataGridTextColumn Header="Imm."
-                                                        Width="65"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Immersioni"
                                                         Binding="{Binding ImmersioniTotali}" />
-                                    <DataGridTextColumn Header="Apparati"
-                                                        Width="145"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Apparati"
                                                         Binding="{Binding ApparatiDescrizione}" />
-                                    <DataGridTextColumn Header="Prof. max"
-                                                        Width="85"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Profondit&#224;&#10;massima"
                                                         Binding="{Binding ProfonditaMassimaDescrizione}" />
-                                    <DataGridTextColumn Header="Ore imm."
-                                                        Width="80"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Ore&#10;immersione"
                                                         Binding="{Binding OreImmersioneTotaliDescrizione}" />
-                                    <DataGridTextColumn Header="Categorie"
-                                                        Width="120"
+                                    <DataGridTextColumn ElementStyle="{StaticResource ServiceCellTextStyle}"
+                                                        Header="Categorie"
                                                         Binding="{Binding CategorieOreDescrizione}" />
-                                    <DataGridCheckBoxColumn Header="Fuori sede"
-                                                            Width="90"
+                                    <DataGridCheckBoxColumn Header="Fuori&#10;sede"
                                                             Binding="{Binding FuoriSede}" />
                                 </DataGrid.Columns>
                             </DataGrid>
