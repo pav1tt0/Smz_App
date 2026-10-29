@@ -26,7 +26,10 @@ internal static class Program
             Run("separazione dati pacchetto test", TestProfiloDatiPacchetto);
             Run("versione SQLite sicura", TestVersioneSqliteSicura);
             Run("numero ordine servizio automatico", TestNumeroOrdineServizioAutomatico);
+            Run("abbreviazioni qualifiche e gerarchia", TestAbbreviazioniQualifiche);
             Run("salvataggio e lettura anagrafica", TestSalvataggioELetturaPersonale);
+            Run("date abilitazioni facoltative", TestDateAbilitazioniFacoltative);
+            Run("visita bimestrale disattivata", TestVisitaBimestraleDisattivata);
             Run("visite facoltative nell'anagrafica", TestVisiteFacoltative);
             Run("conservazione visite gia registrate", TestConservazioneVisite);
             Run("salvataggio e lettura servizio con immersione", TestSalvataggioELetturaServizio);
@@ -140,6 +143,34 @@ internal static class Program
         AssertEqual("MANUALE", viewModel.ServizioNumeroOrdine, "Numero ordine modificato manualmente");
     }
 
+    private static void TestAbbreviazioniQualifiche()
+    {
+        AssertEqual(string.Empty, QualificaFormatter.Abbrevia(null), "Qualifica assente");
+        AssertEqual("Isp.", QualificaFormatter.Abbrevia("Ispettore"), "Sigla ispettore");
+        AssertEqual("Ass.C.C.", QualificaFormatter.Abbrevia(" Assistente Capo Coordinatore "), "Alias coordinatore");
+        AssertEqual("Sost.C.C.T.", QualificaFormatter.Abbrevia("Sostituto Commissario Coordinatore Tecnico"), "Qualifica tecnica coordinatore");
+        AssertEqual("Qualifica esterna", QualificaFormatter.Abbrevia("Qualifica esterna"), "Qualifica fuori catalogo conservata");
+        AssertEqual(10, QualificaFormatter.GetGerarchiaOrdine("Ispettore", false), "Gerarchia distinta dalle sigle");
+        AssertEqual(20, QualificaFormatter.GetGerarchiaOrdine("Assistente Capo Coordinatore", false), "Gerarchia coordinatore");
+        AssertEqual(10_000, QualificaFormatter.GetGerarchiaOrdine("Medico Capo", true), "Gerarchia sanitaria");
+        AssertTrue(QualificaFormatter.GetGerarchiaOrdine("Primo Dirigente", false) < QualificaFormatter.GetGerarchiaOrdine("Vice Questore", false), "Gerarchia nuove qualifiche errata.");
+        AssertTrue(QualificaFormatter.GetGerarchiaOrdine("Vice Questore", false) < QualificaFormatter.GetGerarchiaOrdine("Vice Questore Aggiunto", false), "Vice Questore fuori ordine.");
+
+        var viewModel = new MainWindowViewModel();
+        foreach (var qualifica in viewModel.QualificheDisponibili)
+        {
+            AssertTrue(QualificaFormatter.Abbrevia(qualifica) != qualifica, $"Sigla mancante per {qualifica}.");
+        }
+
+        var row = new ServizioPartecipanteDraftViewModel { Qualifica = "Ispettore" };
+        var notificata = false;
+        row.PropertyChanged += (_, e) => notificata |= e.PropertyName == nameof(row.QualificaBreve);
+        row.Qualifica = "Assistente Capo";
+        AssertEqual("Ass.C.", row.QualificaBreve, "Aggiornamento sigla nel selettore");
+        AssertEqual("Assistente Capo", row.Qualifica, "Qualifica estesa conservata");
+        AssertTrue(notificata, "La sigla non notifica l'aggiornamento dell'interfaccia.");
+    }
+
     private static void TestSalvataggioELetturaPersonale()
     {
         var repository = new PersonaleRepository();
@@ -159,6 +190,107 @@ internal static class Program
         AssertTrue(search.Any(item => item.PerId == 101), "Ricerca personale non trova la scheda salvata.");
     }
 
+    private static void TestDateAbilitazioniFacoltative()
+    {
+        var viewModel = new MainWindowViewModel
+        {
+            PerIdInput = "109",
+            Cognome = "Test",
+            Nome = "Abilitazioni senza date",
+            CodiceFiscale = "TSTABL80A01H501A",
+        };
+
+        foreach (var tipo in viewModel.TipiAbilitazioneCatalogo.ToList())
+        {
+            viewModel.AbilitazioneTipoSelezionato = tipo;
+            if (tipo.RichiedeScadenza)
+            {
+                AssertTrue(viewModel.AbilitazioneIndicazioni.Contains("Data scadenza facoltativa"), "Indicazioni scadenza non aggiornate.");
+            }
+
+            viewModel.SaveAbilitazioneCommand.Execute(null);
+            AssertTrue(viewModel.Abilitazioni.Any(item => item.TipoAbilitazioneId == tipo.TipoAbilitazioneId), $"Abilitazione senza date non aggiunta: {tipo.Descrizione}.");
+        }
+
+        var loaded = SalvaSchedaPerTest(viewModel);
+        AssertEqual(viewModel.TipiAbilitazioneCatalogo.Count, loaded.Abilitazioni.Count, "Abilitazioni senza date salvate");
+        AssertTrue(loaded.Abilitazioni.All(item => item.DataConseguimento is null && item.DataScadenza is null), "Date vuote non conservate.");
+
+        foreach (var tipo in viewModel.TipiAbilitazioneCatalogo.Where(item => item.RichiedeScadenza).ToList())
+        {
+            viewModel.SelectedAbilitazione = viewModel.Abilitazioni.Single(item => item.TipoAbilitazioneId == tipo.TipoAbilitazioneId);
+            viewModel.AbilitazioneDataConseguimento = "01/01/2020";
+            viewModel.AbilitazioneDataScadenza = "01/01/2021";
+            viewModel.SaveAbilitazioneCommand.Execute(null);
+        }
+
+        loaded = SalvaSchedaPerTest(viewModel);
+        foreach (var abilitazione in loaded.Abilitazioni.Where(item => item.Tipo!.RichiedeScadenza))
+        {
+            AssertEqual<DateOnly?>(new DateOnly(2020, 1, 1), abilitazione.DataConseguimento, "Conservazione data conseguimento");
+            AssertEqual<DateOnly?>(new DateOnly(2021, 1, 1), abilitazione.DataScadenza, "Conservazione scadenza passata");
+            viewModel.SelectedAbilitazione = viewModel.Abilitazioni.Single(item => item.TipoAbilitazioneId == abilitazione.TipoAbilitazioneId);
+            viewModel.AbilitazioneDataConseguimento = string.Empty;
+            viewModel.AbilitazioneDataScadenza = string.Empty;
+            viewModel.SaveAbilitazioneCommand.Execute(null);
+        }
+
+        loaded = SalvaSchedaPerTest(viewModel);
+        AssertEqual(viewModel.TipiAbilitazioneCatalogo.Count, loaded.Abilitazioni.Count, "Abilitazioni conservate dopo rimozione date");
+        AssertTrue(loaded.Abilitazioni.All(item => item.DataConseguimento is null && item.DataScadenza is null), "Rimozione date non salvata.");
+    }
+
+    private static void TestVisitaBimestraleDisattivata()
+    {
+        var bimestrale = CatalogoVisiteMediche.Tutte.Single(tipo => tipo.Codice == "BIMESTRALE");
+        AssertTrue(!bimestrale.Attiva, "Visita bimestrale ancora attiva.");
+        AssertEqual<int?>(2, bimestrale.MesiValidita, "Regola bimestrale conservata per riattivazione");
+
+        var repository = new PersonaleRepository();
+        var personale = CreaPersonale(108, "Test", "Bimestrale disattivata", "TSTBMS80A01H501A", string.Empty);
+        personale.VisiteMediche =
+        [
+            new VisitaMedica
+            {
+                TipoVisita = bimestrale.Descrizione,
+                DataUltimaVisita = new DateOnly(2020, 1, 1),
+                DataScadenza = new DateOnly(2020, 3, 1),
+                Note = "Dato da conservare senza mostrare scadenze",
+            },
+        ];
+        repository.SavePersonale(personale, isNewRecord: true);
+
+        var oggi = DateOnly.FromDateTime(DateTime.Today);
+        AssertTrue(!repository.GetScadenzeProssime(oggi, oggi.AddDays(90)).Any(item => item.PerId == 108), "Bimestrale presente nello scadenzario.");
+        AssertTrue(!repository.SearchPersonale(string.Empty, null, oggi).Any(item => item.PerId == 108), "Bimestrale presente nel filtro visite in scadenza.");
+
+        var viewModel = new MainWindowViewModel();
+        viewModel.SelectedPersonale = viewModel.PersonaleItems.Single(item => item.PerId == 108);
+        AssertEqual(2, viewModel.TipiVisitaMedicaCatalogo.Count, "Tipi visita attivi");
+        AssertTrue(viewModel.TipiVisitaMedicaCatalogo.All(tipo => tipo.Codice != "BIMESTRALE"), "Bimestrale presente nel menu.");
+        AssertTrue(viewModel.VisiteMediche.All(item => item.TipoVisita != bimestrale.Descrizione), "Bimestrale presente in anagrafica.");
+        AssertEqual(0, viewModel.SchedaVisiteTotali, "Visite disattivate escluse dal riepilogo");
+        AssertEqual(0, viewModel.SchedaScadenzeTotali, "Scadenze disattivate escluse dalla scheda");
+        AssertEqual(0, viewModel.SchedaScaduteTotali, "Visite disattivate escluse dagli avvisi");
+        AssertTrue(viewModel.ScadenzeProssime.All(item => item.PerId != 108), "Bimestrale presente nella dashboard.");
+        AssertTrue(!viewModel.RegoleVisiteDescrizione.Contains("bimestrale", StringComparison.OrdinalIgnoreCase), "Bimestrale ancora descritta nelle regole operative.");
+
+        viewModel.Telefono1 = "123456";
+        var loaded = SalvaSchedaPerTest(viewModel);
+        var visita = loaded.VisiteMediche.Single();
+        AssertEqual(bimestrale.Descrizione, visita.TipoVisita, "Tipo disattivato conservato nel database");
+        AssertEqual(personale.VisiteMediche[0].DataScadenza, visita.DataScadenza, "Scadenza disattivata conservata");
+        AssertEqual(personale.VisiteMediche[0].Note, visita.Note, "Note disattivate conservate");
+
+        viewModel.NewCommand.Execute(null);
+        viewModel.PerIdInput = "107";
+        viewModel.Cognome = "Test";
+        viewModel.Nome = "Nuova scheda senza bimestrale";
+        viewModel.CodiceFiscale = "TSTNVA80A01H501A";
+        loaded = SalvaSchedaPerTest(viewModel);
+        AssertEqual(0, loaded.VisiteMediche.Count, "Nuova scheda senza dati disattivati di un'altra persona");
+    }
+
     private static void TestVisiteFacoltative()
     {
         var viewModel = new MainWindowViewModel
@@ -175,7 +307,7 @@ internal static class Program
         loaded = SalvaSchedaPerTest(viewModel);
         AssertEqual(0, loaded.VisiteMediche.Count, "Scheda senza righe visita");
 
-        foreach (var tipo in CatalogoVisiteMediche.Tutte)
+        foreach (var tipo in CatalogoVisiteMediche.Attive)
         {
             viewModel.VisitaTipoSelezionato = tipo;
             viewModel.VisitaDataUltimaVisita = "01/01/2020";
@@ -186,7 +318,6 @@ internal static class Program
             var visita = loaded.VisiteMediche.Single(item => item.TipoVisita == tipo.Descrizione);
             var mesi = tipo.Codice switch
             {
-                "BIMESTRALE" => 2,
                 "DLGS_81_08" => 12,
                 _ => 24,
             };
@@ -194,7 +325,9 @@ internal static class Program
             AssertEqual("Visita scaduta di test", visita.Note, "Note visita scaduta");
         }
 
-        AssertEqual(3, loaded.VisiteMediche.Count, "Scheda con tutte le visite scadute");
+        AssertEqual(2, loaded.VisiteMediche.Count, "Scheda con entrambe le visite attive scadute");
+        AssertEqual(2, new PersonaleRepository().GetScadenzeProssime(DateOnly.FromDateTime(DateTime.Today), DateOnly.FromDateTime(DateTime.Today).AddDays(90)).Count(item => item.PerId == 110), "Scadenze delle visite attive");
+        AssertTrue(new PersonaleRepository().SearchPersonale(string.Empty, null, DateOnly.FromDateTime(DateTime.Today)).Any(item => item.PerId == 110), "Visite attive escluse dal filtro scadenze.");
         AssertTrue(viewModel.OperatoriServizioDisponibili.Any(item => item.PerId == 110), "Operatore escluso dai servizi per visite scadute.");
 
         viewModel.VisitaDataUltimaVisita = string.Empty;
@@ -206,7 +339,7 @@ internal static class Program
         AssertTrue(senzaData.DataUltimaVisita is null && senzaData.DataScadenza is null, "La visita senza data ha conservato date precedenti.");
         AssertEqual("Annotazione senza data", senzaData.Note, "Note senza data");
 
-        foreach (var tipo in CatalogoVisiteMediche.Tutte)
+        foreach (var tipo in CatalogoVisiteMediche.Attive)
         {
             viewModel.VisitaTipoSelezionato = tipo;
             viewModel.RemoveVisitaCommand.Execute(null);

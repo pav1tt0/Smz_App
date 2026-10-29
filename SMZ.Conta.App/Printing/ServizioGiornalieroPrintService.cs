@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Printing;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,18 +22,32 @@ public sealed class ServizioGiornalieroPrintService
 
     public void Print(ServizioGiornaliero servizio)
     {
-        var dialog = new PrintDialog();
+        var dialog = new PrintDialog
+        {
+            PrintTicket =
+            {
+                PageOrientation = PageOrientation.Portrait,
+                PageMediaSize = new PageMediaSize(PageMediaSizeName.ISOA4),
+            },
+        };
         if (dialog.ShowDialog() != true)
         {
             return;
         }
 
+        var paginator = BuildPaginator(servizio, new Size(dialog.PrintableAreaWidth, dialog.PrintableAreaHeight));
+        dialog.PrintDocument(paginator, "Foglio servizio SMZ");
+    }
+
+    private DocumentPaginator BuildPaginator(ServizioGiornaliero servizio, Size pageSize)
+    {
         var document = BuildDocument(servizio);
-        document.PageWidth = dialog.PrintableAreaWidth;
-        document.PageHeight = dialog.PrintableAreaHeight;
-        document.PagePadding = new Thickness(30);
-        document.ColumnWidth = document.PageWidth - document.PagePadding.Left - document.PagePadding.Right;
-        dialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, "Foglio servizio SMZ");
+        document.PageWidth = pageSize.Width;
+        document.PageHeight = pageSize.Height;
+        document.ColumnWidth = pageSize.Width - document.PagePadding.Left - document.PagePadding.Right;
+        var paginator = ((IDocumentPaginatorSource)document).DocumentPaginator;
+        paginator.ComputePageCount();
+        return new ServiceDocumentPaginator(paginator, servizio);
     }
 
     private FlowDocument BuildDocument(ServizioGiornaliero servizio)
@@ -49,15 +64,16 @@ public sealed class ServizioGiornalieroPrintService
         var document = new FlowDocument
         {
             FontFamily = new FontFamily("Times New Roman"),
-            FontSize = 9,
-            PagePadding = new Thickness(30),
+            FontSize = 12,
+            LineHeight = 15,
+            PagePadding = new Thickness(45, 30, 45, 40),
             Foreground = PrintTheme.TextBrush,
         };
 
         document.Blocks.Add(PrintTheme.RepublicEmblem(44));
-        AddCentered(document, "POLIZIA DI STATO", 15, FontWeights.Bold);
-        AddCentered(document, "CENTRO NAUTICO E SOMMOZZATORI", 12, FontWeights.Bold);
-        AddCentered(document, "Nucleo Sommozzatori - La Spezia", 10.5, FontWeights.Normal);
+        AddCentered(document, "POLIZIA DI STATO", 18, FontWeights.Bold);
+        AddCentered(document, "CENTRO NAUTICO E SOMMOZZATORI", 13, FontWeights.Bold);
+        AddCentered(document, "Nucleo Sommozzatori - La Spezia", 12, FontWeights.Normal);
         document.Blocks.Add(CreateDivider());
         document.Blocks.Add(CreateRecipientBlock());
 
@@ -70,20 +86,7 @@ public sealed class ServizioGiornalieroPrintService
         AddPersonaleSection(document, personaleRows, "SANITARIA", "Personale ASS. SANITARIA");
 
         AddActivityDeclaration(document, servizio);
-        AddEconomicDeclaration(document);
-        document.Blocks.Add(BuildRiepilogoTable(servizio, cataloghi, unita, localita));
-
-        var firma = new Paragraph
-        {
-            TextAlignment = TextAlignment.Right,
-            Margin = new Thickness(0, 26, 0, 0),
-        };
-        firma.Inlines.Add(new Run("Il Responsabile del Team"));
-        firma.Inlines.Add(new LineBreak());
-        firma.Inlines.Add(new Run(responsabile));
-        firma.Inlines.Add(new LineBreak());
-        firma.Inlines.Add(new Run("____________________________"));
-        document.Blocks.Add(firma);
+        document.Blocks.Add(BuildEconomicSection(servizio, cataloghi, unita, localita, responsabile));
 
         return document;
     }
@@ -201,6 +204,9 @@ public sealed class ServizioGiornalieroPrintService
         var titleRow = new TableRow { FontWeight = FontWeights.Bold };
         var titleCell = CreateCell(title, true, 0, 0);
         titleCell.ColumnSpan = 3;
+        titleCell.TextAlignment = TextAlignment.Left;
+        ((Paragraph)titleCell.Blocks.FirstBlock).TextAlignment = TextAlignment.Left;
+        titleCell.FontSize = 11;
         titleRow.Cells.Add(titleCell);
         table.RowGroups[0].Rows.Add(titleRow);
         AddHeaderRow(table, "COGNOME E NOME", "Mansione", "Apparecchiatura");
@@ -238,33 +244,60 @@ public sealed class ServizioGiornalieroPrintService
         });
     }
 
-    private static void AddEconomicDeclaration(FlowDocument document)
+    private static Table BuildEconomicSection(
+        ServizioGiornaliero servizio,
+        CataloghiServizioSnapshot cataloghi,
+        string unita,
+        string localita,
+        string responsabile)
     {
+        // Un'unica riga mantiene il riepilogo e la firma nello stesso blocco di stampa.
+        var wrapper = new Table { CellSpacing = 0, Margin = new Thickness(0) };
+        wrapper.Columns.Add(new TableColumn { Width = new GridLength(1, GridUnitType.Star) });
+        var group = new TableRowGroup();
+        var row = new TableRow();
+        var cell = new TableCell { Padding = new Thickness(0), BorderThickness = new Thickness(0) };
         var paragraph = new Paragraph { Margin = new Thickness(0, 4, 0, 7), TextAlignment = TextAlignment.Justify };
         paragraph.Inlines.Add(new Run("Premesso quanto sopra lo scrivente "));
         paragraph.Inlines.Add(new Run("DICHIARA") { FontWeight = FontWeights.Bold });
         paragraph.Inlines.Add(new Run(" che il personale in elenco indicato ha maturato il diritto al seguente trattamento economico accessorio:"));
-        document.Blocks.Add(paragraph);
+        cell.Blocks.Add(paragraph);
+        cell.Blocks.Add(BuildRiepilogoTable(servizio, cataloghi));
+        cell.Blocks.Add(BuildFuoriSedeTable(servizio, unita, localita));
+        var firma = new Paragraph
+        {
+            TextAlignment = TextAlignment.Right,
+            Margin = new Thickness(0, 22, 0, 0),
+            KeepTogether = true,
+        };
+        firma.Inlines.Add(new Run("Il Responsabile del Team"));
+        firma.Inlines.Add(new LineBreak());
+        firma.Inlines.Add(new Run(responsabile));
+        firma.Inlines.Add(new LineBreak());
+        firma.Inlines.Add(new Run("____________________________"));
+        cell.Blocks.Add(firma);
+        row.Cells.Add(cell);
+        group.Rows.Add(row);
+        wrapper.RowGroups.Add(group);
+        return wrapper;
     }
 
     private static Table BuildRiepilogoTable(
         ServizioGiornaliero servizio,
-        CataloghiServizioSnapshot cataloghi,
-        string unita,
-        string localita)
+        CataloghiServizioSnapshot cataloghi)
     {
-        var table = CreateRelativeTable(0.54, 0.57, 0.57, 0.85, 0.57, 0.57, 0.57, 0.57, 0.99, 0.99, 0.99, 0.99, 2.41);
-        table.FontSize = 7;
+        var table = CreateRelativeTable(1, 1, 1, 1.5, 1, 1, 1, 0.6, 1.3, 1.3, 1.3, 1.3);
+        table.FontSize = 10.5;
+        table.LineHeight = 13;
 
         var row1 = new TableRow { FontWeight = FontWeights.Bold };
         row1.Cells.Add(CreateSummaryCell("Ore Straordinario", true, 0, 0, columnSpan: 4));
         row1.Cells.Add(CreateSummaryCell("Presenze", true, 0, 4, columnSpan: 3));
         row1.Cells.Add(CreateSummaryCell("Ore Immersione", true, 0, 7, columnSpan: 5));
-        row1.Cells.Add(CreateSummaryCell("Indennità supplementare di fuori sede di cui all’art. 12 D.P.R. 57/2022", true, 0, 12));
         table.RowGroups[0].Rows.Add(row1);
 
         var row2 = new TableRow { FontWeight = FontWeights.Bold };
-        foreach (var value in new[] { "Fer.", "Fest.", "Nott.", "Fest. Nott.", "Est.", "Nott.", "Fest.", string.Empty, "ARA", "ARO", "ARM", "C.I.", string.Empty })
+        foreach (var value in new[] { "Fer.", "Fest.", "Nott.", "Fest. Nott.", "Est.", "Nott.", "Fest.", string.Empty, "ARA", "ARO", "ARM", "C.I." })
         {
             row2.Cells.Add(CreateSummaryCell(value, true, 1, row2.Cells.Count));
         }
@@ -273,10 +306,6 @@ public sealed class ServizioGiornalieroPrintService
         var straordinario = CalcolaStraordinario(servizio);
         var presenze = CalcolaPresenze(servizio);
         var immersioni = CalcolaRiepilogoImmersioni(servizio, cataloghi);
-        var fuoriSede = servizio.FuoriSede
-            ? $"UNITÀ NAVALE: {EmptyField(unita)}"
-            : string.Empty;
-
         var row3 = new TableRow();
         foreach (var value in new[]
                  {
@@ -292,7 +321,6 @@ public sealed class ServizioGiornalieroPrintService
                      FormatOre(immersioni.Aro.Ore),
                      FormatOre(immersioni.Arm.Ore),
                      FormatOre(immersioni.Ci.Ore),
-                     fuoriSede,
                  })
         {
             row3.Cells.Add(CreateSummaryCell(value, false, 2, row3.Cells.Count));
@@ -309,12 +337,26 @@ public sealed class ServizioGiornalieroPrintService
                      FormatMetri(immersioni.Aro.Metri),
                      FormatMetri(immersioni.Arm.Metri),
                      FormatMetri(immersioni.Ci.Metri),
-                     servizio.FuoriSede ? $"LOCALITÀ: {EmptyField(localita)}" : string.Empty,
                  })
         {
             row4.Cells.Add(CreateSummaryCell(value, false, 3, row4.Cells.Count));
         }
         table.RowGroups[0].Rows.Add(row4);
+        return table;
+    }
+
+    private static Table BuildFuoriSedeTable(ServizioGiornaliero servizio, string unita, string localita)
+    {
+        var table = CreateRelativeTable(1.3, 5);
+        table.FontSize = 11;
+        table.LineHeight = 14;
+        var heading = new TableRow();
+        heading.Cells.Add(CreateSummaryCell(
+            "Indennità supplementare di fuori sede di cui all’art. 12 D.P.R. 57/2022",
+            true, 0, 0, columnSpan: 2));
+        table.RowGroups[0].Rows.Add(heading);
+        AddRow(table, "UNITÀ NAVALE", servizio.FuoriSede ? EmptyField(unita) : string.Empty);
+        AddRow(table, "LOCALITÀ", servizio.FuoriSede ? EmptyField(localita) : string.Empty);
         return table;
     }
 
@@ -718,6 +760,7 @@ public sealed class ServizioGiornalieroPrintService
         {
             TextAlignment = TextAlignment.Center,
             FontSize = fontSize,
+            LineHeight = fontSize * 1.2,
             FontWeight = fontWeight,
             Margin = new Thickness(0, 0, 0, 2),
         });
@@ -735,24 +778,29 @@ public sealed class ServizioGiornalieroPrintService
     {
         var panel = new StackPanel
         {
-            Width = 330,
+            Width = 310,
             HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(0, 18, 45, 14),
+            Margin = new Thickness(0, 8, 0, 12),
         };
         panel.Children.Add(new TextBlock
         {
             Text = "AL SIGNOR DIRETTORE CENTRO NAUTICO E SOMMOZZATORI",
             TextWrapping = TextWrapping.Wrap,
+            TextAlignment = TextAlignment.Left,
+            FontFamily = new FontFamily("Times New Roman"),
+            FontSize = 12,
         });
         panel.Children.Add(new TextBlock
         {
             Text = "SEDE",
             FontWeight = FontWeights.Bold,
+            FontFamily = new FontFamily("Times New Roman"),
+            FontSize = 12,
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 3, 0, 0),
         });
 
-        return new BlockUIContainer(panel);
+        return new BlockUIContainer(panel) { Margin = new Thickness(0) };
     }
 
     private static Table CreateRelativeTable(params double[] weights)
@@ -794,16 +842,14 @@ public sealed class ServizioGiornalieroPrintService
     private static TableCell CreateCell(string value, bool header, int rowIndex, int columnIndex) =>
         new(new Paragraph(new Run(value))
         {
-            Margin = new Thickness(2),
+            Margin = new Thickness(0),
             TextAlignment = header ? TextAlignment.Center : GetCellAlignment(columnIndex),
         })
         {
             BorderBrush = PrintTheme.BorderBrush,
-            BorderThickness = new Thickness(PrintTheme.BorderThickness),
-            Padding = new Thickness(4, 3, 4, 3),
-            Background = header
-                ? PrintTheme.HeaderBackground
-                : rowIndex % 2 == 0 ? PrintTheme.AlternateRowBackground : Brushes.Transparent,
+            BorderThickness = new Thickness(columnIndex == 0 ? 0.5 : 0, rowIndex == 0 ? 0.5 : 0, 0.5, 0.5),
+            Padding = new Thickness(6, 4, 6, 4),
+            Background = header ? Brushes.WhiteSmoke : Brushes.White,
         };
 
     private static TableCell CreateSummaryCell(
@@ -820,11 +866,9 @@ public sealed class ServizioGiornalieroPrintService
         })
         {
             BorderBrush = PrintTheme.BorderBrush,
-            BorderThickness = new Thickness(PrintTheme.BorderThickness),
-            Padding = new Thickness(2, 3, 2, 3),
-            Background = header
-                ? PrintTheme.HeaderBackground
-                : rowIndex % 2 == 0 ? PrintTheme.AlternateRowBackground : Brushes.Transparent,
+            BorderThickness = new Thickness(columnIndex == 0 ? 0.5 : 0, rowIndex == 0 ? 0.5 : 0, 0.5, 0.5),
+            Padding = new Thickness(3, 4, 3, 4),
+            Background = header ? Brushes.WhiteSmoke : Brushes.White,
             ColumnSpan = columnSpan,
         };
         return cell;
@@ -872,6 +916,40 @@ public sealed class ServizioGiornalieroPrintService
         string Mansione,
         string Apparato,
         long Ordine);
+
+    private sealed class ServiceDocumentPaginator(DocumentPaginator source, ServizioGiornaliero servizio) : DocumentPaginator
+    {
+        public override bool IsPageCountValid => source.IsPageCountValid;
+        public override int PageCount => source.PageCount;
+        public override IDocumentPaginatorSource Source => source.Source;
+        public override Size PageSize { get => source.PageSize; set => source.PageSize = value; }
+
+        public override DocumentPage GetPage(int pageNumber)
+        {
+            var page = source.GetPage(pageNumber);
+            if (page == DocumentPage.Missing)
+            {
+                return page;
+            }
+
+            var visual = new DrawingVisual();
+            using (var context = visual.RenderOpen())
+            {
+                context.DrawRectangle(new VisualBrush(page.Visual), null, new Rect(new Point(), page.Size));
+                var typeface = new Typeface("Times New Roman");
+                var reference = new FormattedText(
+                    $"O.d.S. {EmptyField(servizio.NumeroOrdineServizio)} del {servizio.DataServizio:dd/MM/yyyy}",
+                    CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, 10, Brushes.DimGray, 1);
+                var number = new FormattedText(
+                    $"Pagina {pageNumber + 1} di {PageCount}",
+                    CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, 10, Brushes.DimGray, 1);
+                context.DrawText(reference, new Point(45, page.Size.Height - 25));
+                context.DrawText(number, new Point(page.Size.Width - 45 - number.Width, page.Size.Height - 25));
+            }
+
+            return new DocumentPage(visual, page.Size, page.BleedBox, page.ContentBox);
+        }
+    }
 
     private sealed class ApparatoAccumulator
     {

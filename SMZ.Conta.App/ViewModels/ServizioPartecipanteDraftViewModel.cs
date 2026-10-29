@@ -33,6 +33,7 @@ public sealed class ServizioPartecipanteDraftViewModel : ObservableObject
             if (SetProperty(ref _qualifica, value))
             {
                 OnPropertyChanged(nameof(QualificaDisplay));
+                OnPropertyChanged(nameof(QualificaBreve));
             }
         }
     }
@@ -106,4 +107,6 @@ public sealed class ServizioPartecipanteDraftViewModel : ObservableObject
     public bool IsProfiloSanitario => ProfiliPersonaleCatalogo.IsSanitario(ProfiloPersonale);
 
     public string QualificaDisplay => QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
+
+    public string QualificaBreve => QualificaFormatter.Abbrevia(Qualifica);
 }

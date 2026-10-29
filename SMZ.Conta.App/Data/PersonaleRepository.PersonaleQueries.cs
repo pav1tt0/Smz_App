@@ -10,7 +10,7 @@ public sealed partial class PersonaleRepository
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
         command.CommandText =
-            """
+            $"""
             SELECT p.PerId,
                    p.Cognome,
                    p.Nome,
@@ -44,6 +44,7 @@ public sealed partial class PersonaleRepository
             INNER JOIN Personale p ON p.PerId = vm.PerId
             WHERE vm.DataScadenza IS NOT NULL
               AND vm.DataScadenza <= $aData
+              AND {BuildFiltroVisiteAttive(command)}
 
             ORDER BY DataScadenza, Cognome, Nome, Titolo;
             """;
@@ -70,6 +71,23 @@ public sealed partial class PersonaleRepository
         }
 
         return items;
+    }
+
+    private static string BuildFiltroVisiteAttive(SqliteCommand command)
+    {
+        var parametri = CatalogoVisiteMediche.Tutte
+            .Where(tipo => !tipo.Attiva)
+            .Select((tipo, index) =>
+            {
+                var parametro = $"$tipoVisitaDisattivata{index}";
+                command.Parameters.AddWithValue(parametro, tipo.Descrizione);
+                return parametro;
+            })
+            .ToList();
+
+        return parametri.Count == 0
+            ? "1 = 1"
+            : $"TRIM(vm.TipoVisita) COLLATE NOCASE NOT IN ({string.Join(", ", parametri)})";
     }
 
     public List<Personale> SearchPersonale(string cognomeFiltro, int? tipoAbilitazioneIdFiltro, DateOnly? visiteEntro)
@@ -109,13 +127,14 @@ public sealed partial class PersonaleRepository
         if (visiteEntro is not null)
         {
             clauses.Add(
-                """
+                $"""
                 EXISTS (
                     SELECT 1
                     FROM VisiteMediche vm
                     WHERE vm.PerId = p.PerId
                       AND vm.DataScadenza IS NOT NULL
                       AND vm.DataScadenza <= $visiteEntro
+                      AND {BuildFiltroVisiteAttive(command)}
                 )
                 """);
             command.Parameters.AddWithValue("$visiteEntro", ToDbDate(visiteEntro));

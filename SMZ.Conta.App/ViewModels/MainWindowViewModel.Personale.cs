@@ -43,6 +43,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Mail2Utente = string.Empty;
         Abilitazioni.Clear();
         VisiteMediche.Clear();
+        _visiteMedicheDisattivate.Clear();
         AllineaVisitePredefinite();
         AllineaAttagliamentoPredefinito([]);
         PulisciEditorAbilitazione();
@@ -91,9 +92,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         VisiteMediche.Clear();
+        _visiteMedicheDisattivate.Clear();
         foreach (var visita in personale.VisiteMediche)
         {
-            VisiteMediche.Add(VisitaMedicaRowViewModel.FromModel(visita));
+            if (CatalogoVisiteMediche.IsAttiva(visita.TipoVisita))
+            {
+                VisiteMediche.Add(VisitaMedicaRowViewModel.FromModel(visita));
+            }
+            else
+            {
+                _visiteMedicheDisattivate.Add(visita);
+            }
         }
 
         AllineaVisitePredefinite();
@@ -388,11 +397,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
             if (AbilitazioneRichiedeProfondita && string.IsNullOrWhiteSpace(AbilitazioneProfondita))
             {
                 throw new InvalidOperationException("Per questa abilitazione la profondita e obbligatoria.");
-            }
-
-            if (AbilitazioneRichiedeScadenza && string.IsNullOrWhiteSpace(AbilitazioneDataScadenza))
-            {
-                throw new InvalidOperationException("Per questa abilitazione la scadenza e obbligatoria.");
             }
 
             ParseNullableInt(AbilitazioneProfondita, $"Profondita abilitazione {AbilitazioneTipoSelezionato.Descrizione}");

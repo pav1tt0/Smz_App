@@ -269,7 +269,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
 
         ArchivioVisiteMediche.Clear();
-        foreach (var visita in archivio.VisiteMediche)
+        foreach (var visita in archivio.VisiteMediche.Where(item => CatalogoVisiteMediche.IsAttiva(item.TipoVisita)))
         {
             ArchivioVisiteMediche.Add(VisitaMedicaRowViewModel.FromModel(visita));
         }

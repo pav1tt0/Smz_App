@@ -17,11 +17,11 @@ Compilare o correggere questo file e usarlo come riferimento unico per aggiornar
 - `Livelli suggeriti`: valori proposti nel menu
 - `Richiede profondita`: la profondita e obbligatoria
 - `Profondita suggerite`: valori proposti nel menu
-- `Richiede scadenza`: la data scadenza e obbligatoria
+- `Scadenza disponibile`: il campo data scadenza e disponibile per il tipo di abilitazione, ma e facoltativo. Anche la data conseguimento e facoltativa per tutte le abilitazioni.
 
 ## Catalogo Attuale
 
-| Ordine | Codice | Nome visualizzato | Categoria | Richiede livello | Livelli suggeriti | Richiede profondita | Profondita suggerite | Richiede scadenza | Note |
+| Ordine | Codice | Nome visualizzato | Categoria | Richiede livello | Livelli suggeriti | Richiede profondita | Profondita suggerite | Scadenza disponibile | Note |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | ARA | Sommozzatore abilitato ARA | Subacquea | No |  | Si | 39, 60 | No |  |
 | 2 | ARO | Sommozzatore abilitato ARO | Subacquea | No |  | No |  | No |  |

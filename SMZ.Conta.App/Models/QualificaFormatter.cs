@@ -2,8 +2,53 @@ namespace SMZ.Conta.App.Models;
 
 public static class QualificaFormatter
 {
+    // Sigle di visualizzazione: la qualifica estesa resta il valore salvato.
+    public static IReadOnlyDictionary<string, string> Abbreviazioni { get; } =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Primo Dirigente"] = "P.D.",
+            ["Vice Questore"] = "V.Q.",
+            ["Vice Questore Aggiunto"] = "V.Q.A.",
+            ["Commissario Capo"] = "Comm.C.",
+            ["Commissario"] = "Comm.",
+            ["Vice Commissario"] = "V.Comm.",
+            ["Sostituto Commissario C."] = "Sost.C.C.",
+            ["Sostituto Commissario"] = "Sost.C.",
+            ["Sostituto Commissario C. Tecnico"] = "Sost.C.C.T.",
+            ["Sostituto Commissario Tecnico"] = "Sost.C.T.",
+            ["Ispettore Superiore"] = "Isp.S.",
+            ["Ispettore Capo"] = "Isp.C.",
+            ["Ispettore"] = "Isp.",
+            ["Vice Ispettore"] = "V.Isp.",
+            ["Ispettore Superiore Tecnico"] = "Isp.S.T.",
+            ["Ispettore Capo Tecnico"] = "Isp.C.T.",
+            ["Ispettore Tecnico"] = "Isp.T.",
+            ["Vice Ispettore Tecnico"] = "V.Isp.T.",
+            ["Sovrintendente Capo C."] = "Sov.C.C.",
+            ["Sovrintendente Capo"] = "Sov.C.",
+            ["Sovrintendente"] = "Sov.",
+            ["Vice Sovrintendente"] = "V.Sov.",
+            ["Assistente Capo C."] = "Ass.C.C.",
+            ["Assistente Capo"] = "Ass.C.",
+            ["Assistente"] = "Ass.",
+            ["Agente Scelto"] = "Agt.S.",
+            ["Agente"] = "Agt.",
+            ["Medico Capo"] = "MED.C.",
+            ["Medico Principale"] = "MED.P.",
+            ["Medico"] = "MED.",
+            ["Infermiere"] = "INF.",
+        };
+
+    public static string Abbrevia(string? qualifica)
+    {
+        var estesa = AbbreviaPerVisualizzazione(qualifica).Trim();
+        return Abbreviazioni.TryGetValue(estesa, out var sigla) ? sigla : estesa;
+    }
+
     private static readonly Dictionary<string, int> GerarchiaOrdine = new(StringComparer.OrdinalIgnoreCase)
     {
+        ["Primo Dirigente"] = -2,
+        ["Vice Questore"] = -1,
         ["Vice Questore Aggiunto"] = 0,
         ["Commissario Capo"] = 1,
         ["Commissario"] = 2,

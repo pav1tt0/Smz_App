@@ -80,6 +80,8 @@ Con **Nuovo** si apre una nuova scheda. Con **Apri scheda** si modifica il nomin
 
 La scheda contiene dati anagrafici, recapiti, stato di servizio, qualifiche, abilitazioni, visite mediche e attagliamento.
 
+Le visite mediche operative sono il mantenimento brevetto M.M. (24 mesi) e la visita D.Lgs. 81/08 (12 mesi). Sono facoltative: visite mancanti o scadute non bloccano salvataggio, servizi o contabilita. La visita bimestrale e disattivata e non compare nei menu, nella scheda o nello scadenzario; eventuali dati gia registrati restano conservati nel database.
+
 Usare **Salva** per registrare le modifiche. L'app segnala eventuali modifiche non salvate in chiusura.
 
 ### Cessazione ed eliminazione
@@ -89,6 +91,8 @@ Il comando **Cessa da oggi** archivia operativamente il personale. L'eliminazion
 ## 5. Servizio giornaliero
 
 La sezione **Servizio giornaliero** consente di creare, modificare, duplicare, stampare ed eliminare servizi.
+
+La selezione **Personale impiegato** mostra due persone per riga, ciascuna con **Qualifica**, **Nome**, **Presente**, **Ruolo** e **Gruppo**. Spuntare i presenti e, quando necessario, cambiare ruolo o gruppo dai menu. La qualifica usa la sigla breve: passando il mouse sulla sigla si legge il nome esteso. Contatti e note non sono mostrati in questo selettore. Le sigle sono elencate in `ABBREVIAZIONI_QUALIFICHE.md`.
 
 ### Elenco servizi
 
@@ -214,6 +218,8 @@ La sezione **Stampe e report** raccoglie le funzioni di stampa e consultazione.
 ### Servizi
 
 Permette di cercare servizi salvati e stampare il servizio selezionato.
+
+Il foglio di servizio usa il formato A4 verticale, con riepilogo di straordinario, presenze e immersioni e una tabella separata per il fuori sede. Ogni pagina riporta il riferimento all'ordine di servizio e la numerazione. Riepilogo e firma restano nello stesso blocco di stampa.
 
 ### Registro immersioni
 

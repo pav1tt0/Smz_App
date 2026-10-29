@@ -18,7 +18,53 @@
         </Style>
         <Style x:Key="ServizioWheelDataGridStyle" TargetType="DataGrid">
             <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#D5DEE8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#E7EDF3" />
+            <Setter Property="RowBackground" Value="White" />
+            <Setter Property="AlternatingRowBackground" Value="#F8FAFC" />
+            <Setter Property="ColumnHeaderHeight" Value="40" />
+            <Setter Property="MinRowHeight" Value="40" />
+            <Setter Property="CellStyle">
+                <Setter.Value>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
         </Style>
+        <Style x:Key="ServizioPersonaleTextStyle" TargetType="TextBlock">
+            <Setter Property="Margin" Value="4,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}" />
+        </Style>
+        <Style x:Key="ServizioPersonaleComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="Margin" Value="3,0" />
+            <Setter Property="Padding" Value="4,3" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <DataTemplate x:Key="ServizioPersonaleHeaderTemplate">
+            <Border Background="#EFF4F9" BorderBrush="#D5DEE8" BorderThickness="0,0,1,1" Padding="6" MinHeight="34">
+                <Grid TextBlock.FontWeight="SemiBold" TextBlock.Foreground="#243B57">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="58" />
+                        <ColumnDefinition Width="2*" MinWidth="128" />
+                        <ColumnDefinition Width="58" />
+                        <ColumnDefinition Width="*" MinWidth="90" />
+                        <ColumnDefinition Width="0.7*" MinWidth="68" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Qualifica" Style="{StaticResource ServizioPersonaleTextStyle}" />
+                    <TextBlock Grid.Column="1" Text="Nome" Style="{StaticResource ServizioPersonaleTextStyle}" />
+                    <TextBlock Grid.Column="2" Text="Presente" Style="{StaticResource ServizioPersonaleTextStyle}" />
+                    <TextBlock Grid.Column="3" Text="Ruolo" Style="{StaticResource ServizioPersonaleTextStyle}" />
+                    <TextBlock Grid.Column="4" Text="Gruppo" Style="{StaticResource ServizioPersonaleTextStyle}" />
+                </Grid>
+            </Border>
+        </DataTemplate>
         <Style x:Key="ServizioWheelTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
         </Style>
@@ -601,74 +647,79 @@
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource AppTextBrush}" />
                                     <TextBlock Margin="0,8,0,0"
-                                               Text="Seleziona il personale interno del servizio. I contatori ora considerano solo le righe effettivamente compilate."
+                                               Text="Seleziona i presenti e, quando necessario, aggiorna ruolo e gruppo."
                                                Foreground="{DynamicResource AppMutedTextBrush}"
                                                TextWrapping="Wrap" />
 
-                                    <DataGrid Margin="0,16,0,0"
-                                              Style="{DynamicResource ServizioWheelDataGridStyle}"
-                                              ItemsSource="{Binding ServizioPartecipantiBozza}"
-                                              AutoGenerateColumns="False"
-                                              CanUserAddRows="False"
-                                              HeadersVisibility="Column"
-                                              RowHeaderWidth="0"
-                                              Sorting="ServizioPartecipantiDataGrid_Sorting"
-                                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                              ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                                        <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Qualifica"
-                                                                Width="120"
-                                                                Binding="{Binding QualificaDisplay}" />
-                                            <DataGridTextColumn Header="Cognome e nome"
-                                                                Width="220"
-                                                                Binding="{Binding Nominativo}" />
-                                            <DataGridTemplateColumn Header="Presente"
-                                                                    Width="90">
-                                                <DataGridTemplateColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <CheckBox HorizontalAlignment="Center"
-                                                                  VerticalAlignment="Center"
-                                                                  Focusable="False"
-                                                                  IsChecked="{Binding Presente, UpdateSourceTrigger=PropertyChanged}" />
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellTemplate>
-                                            </DataGridTemplateColumn>
-                                            <DataGridTemplateColumn Header="Gruppo operativo" Width="180">
-                                                <DataGridTemplateColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <TextBlock Text="{Binding GruppoOperativo.Descrizione}" />
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellTemplate>
-                                                <DataGridTemplateColumn.CellEditingTemplate>
-                                                    <DataTemplate>
-                                                        <ComboBox ItemsSource="{Binding DataContext.GruppiOperativiCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                  SelectedItem="{Binding GruppoOperativo, UpdateSourceTrigger=PropertyChanged}"
-                                                                  DisplayMemberPath="Descrizione" />
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellEditingTemplate>
-                                            </DataGridTemplateColumn>
-                                            <DataGridTemplateColumn Header="Ruolo" Width="180">
-                                                <DataGridTemplateColumn.CellTemplate>
-                                                    <DataTemplate>
-                                                        <TextBlock Text="{Binding RuoloOperativo.Descrizione}" />
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellTemplate>
-                                                <DataGridTemplateColumn.CellEditingTemplate>
-                                                    <DataTemplate>
-                                                        <ComboBox ItemsSource="{Binding DataContext.RuoliOperativiCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                  SelectedItem="{Binding RuoloOperativo, UpdateSourceTrigger=PropertyChanged}"
-                                                                  DisplayMemberPath="Descrizione" />
-                                                    </DataTemplate>
-                                                </DataGridTemplateColumn.CellEditingTemplate>
-                                            </DataGridTemplateColumn>
-                                            <DataGridTextColumn Header="Contatti"
-                                                                Width="220"
-                                                                Binding="{Binding Contatti}" />
-                                            <DataGridTextColumn Header="Note"
-                                                                Width="*"
-                                                                Binding="{Binding Note, UpdateSourceTrigger=PropertyChanged}" />
-                                        </DataGrid.Columns>
-                                    </DataGrid>
+                                    <Border Margin="0,16,0,0" BorderBrush="#D5DEE8" BorderThickness="1">
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                                      infra:MouseWheelScrollViewerBehavior.ForwardToParent="True">
+                                            <Grid MinWidth="830" Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
+                                                <StackPanel>
+                                                <UniformGrid Columns="2">
+                                                    <ContentControl Content="Intestazione" HorizontalContentAlignment="Stretch" ContentTemplate="{StaticResource ServizioPersonaleHeaderTemplate}" />
+                                                    <ContentControl Content="Intestazione" HorizontalContentAlignment="Stretch" ContentTemplate="{StaticResource ServizioPersonaleHeaderTemplate}" />
+                                                </UniformGrid>
+                                                <ItemsControl x:Name="ServizioPersonaleSelezione"
+                                                              ItemsSource="{Binding ServizioPartecipantiBozza}"
+                                                              AlternationCount="4"
+                                                              infra:MouseWheelScrollViewerBehavior.ForwardToParent="True">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <UniformGrid Columns="2" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border BorderBrush="#E7EDF3" BorderThickness="0,0,1,1" Padding="6" MinHeight="42">
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="Background" Value="White" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource AncestorType=ContentPresenter}}" Value="2">
+                                                                                <Setter Property="Background" Value="#F8FAFC" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource AncestorType=ContentPresenter}}" Value="3">
+                                                                                <Setter Property="Background" Value="#F8FAFC" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="58" />
+                                                                        <ColumnDefinition Width="2*" MinWidth="128" />
+                                                                        <ColumnDefinition Width="58" />
+                                                                        <ColumnDefinition Width="*" MinWidth="90" />
+                                                                        <ColumnDefinition Width="0.7*" MinWidth="68" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="{Binding QualificaBreve}" ToolTip="{Binding Qualifica}"
+                                                                               Style="{StaticResource ServizioPersonaleTextStyle}" />
+                                                                    <TextBlock Grid.Column="1" Text="{Binding Nominativo}"
+                                                                               Style="{StaticResource ServizioPersonaleTextStyle}" />
+                                                                    <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                              AutomationProperties.Name="{Binding Nominativo}"
+                                                                              IsChecked="{Binding Presente, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                                    <ComboBox Grid.Column="3" Style="{StaticResource ServizioPersonaleComboBoxStyle}"
+                                                                              ItemsSource="{Binding DataContext.RuoliOperativiCatalogo, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                              SelectedItem="{Binding RuoloOperativo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                              ToolTip="{Binding RuoloOperativo.Descrizione}" DisplayMemberPath="Descrizione" />
+                                                                    <ComboBox Grid.Column="4" Style="{StaticResource ServizioPersonaleComboBoxStyle}"
+                                                                              ItemsSource="{Binding DataContext.GruppiOperativiCatalogo, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                              SelectedItem="{Binding GruppoOperativo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                              ToolTip="{Binding GruppoOperativo.Descrizione}" DisplayMemberPath="Descrizione" />
+                                                                </Grid>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                </StackPanel>
+                                                <Border Width="14" HorizontalAlignment="Center"
+                                                        Background="#DDE6F1" BorderBrush="#9BB0CA" BorderThickness="1,0"
+                                                        IsHitTestVisible="False" />
+                                            </Grid>
+                                        </ScrollViewer>
+                                    </Border>
 
                                     <DockPanel Margin="0,24,0,0" LastChildFill="False">
                                         <TextBlock DockPanel.Dock="Left"

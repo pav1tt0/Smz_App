@@ -792,7 +792,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private List<VisitaMedica> BuildVisite()
     {
-        var items = new List<VisitaMedica>();
+        // Conserva i dati dei tipi disattivati senza mostrarli o ricalcolarne le scadenze.
+        var items = new List<VisitaMedica>(_visiteMedicheDisattivate);
 
         foreach (var row in VisiteMediche)
         {

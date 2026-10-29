@@ -21,8 +21,14 @@ public static class CatalogoVisiteMediche
             Codice = "BIMESTRALE",
             Descrizione = "Visita periodica bimestrale",
             MesiValidita = 2,
+            // Impostare a true per riabilitare menu, scheda e scadenze.
+            Attiva = false,
         },
     ];
+
+    public static IEnumerable<TipoVisitaMedica> Attive => Tutte.Where(tipo => tipo.Attiva);
+
+    public static bool IsAttiva(string descrizione) => TrovaPerDescrizione(descrizione)?.Attiva ?? true;
 
     public static TipoVisitaMedica? TrovaPerDescrizione(string descrizione)
     {

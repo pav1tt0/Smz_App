@@ -38,6 +38,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private readonly BackupService _backupService = new();
     private readonly PersonaleRepository _repository = new();
+    private readonly List<VisitaMedica> _visiteMedicheDisattivate = [];
     private readonly ServizioScambioService _servizioScambioService;
     private readonly ServizioGiornalieroPrintService _servizioGiornalieroPrintService;
     private readonly RegistroImmersioniMensilePrintService _registroImmersioniMensilePrintService;
@@ -800,7 +801,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     public ObservableCollection<TipoVisitaMedica> TipiVisitaMedicaCatalogo { get; } =
-        new(CatalogoVisiteMediche.Tutte);
+        new(CatalogoVisiteMediche.Attive);
 
     public ContabilitaMeseItem? ContabilitaMeseSelezionato
     {
@@ -1469,6 +1470,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<string> QualificheDisponibili { get; } =
         new(
         [
+            "Primo Dirigente",
+            "Vice Questore",
             "Vice Questore Aggiunto",
             "Commissario Capo",
             "Commissario",
@@ -2212,7 +2215,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             if (AbilitazioneTipoSelezionato.RichiedeScadenza)
             {
-                richieste.Add("Scadenza richiesta");
+                richieste.Add("Data scadenza facoltativa");
             }
 
             return string.Join(" | ", richieste);
@@ -2225,7 +2228,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public string RegoleVisiteDescrizione =>
         "Le visite possono essere lasciate vuote. Visite mancanti o scadute non bloccano il salvataggio, i servizi o la contabilita. "
-        + "Scadenze informative dalla data visita: mantenimento brevetto M.M. a 24 mesi; D.Lgs. 81/08 a 12 mesi; bimestrale a 2 mesi.";
+        + "Scadenze informative dalla data visita: mantenimento brevetto M.M. a 24 mesi; D.Lgs. 81/08 a 12 mesi.";
 
     public string AttagliamentoIndicazioni =>
         "Compila le 7 misure principali della scheda taglie. La struttura resta estendibile se in futuro dovrai aggiungere altre misure.";

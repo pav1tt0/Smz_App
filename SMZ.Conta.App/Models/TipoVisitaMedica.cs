@@ -8,6 +8,8 @@ public sealed class TipoVisitaMedica
 
     public int? MesiValidita { get; set; }
 
+    public bool Attiva { get; set; } = true;
+
     public string RegolaScadenza
     {
         get
