@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using SMZ.Conta.App.Infrastructure;
 using SMZ.Conta.App.Models;
 
@@ -12,6 +13,17 @@ public sealed class ServizioPartecipanteImmersioneUnicoDraftViewModel : Observab
     private bool _isEsterno;
     private string _reparto = string.Empty;
     private string _ruoliImmersione = string.Empty;
+    private string _numeriImmersioneRuolo = string.Empty;
+    private bool _isSoloAssistenza;
+    private int? _numeroImmersione;
+
+    public ObservableCollection<int?> ImmersioniDisponibili { get; } = [];
+
+    public int? NumeroImmersione
+    {
+        get => _numeroImmersione;
+        set => SetProperty(ref _numeroImmersione, value);
+    }
     private TipologiaImmersioneOperativa? _tipologiaImmersioneOperativa;
     private string _profonditaMetri = string.Empty;
     private FasciaProfondita? _fasciaProfondita;
@@ -87,34 +99,73 @@ public sealed class ServizioPartecipanteImmersioneUnicoDraftViewModel : Observab
         }
     }
 
+    public string NumeriImmersioneRuolo
+    {
+        get => _numeriImmersioneRuolo;
+        set
+        {
+            if (SetProperty(ref _numeriImmersioneRuolo, value))
+            {
+                OnPropertyChanged(nameof(HasIncarichiImmersione));
+                AggiornaSceltaImmersione();
+            }
+        }
+    }
+
+    public bool IsSoloAssistenza
+    {
+        get => _isSoloAssistenza;
+        set
+        {
+            if (SetProperty(ref _isSoloAssistenza, value)) AggiornaSceltaImmersione();
+        }
+    }
+
+    public bool HasIncarichiImmersione => !string.IsNullOrWhiteSpace(NumeriImmersioneRuolo);
+
+    public bool MostraSceltaImmersione => !IsSoloAssistenza && (!HasIncarichiImmersione || HasDettaglioContabile);
+
+    public bool MostraRuoloOperatore => HasIncarichiImmersione && MostraSceltaImmersione;
+
+    private bool HasDettaglioContabile => TipologiaImmersioneOperativa is not null
+        || !string.IsNullOrWhiteSpace(ProfonditaMetri) || FasciaProfondita is not null
+        || !string.IsNullOrWhiteSpace(OreImmersione) || CategoriaContabileOre is not null
+        || !string.IsNullOrWhiteSpace(Note);
+
+    private void AggiornaSceltaImmersione()
+    {
+        OnPropertyChanged(nameof(MostraSceltaImmersione));
+        OnPropertyChanged(nameof(MostraRuoloOperatore));
+    }
+
     public TipologiaImmersioneOperativa? TipologiaImmersioneOperativa
     {
         get => _tipologiaImmersioneOperativa;
-        set => SetProperty(ref _tipologiaImmersioneOperativa, value);
+        set { if (SetProperty(ref _tipologiaImmersioneOperativa, value)) AggiornaSceltaImmersione(); }
     }
 
     public string ProfonditaMetri
     {
         get => _profonditaMetri;
-        set => SetProperty(ref _profonditaMetri, value);
+        set { if (SetProperty(ref _profonditaMetri, value)) AggiornaSceltaImmersione(); }
     }
 
     public FasciaProfondita? FasciaProfondita
     {
         get => _fasciaProfondita;
-        set => SetProperty(ref _fasciaProfondita, value);
+        set { if (SetProperty(ref _fasciaProfondita, value)) AggiornaSceltaImmersione(); }
     }
 
     public string OreImmersione
     {
         get => _oreImmersione;
-        set => SetProperty(ref _oreImmersione, value);
+        set { if (SetProperty(ref _oreImmersione, value)) AggiornaSceltaImmersione(); }
     }
 
     public CategoriaContabileOre? CategoriaContabileOre
     {
         get => _categoriaContabileOre;
-        set => SetProperty(ref _categoriaContabileOre, value);
+        set { if (SetProperty(ref _categoriaContabileOre, value)) AggiornaSceltaImmersione(); }
     }
 
     public decimal? TariffaProposta
@@ -144,7 +195,7 @@ public sealed class ServizioPartecipanteImmersioneUnicoDraftViewModel : Observab
     public string Note
     {
         get => _note;
-        set => SetProperty(ref _note, value);
+        set { if (SetProperty(ref _note, value)) AggiornaSceltaImmersione(); }
     }
 
     public string NominativoConQualifica

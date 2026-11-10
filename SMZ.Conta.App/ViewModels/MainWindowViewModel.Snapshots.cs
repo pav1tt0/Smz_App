@@ -116,6 +116,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         AppendSnapshot(builder, "Localita", ServizioLocalitaSelezionata?.LocalitaOperativaId.ToString() ?? string.Empty);
         AppendSnapshot(builder, "Scopo", ServizioScopoSelezionato?.ScopoImmersioneId.ToString() ?? string.Empty);
         AppendSnapshot(builder, "UnitaNavale", ServizioUnitaNavaleSelezionata?.UnitaNavaleId.ToString() ?? string.Empty);
+        AppendSnapshot(builder, "SecondaUnitaNavale", ServizioSecondaUnitaNavale?.UnitaNavaleId.ToString() ?? string.Empty);
+        AppendSnapshot(builder, "TerzaUnitaNavale", ServizioTerzaUnitaNavale?.UnitaNavaleId.ToString() ?? string.Empty);
         AppendSnapshot(builder, "Responsabile", GetPerIdOperatoreSelezionato(ServizioResponsabileSelezionato)?.ToString() ?? string.Empty);
         AppendSnapshot(builder, "FuoriSede", ServizioFuoriSede ? "1" : "0");
         AppendSnapshot(builder, "OrdinePubblico", ServizioIndennitaOrdinePubblico ? "1" : "0");
@@ -184,6 +186,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
                         partecipazione.CategoriaContabileOre?.CategoriaContabileOreId.ToString() ?? string.Empty,
                         NormalizeSnapshotValue(partecipazione.Note)));
             }
+        }
+
+        foreach (var row in ServizioPartecipazioniContabiliUnicheBozza)
+        {
+            AppendSnapshot(builder, "NumeroImmersioneScelto", $"{row.PerId}|{row.NumeroImmersione}");
         }
 
         foreach (var supporto in ServizioSupportiOccasionaliBozza)

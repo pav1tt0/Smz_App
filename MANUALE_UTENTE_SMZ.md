@@ -44,6 +44,10 @@ La barra laterale permette di accedere alle sezioni principali:
 
 La barra superiore mostra data, ora e pulsante **ESCI**. La barra inferiore mostra lo stato operativo e le informazioni sui backup.
 
+I controlli **A−**, **percentuale** e **A+** regolano la dimensione dell'interfaccia dal 70% al 150%. La preferenza viene ricordata sul PC e nel profilo dati in uso. Il pulsante con la percentuale ripristina il 100%; sono disponibili anche **Ctrl e −**, **Ctrl e +**, **Ctrl e 0**.
+
+Quando lo spazio diminuisce, schede e campi si dispongono su piu righe e il menu laterale puo mostrare solo le icone: passando il mouse si legge il nome della sezione. In questa modalita **PW** apre il cambio password e la freccia permette di disconnettersi. Pagine e finestre di dialogo scorrono verticalmente; le tabelle mantengono colonne leggibili con scorrimento orizzontale.
+
 La barra laterale mostra anche il nominativo, il PerID e il profilo dell'utente corrente. I comandi **Cambia password** e **Disconnetti** permettono rispettivamente di aggiornare la propria password o tornare alla pagina di accesso.
 
 Il profilo **Base** entra direttamente nella sezione **Personale** e puo consultare, creare e modificare le anagrafiche. Non puo cessare o eliminare personale e non vede le altre aree operative.
@@ -80,6 +84,8 @@ Con **Nuovo** si apre una nuova scheda. Con **Apri scheda** si modifica il nomin
 
 La scheda contiene dati anagrafici, recapiti, stato di servizio, qualifiche, abilitazioni, visite mediche e attagliamento.
 
+Ogni tipo di abilitazione puo essere inserito una sola volta per persona. Per cambiare livello, date o note, selezionare la riga esistente e usare **Aggiorna abilitazione**. Un nuovo inserimento dello stesso tipo, oppure il cambio di una riga verso un tipo gia presente, viene rifiutato. Eventuali doppioni gia registrati restano consultabili: prima di salvare quella scheda occorre mantenere una sola riga per tipo, verificando quali dati conservare.
+
 Le visite mediche operative sono il mantenimento brevetto M.M. (24 mesi) e la visita D.Lgs. 81/08 (12 mesi). Sono facoltative: visite mancanti o scadute non bloccano salvataggio, servizi o contabilita. La visita bimestrale e disattivata e non compare nei menu, nella scheda o nello scadenzario; eventuali dati gia registrati restano conservati nel database.
 
 Usare **Salva** per registrare le modifiche. L'app segnala eventuali modifiche non salvate in chiusura.
@@ -92,7 +98,9 @@ Il comando **Cessa da oggi** archivia operativamente il personale. L'eliminazion
 
 La sezione **Servizio giornaliero** consente di creare, modificare, duplicare, stampare ed eliminare servizi.
 
-La selezione **Personale impiegato** mostra due persone per riga, ciascuna con **Qualifica**, **Nome**, **Presente**, **Ruolo** e **Gruppo**. Spuntare i presenti e, quando necessario, cambiare ruolo o gruppo dai menu. La qualifica usa la sigla breve: passando il mouse sulla sigla si legge il nome esteso. Contatti e note non sono mostrati in questo selettore. Le sigle sono elencate in `ABBREVIAZIONI_QUALIFICHE.md`.
+Gli elenchi del personale sono ordinati per qualifica, dalla piu alta alla piu bassa. Nell'anagrafica e nei selettori del servizio, a parita di qualifica si considera prima la decorrenza piu anziana, poi cognome e nome.
+
+La selezione **Personale impiegato** mostra due colonne, ciascuna con **Qualifica**, **Nome**, **Presente**, **Ruolo** e **Gruppo**. L'ordine si legge dall'alto in basso nella prima colonna, poi nella seconda. Spuntare i presenti e, quando necessario, cambiare ruolo o gruppo dai menu. La qualifica usa la sigla breve: passando il mouse sulla sigla si legge il nome esteso. Contatti e note non sono mostrati in questo selettore. Le sigle sono elencate in `ABBREVIAZIONI_QUALIFICHE.md`.
 
 ### Elenco servizi
 
@@ -120,11 +128,13 @@ Nel dettaglio servizio compilare:
 - eventuale deroga oraria;
 - tipo servizio;
 - localita;
-- unita navale;
+- due campi natante nello stesso ordine di servizio (secondo facoltativo), affiancati alla localita;
 - scopo immersione;
 - responsabile servizio;
 - indennita;
 - attivita svolta e note.
+
+La scheda usa righe compatte: **Orario in deroga** e affiancato a **Orario servizio**; **Lavoro straordinario**, **Indennita fuori sede** e **Indennita OP** sono sulla stessa riga. Gli orari aggiuntivi compaiono quando si attiva la relativa opzione. Nelle finestre molto strette le righe di questi campi scorrono orizzontalmente.
 
 ### Personale impiegato
 
@@ -150,11 +160,13 @@ Per ogni immersione si compilano:
 - assistenza sanitaria;
 - note immersione.
 
-Il dettaglio contabile SMZ consente di indicare apparato, profondita, fascia, ore, categoria, tariffa e importo.
+Nel dettaglio contabile SMZ in fondo pagina, le colonne **Immersione** e **Ruolo** riportano automaticamente gli incarichi scelti nei menu superiori. Il numero compare nella prima colonna; nella seconda compare soltanto la descrizione completa: **Direttore immersione**, **Operatore soccorso**, **Assistenza BLSD** o **Assistenza sanitaria**. Se una persona ha piu incarichi, numeri e descrizioni sono riportati su righe corrispondenti. I sanitari incaricati sono mostrati per consultazione.
+
+Per gli operatori senza incarico resta disponibile la scelta del numero dell'immersione. Si compilano poi apparato, profondita, fascia, ore e categoria. Se una persona svolge un incarico in un'immersione e si immerge in un'altra, dopo la compilazione del dettaglio contabile compare anche la scelta dell'immersione come **Operatore subacqueo**, separata dall'incarico. Le immersioni in cui svolge direzione o assistenza sono escluse da questa scelta. Numeri e ruoli vengono riproposti alla riapertura del servizio.
 
 ### Salvataggio e stampa
 
-Usare **Salva** per registrare il servizio. Usare **Stampa servizio** per produrre il documento operativo.
+Usare **Salva** in alto oppure **Salva servizio** in fondo pagina per registrare il servizio. Usare **Stampa servizio** per produrre il documento operativo. Tutti i natanti scelti vengono salvati e riportati nelle stampe.
 
 ## 6. Backup e archivio
 
@@ -190,9 +202,15 @@ Selezionare mese e anno, poi usare **Aggiorna**.
 
 Il pulsante di salvataggio dell'elaborazione mensile conserva il riepilogo del periodo selezionato.
 
+Se il mese e gia chiuso, le tabelle mostrano gli importi salvati. Dopo una correzione ai calcoli o alle tariffe, usare **Rigenera chiusura** per ricalcolare quel mese dai servizi e registrare i nuovi importi. Il programma chiede conferma prima di sostituire la chiusura precedente.
+
 ### Contabilita SMZ immersioni
 
 La tabella mostra righe contabili separate per data e ordine di servizio.
+
+L'importo si calcola moltiplicando la tariffa oraria finale della categoria per le ore contabili inserite. Le tariffe ADD comprendono gia la riduzione del 50%, le tariffe C.I. quella del 20% e le tariffe SPER la maggiorazione del 25%: riepilogo del servizio e contabilita mensile non applicano nuovamente queste percentuali. Le ore restano quelle registrate nel servizio.
+
+Esempi per un'ora nella fascia 00/12: A.R.A. addestrativa 2,50 euro, Camera Iperbarica 4,00 euro, A.R.A. sperimentale 6,25 euro, con le tariffe iniziali del programma.
 
 Filtri disponibili:
 
@@ -275,6 +293,8 @@ Usare **Salva mezzi** per registrare le modifiche.
 ### Tariffe contabili
 
 Permette di modificare le tariffe usate nei calcoli contabili.
+
+La tariffa da inserire e l'importo orario finale della categoria, comprensivo della relativa riduzione o maggiorazione. Le tariffe personalizzate vengono conservate all'avvio. I vecchi cataloghi che coincidono interamente con i valori iniziali del programma vengono aggiornati automaticamente al nuovo criterio.
 
 Campi principali:
 

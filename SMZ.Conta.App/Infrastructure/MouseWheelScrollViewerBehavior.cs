@@ -51,6 +51,22 @@ public static class MouseWheelScrollViewerBehavior
             return;
         }
 
+        // Let a bounded table or text editor scroll first. At its edge, continue
+        // through the surrounding page so nested scroll areas do not trap the wheel.
+        if (e.OriginalSource is DependencyObject origin)
+        {
+            var current = origin;
+            while (current is not null && current != source)
+            {
+                if (current is ScrollViewer inner && inner.ScrollableHeight > 0
+                    && (e.Delta > 0 ? inner.VerticalOffset > 0 : inner.VerticalOffset < inner.ScrollableHeight))
+                {
+                    return;
+                }
+                current = GetParent(current);
+            }
+        }
+
         var scrollViewer = FindScrollableAncestor(source);
         if (scrollViewer is null || !scrollViewer.IsVisible)
         {

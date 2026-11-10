@@ -75,12 +75,11 @@ public sealed partial class PersonaleRepository
 
     private static string BuildFiltroVisiteAttive(SqliteCommand command)
     {
-        var parametri = CatalogoVisiteMediche.Tutte
-            .Where(tipo => !tipo.Attiva)
-            .Select((tipo, index) =>
+        var parametri = CatalogoVisiteMediche.DescrizioniDisattivate
+            .Select((descrizione, index) =>
             {
                 var parametro = $"$tipoVisitaDisattivata{index}";
-                command.Parameters.AddWithValue(parametro, tipo.Descrizione);
+                command.Parameters.AddWithValue(parametro, descrizione);
                 return parametro;
             })
             .ToList();
@@ -178,7 +177,9 @@ public sealed partial class PersonaleRepository
             items.Add(MapPersonale(reader));
         }
 
-        return items;
+        return items.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica,
+                item.DataDecorrenzaQualifica, item.IsProfiloSanitario, item.RuoloSanitario))
+            .ThenBy(item => item.Cognome).ThenBy(item => item.Nome).ToList();
     }
 
     public Personale? GetPersonaleById(int perId)

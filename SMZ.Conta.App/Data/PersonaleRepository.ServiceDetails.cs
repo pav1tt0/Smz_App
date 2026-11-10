@@ -59,6 +59,14 @@ public sealed partial class PersonaleRepository
         };
         reader.Close();
 
+        using (var natanti = connection.CreateCommand())
+        {
+            natanti.CommandText = "SELECT UnitaNavaleId FROM ServizioUnitaNavaliAggiuntive WHERE ServizioGiornalieroId = $id ORDER BY Ordine;";
+            natanti.Parameters.AddWithValue("$id", servizioGiornalieroId);
+            using var natantiReader = natanti.ExecuteReader();
+            while (natantiReader.Read()) servizio.UnitaNavaliAggiuntiveIds.Add(natantiReader.GetInt32(0));
+        }
+
         servizio.Partecipanti = GetServizioPartecipanti(connection, servizioGiornalieroId);
         servizio.Immersioni = GetServizioImmersioni(connection, servizioGiornalieroId);
         servizio.OperatoriSubEsterni = GetServizioOperatoriSubEsterni(connection, servizioGiornalieroId);
@@ -184,6 +192,25 @@ public sealed partial class PersonaleRepository
 
             servizioGiornalieroId = servizio.ServizioGiornalieroId;
             DeleteServizioChildRows(connection, transaction, servizioGiornalieroId);
+        }
+
+        using (var deleteNatanti = connection.CreateCommand())
+        {
+            deleteNatanti.Transaction = transaction;
+            deleteNatanti.CommandText = "DELETE FROM ServizioUnitaNavaliAggiuntive WHERE ServizioGiornalieroId = $id;";
+            deleteNatanti.Parameters.AddWithValue("$id", servizioGiornalieroId);
+            deleteNatanti.ExecuteNonQuery();
+        }
+        var ordineNatante = 0;
+        foreach (var natanteId in servizio.UnitaNavaliAggiuntiveIds.Distinct().Where(id => id != servizio.UnitaNavaleId))
+        {
+            using var insertNatante = connection.CreateCommand();
+            insertNatante.Transaction = transaction;
+            insertNatante.CommandText = "INSERT INTO ServizioUnitaNavaliAggiuntive (ServizioGiornalieroId, UnitaNavaleId, Ordine) VALUES ($id, $natante, $ordine);";
+            insertNatante.Parameters.AddWithValue("$id", servizioGiornalieroId);
+            insertNatante.Parameters.AddWithValue("$natante", natanteId);
+            insertNatante.Parameters.AddWithValue("$ordine", ordineNatante++);
+            insertNatante.ExecuteNonQuery();
         }
 
         var partecipantiMap = InsertServizioPartecipanti(connection, transaction, servizioGiornalieroId, servizio.Partecipanti);

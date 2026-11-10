@@ -60,6 +60,8 @@ Esempi:
 
 ## Note Operative
 
+- Ogni `TipoAbilitazioneId` puo comparire una sola volta nella scheda di una persona, anche se cambiano livello, date o note. La stessa abilitazione puo appartenere a persone diverse. Il controllo avviene nell'editor e prima del salvataggio nel repository; i doppioni pregressi non vengono cancellati automaticamente.
+
 - Il programma oggi usa questo catalogo per il menu di inserimento e per il filtro abilitazioni.
 - Le profondita guidate sono gia attive per `ARA`, `ARM` e `ASAS`.
 - Per `Patente di guida` e gia attiva la scelta guidata del certificato da `1` a `5`.

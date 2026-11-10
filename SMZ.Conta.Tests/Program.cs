@@ -1,5 +1,10 @@
 using System.IO.Compression;
+using System.IO;
 using System.Reflection;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using SMZ.Conta.App.Infrastructure;
 using Microsoft.Data.Sqlite;
 using SMZ.Conta.App.Data;
 using SMZ.Conta.App.Models;
@@ -8,12 +13,14 @@ using SMZ.Conta.App.ViewModels;
 
 namespace SMZ.Conta.Tests;
 
-internal static class Program
+internal static partial class Program
 {
     private static readonly Version MinimumSupportedSqliteVersion = new(3, 50, 2);
 
+    [STAThread]
     private static int Main()
     {
+        _ = new Application();
         var testRoot = Path.Combine(Path.GetTempPath(), "smz-conta-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(testRoot);
         Environment.SetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable, testRoot);
@@ -24,26 +31,45 @@ internal static class Program
 
             Run("database isolato", TestDatabaseIsolato);
             Run("separazione dati pacchetto test", TestProfiloDatiPacchetto);
+            Run("ridisposizione campi e ripristino layout", TestAdaptiveGrid);
+            Run("schede adattate alla larghezza", TestAdaptiveCards);
+            Run("preferenza dimensione interfaccia isolata", TestDisplayPreferences);
             Run("versione SQLite sicura", TestVersioneSqliteSicura);
             Run("numero ordine servizio automatico", TestNumeroOrdineServizioAutomatico);
             Run("abbreviazioni qualifiche e gerarchia", TestAbbreviazioniQualifiche);
             Run("salvataggio e lettura anagrafica", TestSalvataggioELetturaPersonale);
             Run("date abilitazioni facoltative", TestDateAbilitazioniFacoltative);
+            Run("abilitazione unica per persona nell'editor", TestAbilitazioniUnicheEditor);
+            Run("rifiuto duplicati prima del salvataggio", TestAbilitazioniUnicheRepository);
             Run("visita bimestrale disattivata", TestVisitaBimestraleDisattivata);
+            Run("avvisi bimestrali con nomi alternativi", TestAvvisiBimestraliNomiAlternativi);
             Run("visite facoltative nell'anagrafica", TestVisiteFacoltative);
             Run("conservazione visite gia registrate", TestConservazioneVisite);
             Run("salvataggio e lettura servizio con immersione", TestSalvataggioELetturaServizio);
+            Run("personale ordinato per qualifica in elenchi e servizi", TestOrdinePersonalePerQualifica);
+            Run("personale su due colonne in ordine verticale", TestPersonaleColonneVerticali);
+            Run("tre natanti salvati riaperti stampati e scambiati", TestTreNatantiServizio);
+            Run("scelta immersione nel riepilogo e riapertura", TestSceltaImmersioneRiepilogo);
+            Run("numeri e descrizioni degli incarichi nel riepilogo", TestIncarichiNelRiepilogo);
+            Run("incarico e partecipazione in immersioni diverse", TestIncaricoEPartecipazioneSeparati);
+            Run("tariffe finali in riepilogo e mensile per interni ed esterni", TestTariffeFinaliImmersioni);
+            Run("tariffe personalizzate senza doppi coefficienti", TestTariffeFinaliPersonalizzate);
+            Run("aggiornamento del solo catalogo tariffario originale", TestAggiornamentoTariffeOriginali);
+            Run("conservazione dei cataloghi tariffari personalizzati", TestConservazioneTariffePersonalizzate);
+            Run("chiusure mensili conservate e rigenerate su richiesta", TestRigenerazioneImportiMensili);
             Run("ripartizione straordinario stampa servizio", TestRipartizioneStraordinarioStampa);
             Run("autenticazione e ruoli di accesso", TestAccessi);
             Run("ripristino backup sicuro", TestRipristinoBackupSicuro);
+            Run("installazione con dati e account esistenti", TestOperationalDatabaseSetup);
+            Run("importazione comprende dati SQLite WAL", TestOperationalDatabaseWal);
+            Run("avvio usa il database installato senza ripiego", TestInstalledDatabaseConfiguration);
 
             Console.WriteLine("Tutti i test SMZ sono passati.");
             return 0;
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine(ex.Message);
-            Console.Error.WriteLine(ex.StackTrace);
+            Console.Error.WriteLine(ex.ToString());
             return 1;
         }
         finally
@@ -123,6 +149,93 @@ internal static class Program
             sqliteVersion >= MinimumSupportedSqliteVersion,
             $"SQLite {sqliteVersion} non e sicuro: richiesta almeno la versione {MinimumSupportedSqliteVersion}.");
         Console.WriteLine($"SQLite runtime: {sqliteVersion}");
+    }
+
+    private static void TestAdaptiveGrid()
+    {
+        var grid = new AdaptiveGrid { CollapseBelow = 760, MinItemWidth = 240, MaxColumns = 2 };
+        var originalColumn = new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) };
+        var originalRow = new RowDefinition { Height = GridLength.Auto };
+        grid.ColumnDefinitions.Add(originalColumn);
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(18) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition());
+        grid.RowDefinitions.Add(originalRow);
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        var person = new Personale { Nome = "Nome iniziale" };
+        var editor = new TextBox { DataContext = person, Margin = new Thickness(1, 2, 3, 4) };
+        editor.SetBinding(TextBox.TextProperty, new Binding(nameof(Personale.Nome)) { Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+        var second = new TextBox();
+        Grid.SetColumn(second, 2);
+        var footer = new TextBlock { Text = "Indicazioni" };
+        Grid.SetRow(footer, 1);
+        Grid.SetColumnSpan(footer, 3);
+        grid.Children.Add(editor);
+        grid.Children.Add(second);
+        grid.Children.Add(footer);
+
+        foreach (var width in new[] { 400, 600, 1200, 400, 1200 })
+        {
+            grid.Measure(new Size(width, double.PositiveInfinity));
+            grid.Arrange(new Rect(0, 0, width, grid.DesiredSize.Height));
+            if (width == 400)
+            {
+                AssertEqual(1, grid.ColumnDefinitions.Count, "Campi su una colonna");
+                AssertEqual(1, Grid.GetRow(second), "Secondo campo sotto il primo");
+            }
+            else if (width == 600)
+            {
+                AssertEqual(2, grid.ColumnDefinitions.Count, "Campi su due colonne");
+                AssertEqual(2, Grid.GetColumnSpan(footer), "Indicazioni su tutta la riga");
+            }
+            else
+            {
+                AssertTrue(ReferenceEquals(originalColumn, grid.ColumnDefinitions[0]), "Definizioni colonne non ripristinate.");
+                AssertTrue(ReferenceEquals(originalRow, grid.RowDefinitions[0]), "Definizioni righe non ripristinate.");
+                AssertEqual(2, Grid.GetColumn(second), "Posizione originale ripristinata");
+                AssertEqual(new Thickness(1, 2, 3, 4), editor.Margin, "Margini originali ripristinati");
+            }
+        }
+        editor.Text = "Nome modificato";
+        editor.GetBindingExpression(TextBox.TextProperty)!.UpdateSource();
+        AssertEqual("Nome modificato", person.Nome, "Binding conservato durante i ridimensionamenti");
+    }
+
+    private static void TestAdaptiveCards()
+    {
+        var panel = new AdaptiveUniformGrid { MaxColumns = 5, MinItemWidth = 230 };
+        for (var i = 0; i < 5; i++) panel.Children.Add(new Button { Content = $"Modulo {i}" });
+        foreach (var (width, columns) in new[] { (1200, 5), (900, 3), (400, 1), (1200, 5) })
+        {
+            panel.Measure(new Size(width, double.PositiveInfinity));
+            panel.Arrange(new Rect(0, 0, width, panel.DesiredSize.Height));
+            AssertEqual(columns, panel.Columns, "Numero colonne delle schede");
+            AssertTrue(panel.Children.Cast<FrameworkElement>().All(item => item.ActualWidth >= 230), "Scheda compressa.");
+        }
+    }
+
+    private static void TestDisplayPreferences()
+    {
+        var previous = Environment.GetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable);
+        var isolated = Path.Combine(previous!, "display-preferences");
+        Environment.SetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable, isolated);
+        try
+        {
+            AssertEqual(100, DisplayPreferences.LoadZoom(), "Dimensione iniziale");
+            DisplayPreferences.SaveZoom(120);
+            AssertEqual(120, DisplayPreferences.LoadZoom(), "Preferenza riletta");
+            DisplayPreferences.SaveZoom(999);
+            AssertEqual(150, DisplayPreferences.LoadZoom(), "Limite superiore");
+            DisplayPreferences.SaveZoom(1);
+            AssertEqual(70, DisplayPreferences.LoadZoom(), "Limite inferiore");
+            File.WriteAllText(Path.Combine(isolated, "display-settings.json"), "file incompleto");
+            AssertEqual(100, DisplayPreferences.LoadZoom(), "Ripristino dopo file incompleto");
+            File.WriteAllText(Path.Combine(isolated, "display-settings.json"), "{}");
+            AssertEqual(100, DisplayPreferences.LoadZoom(), "Ripristino dopo preferenza mancante");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable, previous);
+        }
     }
 
     private static void TestNumeroOrdineServizioAutomatico()
@@ -240,6 +353,70 @@ internal static class Program
         AssertTrue(loaded.Abilitazioni.All(item => item.DataConseguimento is null && item.DataScadenza is null), "Rimozione date non salvata.");
     }
 
+    private static void TestAbilitazioniUnicheEditor()
+    {
+        var viewModel = new MainWindowViewModel
+        {
+            PerIdInput = "113", Cognome = "Test", Nome = "Abilitazione unica", CodiceFiscale = "TSTDUP80A01H501A",
+        };
+        var tipo = viewModel.TipiAbilitazioneCatalogo.First();
+        var altroTipo = viewModel.TipiAbilitazioneCatalogo.Skip(1).First();
+        viewModel.AbilitazioneTipoSelezionato = tipo;
+        viewModel.AbilitazioneNote = "Nota originale";
+        viewModel.SaveAbilitazioneCommand.Execute(null);
+        var originale = viewModel.Abilitazioni.Single();
+
+        viewModel.AbilitazioneTipoSelezionato = tipo;
+        viewModel.AbilitazioneNote = "Non sovrascrivere";
+        AssertTrue(viewModel.AbilitazioneIndicazioni.Contains("gia presente"), "Indicazione duplicato assente.");
+        viewModel.SaveAbilitazioneCommand.Execute(null);
+        AssertEqual(1, viewModel.Abilitazioni.Count, "Nessuna seconda riga dello stesso tipo");
+        AssertEqual("Nota originale", originale.Note, "La riga originale resta intatta");
+
+        viewModel.SelectedAbilitazione = originale;
+        viewModel.AbilitazioneNote = "Nota aggiornata";
+        viewModel.SaveAbilitazioneCommand.Execute(null);
+        AssertEqual(1, viewModel.Abilitazioni.Count, "Modifica della riga esistente consentita");
+        AssertEqual("Nota aggiornata", viewModel.Abilitazioni.Single().Note, "Modifica conservata");
+
+        viewModel.AbilitazioneTipoSelezionato = altroTipo;
+        viewModel.SaveAbilitazioneCommand.Execute(null);
+        viewModel.SelectedAbilitazione = viewModel.Abilitazioni.Single(item => item.TipoAbilitazioneId == tipo.TipoAbilitazioneId);
+        viewModel.AbilitazioneTipoSelezionato = altroTipo;
+        viewModel.SaveAbilitazioneCommand.Execute(null);
+        AssertEqual(2, viewModel.Abilitazioni.Select(item => item.TipoAbilitazioneId).Distinct().Count(), "Cambio tipo verso un duplicato rifiutato");
+
+        viewModel.RemoveAbilitazioneCommand.Execute(null);
+        viewModel.AbilitazioneTipoSelezionato = tipo;
+        viewModel.SaveAbilitazioneCommand.Execute(null);
+        AssertEqual(2, SalvaSchedaPerTest(viewModel).Abilitazioni.Count, "Reinserimento dopo rimozione consentito");
+    }
+
+    private static void TestAbilitazioniUnicheRepository()
+    {
+        var repository = new PersonaleRepository();
+        var tipo = repository.GetTipiAbilitazione().First();
+        var personale = CreaPersonale(114, "Test", "Duplicati", "TSTDBL80A01H501A", string.Empty);
+        personale.Abilitazioni = [new() { TipoAbilitazioneId = tipo.TipoAbilitazioneId }, new() { TipoAbilitazioneId = tipo.TipoAbilitazioneId, Note = "Seconda riga" }];
+        var exception = CaptureException(() => repository.SavePersonale(personale, true), "Duplicato salvato su nuova scheda.");
+        AssertTrue(exception.Message.Contains("presente piu volte"), "Errore duplicato non riconoscibile.");
+        AssertTrue(repository.GetPersonaleById(114) is null, "Scheda parziale creata dopo il rifiuto.");
+
+        personale.Abilitazioni.RemoveAt(1);
+        repository.SavePersonale(personale, true);
+        personale.Nome = "Modifica da non salvare";
+        personale.Abilitazioni.Add(new() { TipoAbilitazioneId = tipo.TipoAbilitazioneId });
+        AssertThrows(() => repository.SavePersonale(personale, false), "Duplicato salvato su scheda esistente.");
+        var loaded = repository.GetPersonaleById(114)!;
+        AssertEqual("Duplicati", loaded.Nome, "Dati originali conservati dopo rifiuto");
+        AssertEqual(1, loaded.Abilitazioni.Count, "Abilitazione originale conservata");
+
+        var altraPersona = CreaPersonale(115, "Test", "Altra persona", "TSTALT80A01H501A", string.Empty);
+        altraPersona.Abilitazioni = [new() { TipoAbilitazioneId = tipo.TipoAbilitazioneId }];
+        repository.SavePersonale(altraPersona, true);
+        AssertEqual(1, repository.GetPersonaleById(115)!.Abilitazioni.Count, "Stessa abilitazione consentita a persone diverse");
+    }
+
     private static void TestVisitaBimestraleDisattivata()
     {
         var bimestrale = CatalogoVisiteMediche.Tutte.Single(tipo => tipo.Codice == "BIMESTRALE");
@@ -289,6 +466,40 @@ internal static class Program
         viewModel.CodiceFiscale = "TSTNVA80A01H501A";
         loaded = SalvaSchedaPerTest(viewModel);
         AssertEqual(0, loaded.VisiteMediche.Count, "Nuova scheda senza dati disattivati di un'altra persona");
+    }
+
+    private static void TestAvvisiBimestraliNomiAlternativi()
+    {
+        var repository = new PersonaleRepository();
+        var oggi = DateOnly.FromDateTime(DateTime.Today);
+        var tipo = CatalogoVisiteMediche.Tutte.Single(item => item.Codice == "BIMESTRALE");
+        var personale = CreaPersonale(108, "Test", "Bimestrale disattivata", "TSTBMS80A01H501A", string.Empty);
+        personale.VisiteMediche = tipo.DescrizioniAlternative.Prepend(tipo.Descrizione)
+            .SelectMany(nome => new[] { -10, 3, 30 }.Select(giorni => new VisitaMedica
+            {
+                TipoVisita = $"  {nome.ToUpperInvariant()}  ",
+                DataScadenza = oggi.AddDays(giorni),
+                Note = "Dato storico da conservare",
+            }))
+            .ToList();
+        repository.SavePersonale(personale, isNewRecord: false);
+
+        AssertTrue(personale.VisiteMediche.All(visita => !CatalogoVisiteMediche.IsAttiva(visita.TipoVisita)), "Nome alternativo bimestrale riconosciuto come attivo.");
+        AssertTrue(!repository.GetScadenzeProssime(oggi, oggi.AddDays(90)).Any(item => item.PerId == 108), "Avviso bimestrale con nome alternativo nello scadenzario.");
+        AssertTrue(!repository.SearchPersonale(string.Empty, null, oggi.AddDays(90)).Any(item => item.PerId == 108), "Nome alternativo nel filtro visite.");
+
+        var viewModel = new MainWindowViewModel();
+        AssertTrue(viewModel.DashboardTopScadenze.All(item => item.PerId != 108), "Avviso bimestrale nella dashboard.");
+        AssertEqual(0, viewModel.DashboardVisiteScadutePersonale, "Contatore visite scadute senza bimestrali");
+        AssertEqual(0, viewModel.DashboardVisiteInScadenzaPersonale, "Contatore visite in scadenza senza bimestrali");
+        AssertEqual(0, viewModel.ScadenzeUrgenti, "Contatore urgenze senza bimestrali");
+
+        viewModel.SelectedPersonale = viewModel.PersonaleItems.Single(item => item.PerId == 108);
+        AssertEqual(0, viewModel.SchedaScaduteTotali, "Nomi alternativi esclusi dagli avvisi scheda");
+        viewModel.Telefono1 = "654321";
+        var loaded = SalvaSchedaPerTest(viewModel);
+        AssertEqual(personale.VisiteMediche.Count, loaded.VisiteMediche.Count, "Conservazione visite con nomi alternativi");
+        AssertTrue(loaded.VisiteMediche.All(item => item.Note == "Dato storico da conservare"), "Note storiche non conservate.");
     }
 
     private static void TestVisiteFacoltative()
@@ -752,6 +963,108 @@ internal static class Program
         {
             throw new InvalidOperationException($"{fieldName}: atteso '{expected}', trovato '{actual}'.");
         }
+    }
+
+    private static void TestOperationalDatabaseSetup()
+    {
+        SqliteConnection.ClearAllPools();
+        var root = DatabasePaths.AppDataDirectory;
+        var source = DatabasePaths.DatabasePath;
+        var sourceHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(source)));
+        var fingerprint = DatabaseFingerprint(source);
+        var target = Path.Combine(root, "Installazione con spazi", "Dati reali simulati");
+        var result = OperationalDatabaseSetup.Prepare(source, target);
+        AssertTrue(result.Imported && result.PersonaleCount > 0 && result.HasUsers, "Dati o account non importati.");
+        AssertTrue(File.Exists(result.SafetyBackupPath), "Copia di sicurezza mancante.");
+        AssertEqual(fingerprint, DatabaseFingerprint(result.DatabasePath), "Tutte le righe e gli account conservati");
+        AssertEqual(sourceHash, Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(source))), "Sorgente intatta");
+
+        var reused = OperationalDatabaseSetup.Prepare(result.DatabasePath, target);
+        AssertTrue(!reused.Imported && File.Exists(reused.SafetyBackupPath), "Database in uso non riutilizzato con backup.");
+        AssertEqual(fingerprint, DatabaseFingerprint(reused.DatabasePath), "Riutilizzo non modifica il database");
+        AssertThrows(() => OperationalDatabaseSetup.Prepare(source, target), "Sostituzione di un database esistente consentita.");
+        AssertEqual(fingerprint, DatabaseFingerprint(result.DatabasePath), "Destinazione conservata dopo il rifiuto");
+
+        var invalid = Path.Combine(root, "database-non-valido.db");
+        File.WriteAllText(invalid, "non e un database");
+        var invalidTarget = Path.Combine(root, "Importazione rifiutata");
+        AssertThrows(() => OperationalDatabaseSetup.Prepare(invalid, invalidTarget), "Database non valido accettato.");
+        AssertTrue(!Directory.Exists(invalidTarget), "Cartella dati parziale creata.");
+
+        Directory.CreateDirectory(DatabasePaths.ExportDirectory);
+        File.WriteAllText(Path.Combine(DatabasePaths.ExportDirectory, "collaudo-installazione.txt"), "Export da conservare");
+        var backup = new BackupService().CreateLocalBackup("collaudo-installazione");
+        var restored = OperationalDatabaseSetup.Prepare(backup.BackupPath, Path.Combine(root, "Importazione backup"));
+        AssertEqual(fingerprint, DatabaseFingerprint(restored.DatabasePath), "Dati del backup conservati senza inizializzazione");
+        AssertEqual("Export da conservare", File.ReadAllText(Path.Combine(Path.GetDirectoryName(restored.DatabasePath)!, "Export", "collaudo-installazione.txt")), "Export del backup conservato");
+    }
+
+    private static void TestOperationalDatabaseWal()
+    {
+        var root = DatabasePaths.AppDataDirectory;
+        var source = OperationalDatabaseSetup.Prepare(DatabasePaths.DatabasePath, Path.Combine(root, "Sorgente WAL")).DatabasePath;
+        using var writer = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = source, Pooling = false }.ToString());
+        writer.Open();
+        using var command = writer.CreateCommand();
+        command.CommandText = "PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0; UPDATE Personale SET Telefono1='WAL-COMMIT-COLLAUDO' WHERE PerId=(SELECT MIN(PerId) FROM Personale);";
+        command.ExecuteNonQuery();
+        AssertTrue(File.Exists(source + "-wal") && new FileInfo(source + "-wal").Length > 0, "La prova non contiene dati WAL.");
+        var result = OperationalDatabaseSetup.Prepare(source, Path.Combine(root, "Destinazione WAL"));
+        AssertEqual(DatabaseFingerprint(source), DatabaseFingerprint(result.DatabasePath), "Righe confermate nel WAL importate");
+    }
+
+    private static void TestInstalledDatabaseConfiguration()
+    {
+        var appDirectory = Path.Combine(DatabasePaths.AppDataDirectory, "App installata");
+        Directory.CreateDirectory(appDirectory);
+        AssertTrue(DatabasePaths.ResolveInstalledDataDirectory(appDirectory) is null, "Configurazione inesistente riconosciuta.");
+        var settingsPath = Path.Combine(appDirectory, "installazione.json");
+        File.WriteAllText(settingsPath, System.Text.Json.JsonSerializer.Serialize(new { PackageKind = "Operational", DataDirectory = DatabasePaths.AppDataDirectory }));
+        AssertEqual(DatabasePaths.AppDataDirectory, DatabasePaths.ResolveInstalledDataDirectory(appDirectory), "Percorso installato risolto");
+        var missing = Path.Combine(appDirectory, "Database assente");
+        File.WriteAllText(settingsPath, System.Text.Json.JsonSerializer.Serialize(new { PackageKind = "Operational", DataDirectory = missing }));
+        AssertThrows(() => DatabasePaths.ResolveInstalledDataDirectory(appDirectory), "Database mancante ignorato.");
+        AssertTrue(!Directory.Exists(missing), "Creato un database alternativo vuoto.");
+
+        var previous = Environment.GetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable);
+        var requirement = AppContext.GetData("SMZ.RequireInstalledDatabase");
+        try
+        {
+            Environment.SetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable, null);
+            AppContext.SetData("SMZ.RequireInstalledDatabase", true);
+            AssertThrows(() => _ = DatabasePaths.AppDataDirectory, "Distribuzione operativa avviata senza dati selezionati.");
+            Environment.SetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable, missing);
+            AssertThrows(() => _ = DatabasePaths.AppDataDirectory, "Percorso ambiente mancante accettato dalla distribuzione operativa.");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(DatabasePaths.AppDataDirectoryEnvironmentVariable, previous);
+            AppContext.SetData("SMZ.RequireInstalledDatabase", requirement);
+        }
+    }
+
+    private static string DatabaseFingerprint(string path)
+    {
+        using var connection = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = path, Mode = SqliteOpenMode.ReadOnly, Pooling = false }.ToString());
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name;";
+        var tables = new List<string>();
+        using (var reader = command.ExecuteReader()) while (reader.Read()) tables.Add(reader.GetString(0));
+        var text = new System.Text.StringBuilder();
+        foreach (var table in tables)
+        {
+            text.AppendLine(table);
+            command.CommandText = $"SELECT * FROM \"{table.Replace("\"", "\"\"")}\" ORDER BY rowid;";
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var values = new object[reader.FieldCount];
+                reader.GetValues(values);
+                text.AppendLine(System.Text.Json.JsonSerializer.Serialize(values));
+            }
+        }
+        return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text.ToString())));
     }
 
     private static void AssertThrows(Action action, string message)

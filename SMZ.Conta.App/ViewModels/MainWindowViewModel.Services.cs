@@ -431,6 +431,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ServizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault(item => item.ScopoImmersioneId == servizio.ScopoImmersioneId);
         ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == servizio.UnitaNavaleId)
             ?? UnitaNavaliCatalogo.FirstOrDefault();
+        ServizioSecondaUnitaNavale = UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == servizio.UnitaNavaliAggiuntiveIds.ElementAtOrDefault(0));
+        ServizioTerzaUnitaNavale = UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == servizio.UnitaNavaliAggiuntiveIds.ElementAtOrDefault(1));
         ServizioResponsabileSelezionato = TrovaOperatoreServizio(servizio.ResponsabileServizioPerId);
         ServizioFuoriSede = servizio.FuoriSede;
         ServizioIndennitaOrdinePubblico = servizio.IndennitaOrdinePubblico;
@@ -614,6 +616,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ServizioLocalitaSelezionata = LocalitaOperativeServizioCatalogo.FirstOrDefault();
         ServizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault();
         ServizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault();
+        ServizioSecondaUnitaNavale = UnitaNavaliCatalogo.FirstOrDefault();
+        ServizioTerzaUnitaNavale = UnitaNavaliCatalogo.FirstOrDefault();
         ServizioResponsabileSelezionato = null;
         ServizioFuoriSede = false;
         ServizioIndennitaOrdinePubblico = false;

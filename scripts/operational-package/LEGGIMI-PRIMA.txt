@@ -1,0 +1,56 @@
+SMZ - INSTALLAZIONE OPERATIVA SU WINDOWS X64
+
+Questo pacchetto contiene il programma aggiornato e il runtime necessario.
+Non contiene database, anagrafiche di prova o persone preinserite.
+Non occorrono .NET aggiuntivo, Internet o privilegi di amministratore.
+
+INSTALLAZIONE
+1. Chiudi tutte le copie di SMZ aperte sul PC.
+2. Estrai l'intero ZIP in una cartella locale.
+3. Fai doppio clic su INSTALLA-E-AVVIA-SMZ.cmd.
+4. Se viene trovato il database gia in uso, premi SI per mantenerlo.
+   Premi NO per scegliere un altro database reale o un backup SMZ.
+   Se nessun database e presente, compare direttamente la scelta del file.
+5. Puoi selezionare un file .db, .sqlite, .sqlite3 oppure un backup .smzbak.
+6. Terminata l'installazione, usa il collegamento SMZ sul desktop o nel menu Start.
+
+I DATI REALI
+Il database standard e cercato in %LOCALAPPDATA%\SMZ\Conta\smz-conta.db.
+Una precedente installazione di questo pacchetto ricorda il database scelto.
+Se lo riutilizzi, il file resta al suo posto e viene creata una copia di sicurezza.
+Se selezioni un file diverso, viene importata una copia locale: il file originale
+resta intatto. Un database gia presente sul PC non viene sovrascritto; se serve,
+il programma usa una nuova cartella Operativo-* per i dati selezionati.
+La posizione effettiva dei dati e della copia di sicurezza compare a fine installazione
+ed e registrata nel file installazione.json della cartella del programma.
+
+Per un database .db anche i dati SQLite presenti nel relativo file WAL sono inclusi
+nella copia. Tieni accanto al database gli eventuali file -wal e -shm gia presenti.
+Un backup .smzbak conserva anche gli eventuali file Export inclusi nell'archivio.
+Quando scegli un singolo .db vengono importati solo i dati del database.
+
+ACCESSO
+Se il database contiene account, usa gli stessi PerID e password.
+Se non contiene account, crea il primo amministratore usando un PerID gia presente
+nell'anagrafica reale. Non viene creato nessun Mario Rossi o altro dipendente di prova.
+
+AGGIORNAMENTI SUCCESSIVI
+Chiudi SMZ e riesegui INSTALLA-E-AVVIA-SMZ.cmd dal nuovo pacchetto.
+Scegli SI per continuare con il database gia configurato.
+I dati, gli account e le password non vengono azzerati dall'installatore.
+Se il database configurato manca, l'avvio si ferma con un messaggio: non passa
+automaticamente a un database nuovo o di prova.
+
+AGGIORNAMENTO DEL 10 NOVEMBRE 2026
+Sono incluse le modifiche a ordinamento del personale, disposizione del servizio,
+due selettori natanti affiancati, salvataggio in fondo pagina e riepilogo immersioni
+con numeri e ruoli distinti per direttori, soccorso e assistenti.
+Il calcolo contabile usa le tariffe orarie finali senza applicare due volte
+le riduzioni per immersioni addestrative e camera iperbarica.
+Le chiusure mensili gia salvate restano conservate: per ricalcolare un mese
+gia chiuso con la correzione, usare Rigenera chiusura nella contabilita.
+
+USO
+A-, percentuale e A+ regolano la dimensione dell'interfaccia dal 70% al 150%.
+Ogni tipo di abilitazione puo comparire una sola volta per persona; per aggiornarlo
+seleziona la riga esistente. Le visite bimestrali restano escluse dagli avvisi.

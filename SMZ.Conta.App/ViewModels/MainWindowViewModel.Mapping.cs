@@ -357,6 +357,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
             throw new InvalidOperationException("Inserisci almeno un partecipante o una Assistenza SMZ nel servizio.");
         }
 
+        foreach (var row in ServizioPartecipazioniContabiliUnicheBozza.Where(IsRigaUnicaContabileCompilata))
+        {
+            if (row.NumeroImmersione is null)
+            {
+                throw new InvalidOperationException($"Seleziona il numero dell'immersione per {row.Nominativo} oppure svuota il dettaglio contabile.");
+            }
+        }
+
         var immersioni = BuildServizioImmersioni(partecipanti, operatoriSubEsterni);
 
         return new ServizioGiornaliero
@@ -371,7 +379,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             TipoServizio = ServizioTipoSelezionato,
             LocalitaOperativaId = ServizioLocalitaSelezionata?.LocalitaOperativaId,
             ScopoImmersioneId = ServizioScopoSelezionato?.ScopoImmersioneId,
-            UnitaNavaleId = ServizioUnitaNavaleSelezionata is { UnitaNavaleId: > 0 } unita ? unita.UnitaNavaleId : null,
+            UnitaNavaleId = GetNatantiSelezionati().Cast<int?>().FirstOrDefault(),
+            UnitaNavaliAggiuntiveIds = GetNatantiSelezionati().Skip(1).ToList(),
             ResponsabileServizioPerId = GetPerIdOperatoreSelezionato(ServizioResponsabileSelezionato),
             FuoriSede = ServizioFuoriSede,
             IndennitaOrdinePubblico = ServizioIndennitaOrdinePubblico,
@@ -414,6 +423,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         return items;
     }
+
+    private IEnumerable<int> GetNatantiSelezionati() =>
+        new[] { ServizioUnitaNavaleSelezionata, ServizioSecondaUnitaNavale, ServizioTerzaUnitaNavale }
+            .Where(item => item is { UnitaNavaleId: > 0 })
+            .Select(item => item!.UnitaNavaleId).Distinct();
 
     private List<ServizioSupportoOccasionale> BuildSupportiOccasionali()
     {

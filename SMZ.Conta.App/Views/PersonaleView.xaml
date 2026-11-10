@@ -23,7 +23,7 @@
                             </Grid.RowDefinitions>
 
                             <Border Style="{DynamicResource CardStyle}">
-                                <Grid>
+                                <infra:AdaptiveGrid CollapseBelow="1000" MinItemWidth="220" MaxColumns="2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="1.3*" />
                                         <ColumnDefinition Width="14" />
@@ -35,7 +35,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel>
-                                        <TextBlock Text="Cerca personale"
+                                        <TextBlock TextWrapping="Wrap" Text="Cerca personale"
                                                    Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <TextBox Text="{Binding FiltroCognome, UpdateSourceTrigger=PropertyChanged}" />
                                         <Border Margin="0,8,0,0"
@@ -55,7 +55,7 @@
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="Abilitazione"
+                                        <TextBlock TextWrapping="Wrap" Text="Abilitazione"
                                                    Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <ComboBox ItemsSource="{Binding FiltroAbilitazioni}"
                                                   SelectedItem="{Binding FiltroAbilitazione}"
@@ -63,14 +63,14 @@
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="4">
-                                        <TextBlock Text="Visite entro"
+                                        <TextBlock TextWrapping="Wrap" Text="Visite entro"
                                                    Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <controls:DateInputPicker Text="{Binding FiltroVisiteEntro, UpdateSourceTrigger=PropertyChanged}"
                                                                   Width="150"
                                                                   ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
                                     </StackPanel>
 
-                                    <StackPanel Grid.Column="6"
+                                    <WrapPanel Grid.Column="6"
                                                 Orientation="Horizontal"
                                                 VerticalAlignment="Bottom">
                                         <Button Content="Cerca"
@@ -81,8 +81,8 @@
                                         <Button Content="Nuovo"
                                                 Command="{Binding NewCommand}"
                                                 Style="{DynamicResource AccentButtonStyle}" />
-                                    </StackPanel>
-                                </Grid>
+                                    </WrapPanel>
+                                </infra:AdaptiveGrid>
                             </Border>
 
                             <Border Grid.Row="2"
@@ -94,20 +94,25 @@
                                         <RowDefinition Height="*" />
                                     </Grid.RowDefinitions>
 
-                                    <DockPanel LastChildFill="False">
-                                        <StackPanel DockPanel.Dock="Left">
-                                            <TextBlock Text="Elenco personale"
+                                    <infra:AdaptiveGrid CollapseBelow="1000" MinItemWidth="600" MaxColumns="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="18"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock TextWrapping="Wrap" Text="Elenco personale"
                                                        FontSize="22"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource AppTextBrush}" />
-                                            <TextBlock Margin="0,3,0,0"
+                                            <TextBlock TextWrapping="Wrap" Margin="0,3,0,0"
                                                        Text="{Binding DashboardDipendentiTotali, StringFormat={}{0} nominativi disponibili}"
                                                        Foreground="{DynamicResource AppMutedTextBrush}" />
                                         </StackPanel>
-                                        <Button DockPanel.Dock="Right"
+                                        <Button Grid.Column="2"
                                                 Content="Apri scheda"
                                                 Command="{Binding OpenSelectedPersonaleCommand}" />
-                                    </DockPanel>
+                                    </infra:AdaptiveGrid>
 
                                     <ListBox Grid.Row="2"
                                              ItemsSource="{Binding PersonaleItems}"
@@ -120,7 +125,7 @@
                                              Background="Transparent">
                                         <ListBox.ItemsPanel>
                                             <ItemsPanelTemplate>
-                                                <UniformGrid Columns="3" />
+                                                <infra:AdaptiveUniformGrid MaxColumns="3" MinItemWidth="240" />
                                             </ItemsPanelTemplate>
                                         </ListBox.ItemsPanel>
                                         <ListBox.ItemContainerStyle>
@@ -188,7 +193,7 @@
                                                                         Padding="8,3"
                                                                         Background="#E2ECF3"
                                                                         CornerRadius="999">
-                                                                    <TextBlock Text="{Binding StatoServizioSintesi}"
+                                                                    <TextBlock TextWrapping="Wrap" Text="{Binding StatoServizioSintesi}"
                                                                                Foreground="#24527B"
                                                                                FontSize="11"
                                                                                FontWeight="SemiBold" />
@@ -214,26 +219,31 @@
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
-                                    <DockPanel LastChildFill="False">
-                                        <StackPanel DockPanel.Dock="Left">
-                                            <TextBlock Text="Personale"
+                                    <infra:AdaptiveGrid CollapseBelow="1000" MinItemWidth="600" MaxColumns="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="18"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock TextWrapping="Wrap" Text="Personale"
                                                        FontSize="20"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource AppTextBrush}" />
-                                            <TextBlock Margin="0,3,0,0"
+                                            <TextBlock TextWrapping="Wrap" Margin="0,3,0,0"
                                                        Text="{Binding DashboardDipendentiTotali, StringFormat={}{0} nominativi}"
                                                        Foreground="{DynamicResource AppMutedTextBrush}"
                                                        FontSize="12" />
                                         </StackPanel>
-                                        <Button DockPanel.Dock="Right"
+                                        <Button Grid.Column="2"
                                                 Content="Nuovo"
                                                 Command="{Binding NewCommand}"
                                                 Style="{DynamicResource AccentButtonStyle}" />
-                                    </DockPanel>
+                                    </infra:AdaptiveGrid>
 
                                     <StackPanel Grid.Row="1"
                                                 Margin="0,16,0,0">
-                                        <TextBlock Text="Cerca"
+                                        <TextBlock TextWrapping="Wrap" Text="Cerca"
                                                    Foreground="{DynamicResource AppMutedTextBrush}" />
                                         <TextBox Text="{Binding FiltroCognome, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -252,14 +262,14 @@
                                                      ScrollViewer.VerticalScrollBarVisibility="Auto" />
                                         </Border>
 
-                                        <StackPanel Orientation="Horizontal"
+                                        <WrapPanel Orientation="Horizontal"
                                                     Margin="0,12,0,0">
                                             <Button Content="Cerca"
                                                     Command="{Binding SearchCommand}" />
                                             <Button Content="Pulisci"
                                                     Command="{Binding ClearFiltersCommand}"
                                                     Style="{DynamicResource SecondaryButtonStyle}" />
-                                        </StackPanel>
+                                        </WrapPanel>
                                     </StackPanel>
 
                                     <ListBox Grid.Row="2"
@@ -325,7 +335,7 @@
                                                                     Padding="8,3"
                                                                     Background="#E2ECF3"
                                                                     CornerRadius="999">
-                                                                <TextBlock Text="{Binding StatoServizioSintesi}"
+                                                                <TextBlock TextWrapping="Wrap" Text="{Binding StatoServizioSintesi}"
                                                                            Foreground="#24527B"
                                                                            FontSize="11"
                                                                            FontWeight="SemiBold" />
@@ -343,14 +353,14 @@
                                               Foreground="{DynamicResource AppTextBrush}"
                                               FontWeight="SemiBold">
                                         <StackPanel Margin="0,10,0,0">
-                                            <TextBlock Text="Abilitazione o specialita"
+                                            <TextBlock TextWrapping="Wrap" Text="Abilitazione o specialita"
                                                        Foreground="{DynamicResource AppMutedTextBrush}"
                                                        FontWeight="Normal" />
                                             <ComboBox ItemsSource="{Binding FiltroAbilitazioni}"
                                                       SelectedItem="{Binding FiltroAbilitazione}"
                                                       DisplayMemberPath="Descrizione" />
 
-                                            <TextBlock Margin="0,12,0,0"
+                                            <TextBlock TextWrapping="Wrap" Margin="0,12,0,0"
                                                        Text="Visite in scadenza entro"
                                                        Foreground="{DynamicResource AppMutedTextBrush}"
                                                        FontWeight="Normal" />
@@ -375,14 +385,19 @@
 
                         <Border Style="{DynamicResource CardStyle}">
                             <StackPanel>
-                                <DockPanel LastChildFill="False">
-                                    <TextBlock DockPanel.Dock="Left"
+                                <infra:AdaptiveGrid CollapseBelow="1000" MinItemWidth="600" MaxColumns="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="18"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" TextWrapping="Wrap"
                                                Text="Scheda anagrafica"
                                                FontSize="22"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource AppTextBrush}"
                                                VerticalAlignment="Center" />
-                                    <StackPanel DockPanel.Dock="Right"
+                                    <WrapPanel Grid.Column="2"
                                                 Orientation="Horizontal"
                                                 VerticalAlignment="Center">
                                         <Button Content="Torna elenco"
@@ -399,14 +414,14 @@
                                         <Button Content="Elimina definitivamente"
                                                 Command="{Binding DeleteDefinitivoCommand}"
                                                 Style="{DynamicResource DangerButtonStyle}" />
-                                    </StackPanel>
-                                </DockPanel>
+                                    </WrapPanel>
+                                </infra:AdaptiveGrid>
 
                                 <Border Margin="0,18,0,0"
                                         Background="#173A57"
                                         CornerRadius="22"
                                         Padding="20">
-                                    <Grid>
+                                    <infra:AdaptiveGrid CollapseBelow="1000" MinItemWidth="240" MaxColumns="2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="1.25*" />
                                             <ColumnDefinition Width="16" />
@@ -418,18 +433,18 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="Riepilogo operativo"
+                                            <TextBlock TextWrapping="Wrap" Text="Riepilogo operativo"
                                                        Foreground="#CBDBE0"
                                                        FontSize="13" />
-                                            <TextBlock Margin="0,6,0,0"
+                                            <TextBlock TextWrapping="Wrap" Margin="0,6,0,0"
                                                        Text="{Binding SchedaRiepilogoTitolo}"
                                                        Foreground="#FFF8EE"
                                                        FontSize="22"
                                                        FontWeight="SemiBold" />
-                                            <TextBlock Margin="0,4,0,0"
+                                            <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
                                                        Text="{Binding SchedaRiepilogoPerId}"
                                                        Foreground="#D9E4E7" />
-                                            <TextBlock Margin="0,4,0,0"
+                                            <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
                                                        Text="{Binding StatoServizioSchedaSintesi}"
                                                        Foreground="#D9E4E7" />
                                         </StackPanel>
@@ -439,7 +454,7 @@
                                                 CornerRadius="18"
                                                 Padding="14">
                                             <StackPanel>
-                                                <TextBlock Text="Abilitazioni principali"
+                                                <TextBlock TextWrapping="Wrap" Text="Abilitazioni principali"
                                                            Foreground="#CBDBE0"
                                                            FontSize="12" />
                                                 <TextBlock Margin="0,4,0,0"
@@ -448,7 +463,7 @@
                                                            FontSize="13"
                                                            FontWeight="SemiBold"
                                                            TextWrapping="Wrap" />
-                                                <TextBlock Margin="0,8,0,0"
+                                                <TextBlock TextWrapping="Wrap" Margin="0,8,0,0"
                                                            Text="{Binding SchedaAbilitazioniPrincipaliFooter}"
                                                            Foreground="#CBDBE0"
                                                            FontSize="12" />
@@ -460,10 +475,10 @@
                                                 CornerRadius="18"
                                                 Padding="14">
                                             <StackPanel>
-                                                <TextBlock Text="Prossima scadenza"
+                                                <TextBlock TextWrapping="Wrap" Text="Prossima scadenza"
                                                            Foreground="{DynamicResource AppMutedTextBrush}"
                                                            FontSize="12" />
-                                                <TextBlock Margin="0,6,0,0"
+                                                <TextBlock TextWrapping="Wrap" Margin="0,6,0,0"
                                                            Text="{Binding SchedaProssimaScadenza}"
                                                            Foreground="{DynamicResource AppTextBrush}"
                                                            FontSize="22"
@@ -489,7 +504,7 @@
                                                 </Style>
                                             </Border.Style>
                                             <StackPanel>
-                                                <TextBlock Text="{Binding SchedaScaduteTitolo}"
+                                                <TextBlock TextWrapping="Wrap" Text="{Binding SchedaScaduteTitolo}"
                                                            FontSize="12">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
@@ -534,7 +549,7 @@
                                                 </TextBlock>
                                             </StackPanel>
                                         </Border>
-                                    </Grid>
+                                    </infra:AdaptiveGrid>
                                 </Border>
 
                                 <Border Margin="0,18,0,0"
@@ -553,12 +568,12 @@
                                     </StackPanel>
                                 </Border>
 
-                                    <TextBlock Margin="0,16,0,0"
+                                    <TextBlock TextWrapping="Wrap" Margin="0,16,0,0"
                                                Text="Dati di servizio"
                                                FontSize="18"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource AppTextBrush}" />
-                                    <Grid Margin="0,16,0,0">
+                                    <infra:AdaptiveGrid Margin="0,16,0,0" CollapseBelow="1100" MinItemWidth="240" MaxColumns="3">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="110" />
                                             <ColumnDefinition Width="18" />
@@ -576,13 +591,13 @@
                                         </Grid.RowDefinitions>
 
                                         <StackPanel>
-                                            <TextBlock Text="PerID" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="PerID" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding PerIdInput, UpdateSourceTrigger=PropertyChanged}"
                                                      IsReadOnly="{Binding IsExistingPerson}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="2">
-                                            <TextBlock Text="Qualifica" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="Qualifica" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <ComboBox ItemsSource="{Binding QualificheDisponibili}"
                                                       Text="{Binding Qualifica, UpdateSourceTrigger=PropertyChanged}"
                                                       IsEditable="True"
@@ -590,25 +605,25 @@
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="4">
-                                            <TextBlock Text="Decorrenza qualifica" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="Decorrenza qualifica" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <controls:DateInputPicker Text="{Binding DataDecorrenzaQualifica, UpdateSourceTrigger=PropertyChanged}"
                                                                       Width="150"
                                                                       ToolTip="Data decorrenza della qualifica, usata per ordinare l'anzianita a parita di qualifica" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="6">
-                                            <TextBlock Text="Profilo personale" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="Profilo personale" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <ComboBox ItemsSource="{Binding ProfiliPersonaleDisponibili}"
                                                       SelectedItem="{Binding ProfiloPersonale}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="8">
-                                            <TextBlock Text="N. brevetto" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="N. brevetto" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding NumeroBrevettoSmz, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="5" Margin="0,10,0,0">
-                                            <TextBlock Text="Ruolo sanitario" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="Ruolo sanitario" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <ComboBox ItemsSource="{Binding RuoliSanitariDisponibili}"
                                                       SelectedItem="{Binding RuoloSanitario}"
                                                       IsEnabled="{Binding IsProfiloSanitario}" />
@@ -625,18 +640,18 @@
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Margin="0,10,0,0">
-                                            <TextBlock Text="Stato servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="Stato servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <ComboBox ItemsSource="{Binding StatiServizioPersonaleDisponibili}"
                                                       SelectedItem="{Binding StatoServizioPersonale}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
-                                            <TextBlock Text="{Binding DataFineServizioLabel}" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="{Binding DataFineServizioLabel}" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <controls:DateInputPicker Text="{Binding DataFineServizio, UpdateSourceTrigger=PropertyChanged}"
                                                                       Width="150"
                                                                       ToolTip="Per trasferiti o cessati indica l'ultimo giorno di servizio" />
                                         </StackPanel>
-                                    </Grid>
+                                    </infra:AdaptiveGrid>
 
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Per il profilo sanitario il ruolo sanitario e obbligatorio; brevetto subacqueo e attagliamento restano facoltativi."
@@ -644,7 +659,7 @@
                                                FontSize="12"
                                                TextWrapping="Wrap" />
 
-                                    <TextBlock Margin="0,20,0,0"
+                                    <TextBlock TextWrapping="Wrap" Margin="0,20,0,0"
                                                Text="Dati anagrafici"
                                                FontSize="18"
                                                FontWeight="SemiBold"
@@ -655,7 +670,7 @@
                                             <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
 
-                                        <Grid>
+                                        <infra:AdaptiveGrid CollapseBelow="640" MinItemWidth="240" MaxColumns="2">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="18" />
@@ -663,17 +678,17 @@
                                             </Grid.ColumnDefinitions>
 
                                             <StackPanel>
-                                                <TextBlock Text="Cognome" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                <TextBlock TextWrapping="Wrap" Text="Cognome" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding Cognome, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Nome" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                <TextBlock TextWrapping="Wrap" Text="Nome" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding Nome, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
-                                        </Grid>
+                                        </infra:AdaptiveGrid>
 
-                                        <Grid Grid.Row="1" Margin="0,10,0,0">
+                                        <infra:AdaptiveGrid Grid.Row="1" Margin="0,10,0,0" CollapseBelow="760" MinItemWidth="220" MaxColumns="3">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="170" />
                                                 <ColumnDefinition Width="18" />
@@ -683,31 +698,31 @@
                                             </Grid.ColumnDefinitions>
 
                                             <StackPanel>
-                                                <TextBlock Text="Data di nascita" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                <TextBlock TextWrapping="Wrap" Text="Data di nascita" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <controls:DateInputPicker Text="{Binding DataNascita, UpdateSourceTrigger=PropertyChanged}"
                                                                           Width="150"
                                                                           ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Luogo di nascita" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                <TextBlock TextWrapping="Wrap" Text="Luogo di nascita" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding LuogoNascita, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="4">
-                                                <TextBlock Text="Codice fiscale" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                <TextBlock TextWrapping="Wrap" Text="Codice fiscale" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding CodiceFiscale, UpdateSourceTrigger=PropertyChanged}"
                                                          MaxLength="16" />
                                             </StackPanel>
-                                        </Grid>
+                                        </infra:AdaptiveGrid>
                                     </Grid>
 
-                                    <TextBlock Margin="0,20,0,0"
+                                    <TextBlock TextWrapping="Wrap" Margin="0,20,0,0"
                                                Text="Contatti e residenza"
                                                FontSize="18"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource AppTextBrush}" />
-                                    <Grid Margin="0,16,0,0">
+                                    <infra:AdaptiveGrid Margin="0,16,0,0" CollapseBelow="640" MinItemWidth="220" MaxColumns="2">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="18" />
@@ -720,34 +735,34 @@
                                         </Grid.RowDefinitions>
 
                                         <StackPanel>
-                                            <TextBlock Text="Telefono 1" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="Telefono 1" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding Telefono1, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="2">
-                                            <TextBlock Text="Telefono 2" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="Telefono 2" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding Telefono2, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Margin="0,10,0,0">
-                                            <TextBlock Text="Mail Polizia" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="Mail Polizia" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Margin="0,6,0,0"
                                                      Text="{Binding Mail1Utente, UpdateSourceTrigger=PropertyChanged}"
                                                      ToolTip="Inserisci solo il nome utente istituzionale" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
-                                            <TextBlock Text="Mail personale" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="Mail personale" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding Mail2Utente, UpdateSourceTrigger=PropertyChanged}"
                                                      ToolTip="Inserisci l'indirizzo completo" />
                                         </StackPanel>
 
                                         <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                            <TextBlock Text="Via" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                            <TextBlock TextWrapping="Wrap" Text="Via" Foreground="{DynamicResource AppMutedTextBrush}" />
                                             <TextBox Text="{Binding ViaResidenza, UpdateSourceTrigger=PropertyChanged}" />
                                         </StackPanel>
 
-                                        <Grid Grid.Row="2" Grid.Column="2" Margin="0,10,0,0">
+                                        <infra:AdaptiveGrid Grid.Row="2" Grid.Column="2" Margin="0,10,0,0" CollapseBelow="400" MinItemWidth="180" MaxColumns="1">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="120" />
                                                 <ColumnDefinition Width="12" />
@@ -755,17 +770,17 @@
                                             </Grid.ColumnDefinitions>
 
                                             <StackPanel>
-                                                <TextBlock Text="CAP" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                <TextBlock TextWrapping="Wrap" Text="CAP" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding CapResidenza, UpdateSourceTrigger=PropertyChanged}"
                                                          MaxLength="5" />
                                             </StackPanel>
 
                                             <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Citta" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                <TextBlock TextWrapping="Wrap" Text="Citta" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding CittaResidenza, UpdateSourceTrigger=PropertyChanged}" />
                                             </StackPanel>
-                                        </Grid>
-                                    </Grid>
+                                        </infra:AdaptiveGrid>
+                                    </infra:AdaptiveGrid>
                                 </StackPanel>
 
                         </Border>
@@ -789,12 +804,12 @@
                                                     <RowDefinition Height="Auto" />
                                                 </Grid.RowDefinitions>
 
-                                                <TextBlock Text="Inserimento guidato abilitazione"
+                                                <TextBlock TextWrapping="Wrap" Text="Inserimento guidato abilitazione"
                                                            FontSize="19"
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource AppTextBrush}" />
 
-                                                <Grid Grid.Row="1" Margin="0,14,0,0">
+                                                <infra:AdaptiveGrid Grid.Row="1" Margin="0,14,0,0" CollapseBelow="680" MinItemWidth="240" MaxColumns="2">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="1.2*" />
                                                         <ColumnDefinition Width="18" />
@@ -802,12 +817,12 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <StackPanel>
-                                                        <TextBlock Text="Tipo abilitazione" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Text="Tipo abilitazione" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <ComboBox ItemsSource="{Binding TipiAbilitazioneCatalogo}"
                                                                   SelectedItem="{Binding AbilitazioneTipoSelezionato}"
                                                                   DisplayMemberPath="EtichettaCompleta" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="{Binding AbilitazioneLivelloEtichetta}" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="{Binding AbilitazioneLivelloEtichetta}" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <ComboBox ItemsSource="{Binding AbilitazioneLivelliSuggeriti}"
                                                                   Text="{Binding AbilitazioneLivello, UpdateSourceTrigger=PropertyChanged}"
                                                                   IsEnabled="{Binding AbilitazioneRichiedeLivello}"
@@ -817,23 +832,23 @@
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="2">
-                                                        <TextBlock Text="Data conseguimento" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Text="Data conseguimento" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <controls:DateInputPicker Text="{Binding AbilitazioneDataConseguimento, UpdateSourceTrigger=PropertyChanged}"
                                                                                   Width="150"
                                                                                   ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Data scadenza" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="Data scadenza" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <controls:DateInputPicker Text="{Binding AbilitazioneDataScadenza, UpdateSourceTrigger=PropertyChanged}"
                                                                                   Width="150"
                                                                                   ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa"
                                                                                   IsEnabled="{Binding AbilitazioneRichiedeScadenza}" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Note" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="Note" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <TextBox Text="{Binding AbilitazioneNote, UpdateSourceTrigger=PropertyChanged}" />
                                                     </StackPanel>
-                                                </Grid>
+                                                </infra:AdaptiveGrid>
 
-                                                <Grid Grid.Row="2" Margin="0,16,0,0">
+                                                <infra:AdaptiveGrid Grid.Row="2" Margin="0,16,0,0" CollapseBelow="1100" MinItemWidth="600" MaxColumns="1">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="Auto" />
@@ -844,7 +859,7 @@
                                                                VerticalAlignment="Center"
                                                                TextWrapping="Wrap" />
 
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="18,0,0,0">
+                                                    <WrapPanel Grid.Column="1" Orientation="Horizontal" Margin="18,0,0,0">
                                                         <Button Content="{Binding AzioneAbilitazioneLabel}"
                                                                 Command="{Binding SaveAbilitazioneCommand}" />
                                                         <Button Content="Pulisci editor"
@@ -853,8 +868,8 @@
                                                         <Button Content="Rimuovi selezionata"
                                                                 Command="{Binding RemoveAbilitazioneCommand}"
                                                                 Style="{DynamicResource DangerButtonStyle}" />
-                                                    </StackPanel>
-                                                </Grid>
+                                                    </WrapPanel>
+                                                </infra:AdaptiveGrid>
                                             </Grid>
                                         </Border>
 
@@ -871,22 +886,22 @@
                                                   RowHeaderWidth="0">
                                             <DataGrid.Columns>
                                                 <DataGridTextColumn Header="Tipo"
-                                                                    Width="230"
+                                                                    Width="Auto" MinWidth="300"
                                                                     Binding="{Binding TipoDescrizione}" />
                                                 <DataGridTextColumn Header="Categoria"
-                                                                    Width="120"
+                                                                    Width="120" MinWidth="120"
                                                                     Binding="{Binding Categoria}" />
                                                 <DataGridTextColumn Header="Livello"
-                                                                    Width="120"
+                                                                    Width="120" MinWidth="120"
                                                                     Binding="{Binding Livello}" />
                                                 <DataGridTextColumn Header="Conseguimento"
-                                                                    Width="120"
+                                                                    Width="140" MinWidth="140"
                                                                     Binding="{Binding DataConseguimento}" />
                                                 <DataGridTextColumn Header="Scadenza"
-                                                                    Width="120"
+                                                                    Width="120" MinWidth="120"
                                                                     Binding="{Binding DataScadenza}" />
                                                 <DataGridTextColumn Header="Note"
-                                                                    Width="*"
+                                                                    Width="*" MinWidth="240"
                                                                     Binding="{Binding Note}" />
                                             </DataGrid.Columns>
                                         </DataGrid>
@@ -909,12 +924,12 @@
                                                     <RowDefinition Height="Auto" />
                                                 </Grid.RowDefinitions>
 
-                                                <TextBlock Text="Visite mediche facoltative"
+                                                <TextBlock TextWrapping="Wrap" Text="Visite mediche facoltative"
                                                            FontSize="19"
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource AppTextBrush}" />
 
-                                                <Grid Grid.Row="1" Margin="0,14,0,0">
+                                                <infra:AdaptiveGrid Grid.Row="1" Margin="0,14,0,0" CollapseBelow="680" MinItemWidth="240" MaxColumns="2">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="1.2*" />
                                                         <ColumnDefinition Width="18" />
@@ -922,22 +937,22 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <StackPanel>
-                                                        <TextBlock Text="Tipo visita" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Text="Tipo visita" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <ComboBox ItemsSource="{Binding TipiVisitaMedicaCatalogo}"
                                                                   SelectedItem="{Binding VisitaTipoSelezionato}"
                                                                   DisplayMemberPath="Descrizione" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Data ultima visita" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="Data ultima visita" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <controls:DateInputPicker Text="{Binding VisitaDataUltimaVisita, UpdateSourceTrigger=PropertyChanged}"
                                                                                   Width="150"
                                                                                   ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Esito" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="Esito" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <TextBox Text="{Binding VisitaEsito, UpdateSourceTrigger=PropertyChanged}" />
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="2">
-                                                        <TextBlock Text="{Binding RegoleVisiteTitolo}"
+                                                        <TextBlock TextWrapping="Wrap" Text="{Binding RegoleVisiteTitolo}"
                                                                    FontWeight="SemiBold"
                                                                    Foreground="{DynamicResource AppTextBrush}" />
                                                         <TextBlock Margin="0,6,0,0"
@@ -945,19 +960,19 @@
                                                                    Foreground="{DynamicResource AppMutedTextBrush}"
                                                                    TextWrapping="Wrap" />
 
-                                                        <TextBlock Margin="0,12,0,0" Text="Scadenza calcolata" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,12,0,0" Text="Scadenza calcolata" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <TextBox Text="{Binding VisitaScadenzaCalcolata, Mode=OneWay}"
                                                                  Style="{DynamicResource DateTextBoxStyle}"
                                                                  IsReadOnly="True"
                                                                  IsReadOnlyCaretVisible="False"
                                                                  Background="#F6F8F6" />
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Note" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="Note" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <TextBox Text="{Binding VisitaNote, UpdateSourceTrigger=PropertyChanged}" />
                                                     </StackPanel>
-                                                </Grid>
+                                                </infra:AdaptiveGrid>
 
-                                                <Grid Grid.Row="2" Margin="0,16,0,0">
+                                                <infra:AdaptiveGrid Grid.Row="2" Margin="0,16,0,0" CollapseBelow="900" MinItemWidth="500" MaxColumns="1">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="Auto" />
@@ -968,14 +983,14 @@
                                                                VerticalAlignment="Center"
                                                                TextWrapping="Wrap" />
 
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="18,0,0,0">
+                                                    <WrapPanel Grid.Column="1" Orientation="Horizontal" Margin="18,0,0,0">
                                                         <Button Content="{Binding AzioneVisitaLabel}"
                                                                 Command="{Binding SaveVisitaCommand}" />
                                                         <Button Content="Ricarica visita"
                                                                 Command="{Binding ClearVisitaEditorCommand}"
                                                                 Style="{DynamicResource SecondaryButtonStyle}" />
-                                                    </StackPanel>
-                                                </Grid>
+                                                    </WrapPanel>
+                                                </infra:AdaptiveGrid>
                                             </Grid>
                                         </Border>
 
@@ -992,19 +1007,19 @@
                                                   RowHeaderWidth="0">
                                             <DataGrid.Columns>
                                                 <DataGridTextColumn Header="Tipo visita"
-                                                                    Width="280"
+                                                                    Width="280" MinWidth="280"
                                                                     Binding="{Binding TipoVisita}" />
                                                 <DataGridTextColumn Header="Ultima visita"
-                                                                    Width="130"
+                                                                    Width="130" MinWidth="130"
                                                                     Binding="{Binding DataUltimaVisita}" />
                                                 <DataGridTextColumn Header="Scadenza"
-                                                                    Width="150"
+                                                                    Width="150" MinWidth="150"
                                                                     Binding="{Binding DataScadenza}" />
                                                 <DataGridTextColumn Header="Esito"
-                                                                    Width="150"
+                                                                    Width="150" MinWidth="150"
                                                                     Binding="{Binding Esito}" />
                                                 <DataGridTextColumn Header="Note"
-                                                                    Width="*"
+                                                                    Width="*" MinWidth="240"
                                                                     Binding="{Binding Note}" />
                                             </DataGrid.Columns>
                                         </DataGrid>
@@ -1021,7 +1036,7 @@
                                                     BorderThickness="1"
                                                     CornerRadius="18"
                                                     Padding="22">
-                                                <Grid>
+                                                <infra:AdaptiveGrid CollapseBelow="1000" MinItemWidth="500" MaxColumns="1">
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="Auto" />
                                                         <RowDefinition Height="Auto" />
@@ -1033,7 +1048,7 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <StackPanel>
-                                                        <TextBlock Text="Scheda misure"
+                                                        <TextBlock TextWrapping="Wrap" Text="Scheda misure"
                                                                    FontSize="20"
                                                                    FontWeight="SemiBold"
                                                                    Foreground="{DynamicResource AppTextBrush}" />
@@ -1046,7 +1061,7 @@
                                                                       ItemsSource="{Binding AttagliamentoSchedaItems}">
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate>
-                                                                    <Grid Margin="0,0,0,18">
+                                                                    <infra:AdaptiveGrid Margin="0,0,0,18" CollapseBelow="480" MinItemWidth="220" MaxColumns="2">
                                                                         <Grid.ColumnDefinitions>
                                                                             <ColumnDefinition Width="260" />
                                                                             <ColumnDefinition Width="56" />
@@ -1066,7 +1081,7 @@
                                                                             </TextBlock.Text>
                                                                         </TextBlock>
 
-                                                                        <TextBlock Grid.Column="1"
+                                                                        <TextBlock TextWrapping="Wrap" Grid.Column="1"
                                                                                    VerticalAlignment="Center"
                                                                                    HorizontalAlignment="Right"
                                                                                    FontSize="17"
@@ -1083,7 +1098,7 @@
                                                                                  HorizontalContentAlignment="Left"
                                                                                  VerticalContentAlignment="Center"
                                                                                  Text="{Binding TagliaMisura, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                                                    </Grid>
+                                                                    </infra:AdaptiveGrid>
                                                                 </DataTemplate>
                                                             </ItemsControl.ItemTemplate>
                                                         </ItemsControl>
@@ -1102,7 +1117,7 @@
                                                                Stretch="Uniform"
                                                                SnapsToDevicePixels="True" />
                                                     </Border>
-                                                </Grid>
+                                                </infra:AdaptiveGrid>
                                             </Border>
 
                                             <Border Margin="0,16,0,0"
@@ -1111,7 +1126,7 @@
                                                     CornerRadius="16"
                                                     Visibility="{Binding HasAttagliamentoAggiuntivo, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <StackPanel>
-                                                    <TextBlock Text="Misure aggiuntive gia presenti"
+                                                    <TextBlock TextWrapping="Wrap" Text="Misure aggiuntive gia presenti"
                                                                FontSize="17"
                                                                FontWeight="SemiBold"
                                                                Foreground="{DynamicResource AppTextBrush}" />
@@ -1130,13 +1145,13 @@
                                                               RowHeaderWidth="0">
                                                         <DataGrid.Columns>
                                                             <DataGridTextColumn Header="Voce"
-                                                                                Width="220"
+                                                                                Width="220" MinWidth="220"
                                                                                 Binding="{Binding Voce, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                             <DataGridTextColumn Header="Misura"
-                                                                                Width="140"
+                                                                                Width="140" MinWidth="140"
                                                                                 Binding="{Binding TagliaMisura, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                             <DataGridTextColumn Header="Note"
-                                                                                Width="*"
+                                                                                Width="*" MinWidth="240"
                                                                                 Binding="{Binding Note, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                                         </DataGrid.Columns>
                                                     </DataGrid>

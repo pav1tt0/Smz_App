@@ -24,7 +24,15 @@ public sealed partial class PersonaleRepository
                    s.TipoServizio,
                    COALESCE(lo.Descrizione, '') AS LocalitaDescrizione,
                    COALESCE(sc.Descrizione, '') AS ScopoDescrizione,
-                   COALESCE(unv.Descrizione, '') AS UnitaNavaleDescrizione,
+                   COALESCE(unv.Descrizione, '') || COALESCE((
+                       SELECT CASE WHEN s.UnitaNavaleId IS NULL THEN '' ELSE ', ' END || GROUP_CONCAT(Descrizione, ', ')
+                       FROM (
+                           SELECT un.Descrizione FROM ServizioUnitaNavaliAggiuntive sna
+                           INNER JOIN UnitaNavali un ON un.UnitaNavaleId = sna.UnitaNavaleId
+                           WHERE sna.ServizioGiornalieroId = s.ServizioGiornalieroId
+                           ORDER BY sna.Ordine
+                       )
+                   ), '') AS UnitaNavaleDescrizione,
                    s.FuoriSede,
                    s.IndennitaOrdinePubblico,
                    (

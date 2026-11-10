@@ -39,6 +39,8 @@ public sealed class ServizioScambioPackageService
 
     public string UnitaNavaleSigla { get; set; } = string.Empty;
 
+    public List<ServizioScambioNatante> UnitaNavaliAggiuntive { get; set; } = [];
+
     public ServizioScambioPackagePersonRef? ResponsabileServizio { get; set; }
 
     public bool FuoriSede { get; set; }
@@ -54,6 +56,12 @@ public sealed class ServizioScambioPackageService
     public List<ServizioScambioPackageImmersione> Immersioni { get; set; } = [];
 
     public List<ServizioScambioPackageSupportoOccasionale> SupportiOccasionali { get; set; } = [];
+}
+
+public sealed class ServizioScambioNatante
+{
+    public string Sigla { get; set; } = string.Empty;
+    public string Descrizione { get; set; } = string.Empty;
 }
 
 public sealed class ServizioScambioPackagePartecipante

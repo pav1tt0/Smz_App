@@ -17,6 +17,8 @@
             <Setter Property="Padding" Value="8,6"/>
         </Style>
         <Style x:Key="ServizioWheelDataGridStyle" TargetType="DataGrid">
+            <Setter Property="MinHeight" Value="180" />
+            <Setter Property="MaxHeight" Value="520" />
             <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
             <Setter Property="Background" Value="White" />
             <Setter Property="BorderBrush" Value="#D5DEE8" />
@@ -25,7 +27,7 @@
             <Setter Property="HorizontalGridLinesBrush" Value="#E7EDF3" />
             <Setter Property="RowBackground" Value="White" />
             <Setter Property="AlternatingRowBackground" Value="#F8FAFC" />
-            <Setter Property="ColumnHeaderHeight" Value="40" />
+            <Setter Property="ColumnHeaderHeight" Value="NaN" />
             <Setter Property="MinRowHeight" Value="40" />
             <Setter Property="CellStyle">
                 <Setter.Value>
@@ -57,11 +59,11 @@
                         <ColumnDefinition Width="*" MinWidth="90" />
                         <ColumnDefinition Width="0.7*" MinWidth="68" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="Qualifica" Style="{StaticResource ServizioPersonaleTextStyle}" />
-                    <TextBlock Grid.Column="1" Text="Nome" Style="{StaticResource ServizioPersonaleTextStyle}" />
-                    <TextBlock Grid.Column="2" Text="Presente" Style="{StaticResource ServizioPersonaleTextStyle}" />
-                    <TextBlock Grid.Column="3" Text="Ruolo" Style="{StaticResource ServizioPersonaleTextStyle}" />
-                    <TextBlock Grid.Column="4" Text="Gruppo" Style="{StaticResource ServizioPersonaleTextStyle}" />
+                    <TextBlock TextWrapping="Wrap" Text="Qualifica" Style="{StaticResource ServizioPersonaleTextStyle}" />
+                    <TextBlock TextWrapping="Wrap" Grid.Column="1" Text="Nome" Style="{StaticResource ServizioPersonaleTextStyle}" />
+                    <TextBlock TextWrapping="Wrap" Grid.Column="2" Text="Presente" Style="{StaticResource ServizioPersonaleTextStyle}" />
+                    <TextBlock TextWrapping="Wrap" Grid.Column="3" Text="Ruolo" Style="{StaticResource ServizioPersonaleTextStyle}" />
+                    <TextBlock TextWrapping="Wrap" Grid.Column="4" Text="Gruppo" Style="{StaticResource ServizioPersonaleTextStyle}" />
                 </Grid>
             </Border>
         </DataTemplate>
@@ -89,7 +91,7 @@
                             </Grid.RowDefinitions>
 
                             <Border Style="{DynamicResource CardStyle}">
-                                <Grid>
+                                <infra:AdaptiveGrid CollapseBelow="900" MinItemWidth="500" MaxColumns="1">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="18" />
@@ -102,7 +104,7 @@
                                     </Grid.RowDefinitions>
 
                                     <StackPanel>
-                                        <TextBlock Text="Servizi giornalieri"
+                                        <TextBlock TextWrapping="Wrap" Text="Servizi giornalieri"
                                                    FontSize="22"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource AppTextBrush}" />
@@ -114,60 +116,23 @@
 
                                     <StackPanel Grid.Row="2"
                                                 Grid.ColumnSpan="3">
-                                        <TextBlock Text="Ricerca servizi"
+                                        <TextBlock TextWrapping="Wrap" Text="Ricerca servizi"
                                                    Foreground="{DynamicResource AppMutedTextBrush}" />
-                                         <Grid Margin="0,6,0,0">
-                                             <Grid.ColumnDefinitions>
-                                                 <ColumnDefinition Width="2*" />
-                                                 <ColumnDefinition Width="12" />
-                                                 <ColumnDefinition Width="130" />
-                                                 <ColumnDefinition Width="12" />
-                                                 <ColumnDefinition Width="150" />
-                                                 <ColumnDefinition Width="12" />
-                                                 <ColumnDefinition Width="Auto" />
-                                             </Grid.ColumnDefinitions>
-                                             <Grid.RowDefinitions>
-                                                 <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="4" />
-                                                <RowDefinition Height="Auto" />
-                                            </Grid.RowDefinitions>
-
-                                            <TextBlock Text="Localita"
-                                                       Foreground="{DynamicResource AppMutedTextBrush}"
-                                                       FontSize="12" />
-                                             <TextBlock Grid.Column="2"
-                                                        Text="N. servizio"
-                                                        Foreground="{DynamicResource AppMutedTextBrush}"
-                                                        FontSize="12" />
-                                             <TextBlock Grid.Column="4"
-                                                        Text="Data o mese"
-                                                        Foreground="{DynamicResource AppMutedTextBrush}"
-                                                        FontSize="12" />
-
-                                            <TextBox Grid.Row="2"
-                                                     Text="{Binding ServiziSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                     ToolTip="Cerca per localita" />
-                                             <TextBox Grid.Row="2"
-                                                      Grid.Column="2"
-                                                      Text="{Binding ServiziNumeroSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                      ToolTip="Numero servizio" />
-                                             <controls:DateInputPicker Grid.Row="2"
-                                                                       Grid.Column="4"
-                                                                       Text="{Binding ServiziDataSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                                       AutoFormatText="False"
-                                                                       ShowMonthShortcut="True"
-                                                                       Width="145"
-                                                                       ToolTip="{Binding ServiziDataSearchToolTip}" />
-                                             <Button Grid.Row="2"
-                                                     Grid.Column="6"
-                                                     Content="Pulisci"
-                                                     Command="{Binding ClearServiziSearchCommand}"
-                                                     Style="{DynamicResource SecondaryButtonStyle}"
-                                                     MinWidth="112"
-                                                     Width="112"
-                                                     Height="42"
-                                                     Margin="0" />
-                                        </Grid>
+                                         <WrapPanel Margin="0,6,0,0">
+    <StackPanel Width="240" Margin="0,0,12,8">
+        <TextBlock Text="Localita" Foreground="{DynamicResource AppMutedTextBrush}" FontSize="12" />
+        <TextBox Text="{Binding ServiziSearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Cerca per localita" />
+    </StackPanel>
+    <StackPanel Width="130" Margin="0,0,12,8">
+        <TextBlock Text="N. servizio" Foreground="{DynamicResource AppMutedTextBrush}" FontSize="12" />
+        <TextBox Text="{Binding ServiziNumeroSearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Numero servizio" />
+    </StackPanel>
+    <StackPanel Width="150" Margin="0,0,12,8">
+        <TextBlock Text="Data o mese" Foreground="{DynamicResource AppMutedTextBrush}" FontSize="12" />
+        <controls:DateInputPicker Text="{Binding ServiziDataSearchText, UpdateSourceTrigger=PropertyChanged}" AutoFormatText="False" ShowMonthShortcut="True" Width="145" ToolTip="{Binding ServiziDataSearchToolTip}" />
+    </StackPanel>
+    <Button Content="Pulisci" Command="{Binding ClearServiziSearchCommand}" Style="{DynamicResource SecondaryButtonStyle}" MinWidth="112" Width="112" Height="42" Margin="0,18,0,8" />
+</WrapPanel>
                                     </StackPanel>
 
                                     <WrapPanel Grid.Column="2"
@@ -186,7 +151,7 @@
                                                 Command="{Binding ImportServizioPackageCommand}"
                                                 Style="{DynamicResource SecondaryButtonStyle}" />
                                     </WrapPanel>
-                                </Grid>
+                                </infra:AdaptiveGrid>
                             </Border>
 
                             <Border Grid.Row="2"
@@ -200,11 +165,11 @@
 
                                     <DockPanel LastChildFill="False">
                                         <StackPanel DockPanel.Dock="Left">
-                                            <TextBlock Text="Elenco servizi compilati"
+                                            <TextBlock TextWrapping="Wrap" Text="Elenco servizi compilati"
                                                        FontSize="20"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource AppTextBrush}" />
-                                            <TextBlock Margin="0,3,0,0"
+                                            <TextBlock TextWrapping="Wrap" Margin="0,3,0,0"
                                                        Text="Sono visibili i servizi recenti; usa la ricerca per trovare quelli piu vecchi."
                                                        Foreground="{DynamicResource AppMutedTextBrush}" />
                                         </StackPanel>
@@ -242,7 +207,7 @@
                                                                     BorderThickness="1"
                                                                     CornerRadius="10">
                                                                 <StackPanel>
-                                                                    <TextBlock Text="{Binding DataServizio, StringFormat=Servizio del {0:dd/MM/yyyy}}"
+                                                                    <TextBlock TextWrapping="Wrap" Text="{Binding DataServizio, StringFormat=Servizio del {0:dd/MM/yyyy}}"
                                                                                FontSize="16"
                                                                                FontWeight="SemiBold"
                                                                                Foreground="{DynamicResource AppTextBrush}" />
@@ -272,7 +237,7 @@
                                                                                Text="{Binding UnitaNavaleDescrizione, StringFormat=Mezzo: {0}}"
                                                                                Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                TextWrapping="Wrap" />
-                                                                    <TextBlock Margin="0,10,0,0"
+                                                                    <TextBlock TextWrapping="Wrap" Margin="0,10,0,0"
                                                                                Foreground="{DynamicResource AppTextBrush}"
                                                                                FontWeight="SemiBold">
                                                                         <Run Text="Presenti " />
@@ -289,7 +254,7 @@
                                                         </ToolTip>
                                                     </Border.ToolTip>
 
-                                                    <Grid MinHeight="50">
+                                                    <infra:AdaptiveGrid MinHeight="50" CollapseBelow="1000" MinItemWidth="220" MaxColumns="3">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="92" />
                                                             <ColumnDefinition Width="78" />
@@ -304,7 +269,7 @@
                                                             <RowDefinition Height="Auto" />
                                                         </Grid.RowDefinitions>
 
-                                                        <TextBlock Text="{Binding DataServizio, StringFormat={}{0:dd/MM/yyyy}}"
+                                                        <TextBlock TextWrapping="Wrap" Text="{Binding DataServizio, StringFormat={}{0:dd/MM/yyyy}}"
                                                                    FontSize="15"
                                                                    FontWeight="SemiBold"
                                                                    Foreground="{DynamicResource AppTextBrush}"
@@ -330,14 +295,14 @@
                                                                    FontWeight="SemiBold"
                                                                    VerticalAlignment="Center"
                                                                    TextTrimming="CharacterEllipsis" />
-                                                        <TextBlock Grid.Column="4"
+                                                        <TextBlock TextWrapping="Wrap" Grid.Column="4"
                                                                    HorizontalAlignment="Left"
                                                                    VerticalAlignment="Center"
                                                                    Foreground="{DynamicResource AppMutedTextBrush}">
                                                             <Run Text="Presenti " />
                                                             <Run Text="{Binding PresentiTotali}" />
                                                         </TextBlock>
-                                                        <TextBlock Grid.Column="5"
+                                                        <TextBlock TextWrapping="Wrap" Grid.Column="5"
                                                                    HorizontalAlignment="Left"
                                                                    VerticalAlignment="Center"
                                                                    Foreground="{DynamicResource AppMutedTextBrush}"
@@ -364,7 +329,7 @@
                                                                 Command="{Binding DataContext.OpenServizioFromListCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                 CommandParameter="{Binding}"
                                                                 Style="{DynamicResource SecondaryButtonStyle}" />
-                                                    </Grid>
+                                                    </infra:AdaptiveGrid>
                                                 </Border>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
@@ -381,8 +346,13 @@
                             </Grid.RowDefinitions>
 
                             <Border Style="{DynamicResource CardStyle}">
-                                <DockPanel LastChildFill="True">
-                                    <WrapPanel DockPanel.Dock="Right"
+                                <infra:AdaptiveGrid CollapseBelow="1000" MinItemWidth="600" MaxColumns="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="18"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <WrapPanel Grid.Column="2"
                                                HorizontalAlignment="Right"
                                                VerticalAlignment="Center">
                                         <Button Content="Torna elenco"
@@ -395,9 +365,8 @@
                                                 Visibility="{Binding IsServizioApertoDaReport, Converter={StaticResource BoolToVisibilityConverter}}"
                                                 Style="{DynamicResource SecondaryButtonStyle}" />
                                     </WrapPanel>
-
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding ServizioEditorTitolo}"
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock TextWrapping="Wrap" Text="{Binding ServizioEditorTitolo}"
                                                    FontSize="22"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource AppTextBrush}" />
@@ -406,7 +375,7 @@
                                                    Foreground="{DynamicResource AppMutedTextBrush}"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
-                                </DockPanel>
+                                </infra:AdaptiveGrid>
                             </Border>
 
                             <Border Grid.Row="2" Style="{DynamicResource CardStyle}">
@@ -433,216 +402,172 @@
                                             Background="#F8FAFC"
                                             CornerRadius="18"
                                             Padding="16">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="160" />
-                                                <ColumnDefinition Width="18" />
-                                                <ColumnDefinition Width="170" />
-                                                <ColumnDefinition Width="18" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
-                                            </Grid.RowDefinitions>
+                                        <StackPanel x:Name="ServizioDatiGenerali">
+                                            <infra:AdaptiveGrid CollapseBelow="520" MinItemWidth="160" MaxColumns="3">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="12" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="12" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <TextBlock Text="Data servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                    <controls:DateInputPicker Text="{Binding ServizioData, UpdateSourceTrigger=PropertyChanged}"
+                                                                              ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2">
+                                                    <TextBlock Text="N. ordine servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                    <TextBox Text="{Binding ServizioNumeroOrdine, UpdateSourceTrigger=PropertyChanged}"
+                                                             MaxLength="40"
+                                                             ToolTip="Calcolato automaticamente dalla data come giorno progressivo dell'anno; puo essere modificato." />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="4">
+                                                    <TextBlock Text="Tipo servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                    <ComboBox ItemsSource="{Binding TipiServizioDisponibili}"
+                                                              SelectedItem="{Binding ServizioTipoSelezionato}" />
+                                                </StackPanel>
+                                            </infra:AdaptiveGrid>
 
-                                            <StackPanel>
-                                                <TextBlock Text="Data servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
-                                                <controls:DateInputPicker Text="{Binding ServizioData, UpdateSourceTrigger=PropertyChanged}"
-                                                                          Width="150"
-                                                                          ToolTip="Seleziona la data dal calendario oppure scrivila in formato gg/mm/aaaa" />
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Column="2">
-                                                <TextBlock Text="N. ordine servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
-                                                <TextBox Text="{Binding ServizioNumeroOrdine, UpdateSourceTrigger=PropertyChanged}"
-                                                         MaxLength="40"
-                                                         ToolTip="Calcolato automaticamente dalla data come giorno progressivo dell'anno; puo essere modificato." />
-                                            </StackPanel>
-
-                                            <StackPanel Grid.Column="4">
-                                                <TextBlock Text="Orario servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
-                                                <Grid Margin="0,6,0,0">
+                                            <ScrollViewer Margin="0,10,0,0"
+                                                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                                          infra:MouseWheelScrollViewerBehavior.ForwardToParent="True">
+                                                <Grid x:Name="ServizioOrariGrid" MinWidth="520">
                                                     <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="160" />
-                                                        <ColumnDefinition Width="14" />
+                                                        <ColumnDefinition Width="150" />
+                                                        <ColumnDefinition Width="16" />
                                                         <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
-
-                                                    <ComboBox Width="150"
-                                                              HorizontalAlignment="Left"
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock Text="Orario servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                    <ComboBox Grid.Row="1" VerticalAlignment="Center"
                                                               ItemsSource="{Binding OrariServizioFissiDisponibili}"
                                                               SelectedItem="{Binding ServizioOrarioFissoSelezionato}"
                                                               ToolTip="Seleziona uno degli orari fissi del servizio" />
-
-                                                    <StackPanel Grid.Column="2">
-                                                        <CheckBox HorizontalAlignment="Left"
-                                                                  IsChecked="{Binding ServizioOrarioDerogaAttiva}"
-                                                                  Content="Orario in deroga" />
-                                                        <StackPanel Margin="0,8,0,0"
-                                                                    Orientation="Horizontal"
+                                                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,6,0,0">
+                                                        <CheckBox x:Name="ServizioDerogaCheckBox" VerticalAlignment="Center"
+                                                                  IsChecked="{Binding ServizioOrarioDerogaAttiva}" Content="Orario in deroga" />
+                                                        <StackPanel Orientation="Horizontal" Margin="12,0,0,0"
                                                                     Visibility="{Binding ServizioOrarioDerogaAttiva, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                            <StackPanel>
-                                                                <TextBlock Text="Inizio"
-                                                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                                                           FontSize="11" />
-                                                                <TextBox Width="82"
-                                                                         Text="{Binding ServizioOrarioDerogaInizio, UpdateSourceTrigger=PropertyChanged}"
-                                                                         MaxLength="5"
-                                                                         ToolTip="Esempio: 07:30"
-                                                                         infra:TimeInputBehavior.AutoFormat="True" />
-                                                            </StackPanel>
-                                                            <StackPanel Margin="10,0,0,0">
-                                                                <TextBlock Text="Fine"
-                                                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                                                           FontSize="11" />
-                                                                <TextBox Width="82"
-                                                                         Text="{Binding ServizioOrarioDerogaFine, UpdateSourceTrigger=PropertyChanged}"
-                                                                         MaxLength="5"
-                                                                         ToolTip="Esempio: 14:15"
-                                                                         infra:TimeInputBehavior.AutoFormat="True" />
-                                                            </StackPanel>
+                                                            <TextBlock Text="Da" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                            <TextBox Width="68" Margin="0" MaxLength="5"
+                                                                     Text="{Binding ServizioOrarioDerogaInizio, UpdateSourceTrigger=PropertyChanged}"
+                                                                     ToolTip="Inizio orario in deroga, esempio 07:30" infra:TimeInputBehavior.AutoFormat="True" />
+                                                            <TextBlock Text="a" VerticalAlignment="Center" Margin="8,0,6,0" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                            <TextBox Width="68" Margin="0" MaxLength="5"
+                                                                     Text="{Binding ServizioOrarioDerogaFine, UpdateSourceTrigger=PropertyChanged}"
+                                                                     ToolTip="Fine orario in deroga, esempio 14:15" infra:TimeInputBehavior.AutoFormat="True" />
                                                         </StackPanel>
                                                     </StackPanel>
                                                 </Grid>
+                                            </ScrollViewer>
 
-                                                <Border Margin="0,10,0,0"
-                                                        Padding="12"
-                                                        Background="#EBF2F7"
-                                                        BorderBrush="#D3DFE8"
-                                                        BorderThickness="1"
-                                                        CornerRadius="14">
-                                                    <StackPanel>
-                                                        <CheckBox IsChecked="{Binding ServizioStraordinarioAttivo}"
-                                                                  Content="Lavoro straordinario" />
-                                                        <StackPanel Margin="0,10,0,0"
-                                                                    Orientation="Horizontal"
-                                                                    Visibility="{Binding ServizioStraordinarioAttivo, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                            <StackPanel>
-                                                                <TextBlock Text="Inizio"
-                                                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                                                           FontSize="11" />
-                                                                <TextBox Width="82"
-                                                                         Text="{Binding ServizioStraordinarioInizio, UpdateSourceTrigger=PropertyChanged}"
-                                                                         MaxLength="5"
-                                                                         ToolTip="Esempio: 18:30"
-                                                                         infra:TimeInputBehavior.AutoFormat="True" />
-                                                            </StackPanel>
-                                                            <StackPanel Margin="10,0,0,0">
-                                                                <TextBlock Text="Fine"
-                                                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                                                           FontSize="11" />
-                                                                <TextBox Width="82"
-                                                                         Text="{Binding ServizioStraordinarioFine, UpdateSourceTrigger=PropertyChanged}"
-                                                                         MaxLength="5"
-                                                                         ToolTip="Esempio: 21:15"
-                                                                         infra:TimeInputBehavior.AutoFormat="True" />
-                                                            </StackPanel>
-                                                            <Border Margin="14,18,0,0"
-                                                                    Padding="12,8"
-                                                                    Background="#FFFFFF"
-                                                                    BorderBrush="#D3DFE8"
-                                                                    BorderThickness="1"
-                                                                    CornerRadius="10">
-                                                                <TextBlock Text="{Binding ServizioStraordinarioOreDisplay}"
-                                                                           Foreground="{DynamicResource AppTextBrush}"
-                                                                           FontWeight="SemiBold" />
-                                                            </Border>
-                                                        </StackPanel>
+                                            <ScrollViewer Margin="0,12,0,0"
+                                                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                                          infra:MouseWheelScrollViewerBehavior.ForwardToParent="True">
+                                                <Grid x:Name="ServizioIndennitaGrid" MinWidth="520">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="12" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="12" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <CheckBox x:Name="ServizioStraordinarioCheckBox" Content="Lavoro straordinario"
+                                                              VerticalAlignment="Center" IsChecked="{Binding ServizioStraordinarioAttivo}" />
+                                                    <CheckBox x:Name="ServizioFuoriSedeCheckBox" Grid.Column="2" Content="Indennita fuori sede"
+                                                              VerticalAlignment="Center" IsChecked="{Binding ServizioFuoriSede}"
+                                                              ToolTip="Non cumulabile con l'indennita di ordine pubblico." />
+                                                    <CheckBox x:Name="ServizioOpCheckBox" Grid.Column="4" Content="Indennita OP"
+                                                              VerticalAlignment="Center" IsChecked="{Binding ServizioIndennitaOrdinePubblico}"
+                                                              ToolTip="Indennita di ordine pubblico, non cumulabile con l'indennita fuori sede." />
+                                                    <StackPanel Grid.Row="1" Grid.ColumnSpan="5" Orientation="Horizontal" Margin="0,8,0,0"
+                                                                Visibility="{Binding ServizioStraordinarioAttivo, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                        <TextBlock Text="Straordinario da" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBox Width="68" Margin="0" MaxLength="5"
+                                                                 Text="{Binding ServizioStraordinarioInizio, UpdateSourceTrigger=PropertyChanged}"
+                                                                 ToolTip="Inizio straordinario, esempio 18:30" infra:TimeInputBehavior.AutoFormat="True" />
+                                                        <TextBlock Text="a" VerticalAlignment="Center" Margin="8,0,6,0" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBox Width="68" Margin="0" MaxLength="5"
+                                                                 Text="{Binding ServizioStraordinarioFine, UpdateSourceTrigger=PropertyChanged}"
+                                                                 ToolTip="Fine straordinario, esempio 21:15" infra:TimeInputBehavior.AutoFormat="True" />
+                                                        <TextBlock Margin="12,0,0,0" VerticalAlignment="Center"
+                                                                   Text="{Binding ServizioStraordinarioOreDisplay}"
+                                                                   Foreground="{DynamicResource AppTextBrush}" FontWeight="SemiBold" />
                                                     </StackPanel>
-                                                </Border>
-                                            </StackPanel>
+                                                </Grid>
+                                            </ScrollViewer>
 
-                                            <StackPanel Grid.Row="1">
-                                                <TextBlock Text="Tipo servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
-                                                <ComboBox ItemsSource="{Binding TipiServizioDisponibili}"
-                                                          SelectedItem="{Binding ServizioTipoSelezionato}" />
-                                            </StackPanel>
+                                            <ScrollViewer Margin="0,12,0,0"
+                                                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                                          infra:MouseWheelScrollViewerBehavior.ForwardToParent="True">
+                                                <Grid x:Name="ServizioNatantiGrid" MinWidth="520">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="12" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="12" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel>
+                                                        <TextBlock Text="Localita" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <ComboBox ItemsSource="{Binding LocalitaOperativeServizioCatalogo}"
+                                                                  SelectedItem="{Binding ServizioLocalitaSelezionata}" DisplayMemberPath="Descrizione" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2">
+                                                        <TextBlock Text="Natante 1" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <ComboBox ItemsSource="{Binding UnitaNavaliCatalogo}"
+                                                                  SelectedItem="{Binding ServizioUnitaNavaleSelezionata}" DisplayMemberPath="Descrizione" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="4">
+                                                        <TextBlock Text="Natante 2" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <ComboBox ItemsSource="{Binding UnitaNavaliCatalogo}"
+                                                                  SelectedItem="{Binding ServizioSecondaUnitaNavale}" DisplayMemberPath="Descrizione"
+                                                                  ToolTip="Secondo natante (facoltativo)" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </ScrollViewer>
 
-                                            <Grid Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="3">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="300" />
-                                                    <ColumnDefinition Width="18" />
-                                                    <ColumnDefinition Width="220" />
-                                                </Grid.ColumnDefinitions>
-
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock Text="Localita" Foreground="{DynamicResource AppMutedTextBrush}" />
-                                                    <ComboBox Width="300"
-                                                              HorizontalAlignment="Left"
-                                                              ItemsSource="{Binding LocalitaOperativeServizioCatalogo}"
-                                                              SelectedItem="{Binding ServizioLocalitaSelezionata}"
-                                                              DisplayMemberPath="Descrizione" />
-                                                </StackPanel>
-
-                                                <StackPanel Grid.Column="2">
-                                                    <TextBlock Text="Unita navale" Foreground="{DynamicResource AppMutedTextBrush}" />
-                                                    <ComboBox Width="220"
-                                                              HorizontalAlignment="Left"
-                                                              ItemsSource="{Binding UnitaNavaliCatalogo}"
-                                                              SelectedItem="{Binding ServizioUnitaNavaleSelezionata}"
-                                                              DisplayMemberPath="Descrizione" />
-                                                </StackPanel>
-                                            </Grid>
-
-                                            <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                                <TextBlock Text="Indennita" Foreground="{DynamicResource AppMutedTextBrush}" />
-                                                <CheckBox Margin="0,10,0,0"
-                                                          IsChecked="{Binding ServizioFuoriSede}"
-                                                          Content="Indennita fuori sede" />
-                                                <CheckBox Margin="0,8,0,0"
-                                                          IsChecked="{Binding ServizioIndennitaOrdinePubblico}"
-                                                          Content="Indennita ordine pubblico" />
-                                                <TextBlock Margin="0,8,0,0"
-                                                           Text="Le due indennita non sono compatibili tra loro."
-                                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                                           TextWrapping="Wrap" />
-                                            </StackPanel>
-
-                                            <Grid Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="3" Margin="0,10,0,0">
+                                            <infra:AdaptiveGrid Margin="0,10,0,0" CollapseBelow="520" MinItemWidth="240" MaxColumns="2">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="18" />
-                                                    <ColumnDefinition Width="300" />
+                                                    <ColumnDefinition Width="12" />
+                                                    <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
-
                                                 <StackPanel>
                                                     <TextBlock Text="Scopo immersione" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                     <ComboBox ItemsSource="{Binding ScopiImmersioneCatalogo}"
-                                                              SelectedItem="{Binding ServizioScopoSelezionato}"
-                                                              DisplayMemberPath="Descrizione" />
+                                                              SelectedItem="{Binding ServizioScopoSelezionato}" DisplayMemberPath="Descrizione" />
                                                 </StackPanel>
-
                                                 <StackPanel Grid.Column="2">
                                                     <TextBlock Text="Responsabile servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                     <ComboBox ItemsSource="{Binding OperatoriServizioPresentiDisponibili}"
-                                                              SelectedItem="{Binding ServizioResponsabileSelezionato}"
-                                                              DisplayMemberPath="NominativoConQualifica"
+                                                              SelectedItem="{Binding ServizioResponsabileSelezionato}" DisplayMemberPath="NominativoConQualifica"
                                                               ToolTip="Proposto automaticamente: il piu alto in grado tra i presenti. Modificabile se necessario." />
                                                 </StackPanel>
-                                            </Grid>
+                                            </infra:AdaptiveGrid>
 
-                                            <StackPanel Grid.Row="4" Grid.ColumnSpan="5" Margin="0,10,0,0">
+                                            <StackPanel Margin="0,10,0,0">
                                                 <TextBlock Text="Attivita svolta" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding ServizioAttivitaSvolta, UpdateSourceTrigger=PropertyChanged}"
                                                          Style="{DynamicResource ServizioWheelTextBoxStyle}"
-                                                         TextWrapping="Wrap"
-                                                         AcceptsReturn="True"
-                                                         MinHeight="64" />
+                                                         TextWrapping="Wrap" AcceptsReturn="True" MinHeight="64" />
                                                 <TextBlock Margin="0,10,0,0" Text="Note servizio" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                 <TextBox Text="{Binding ServizioNote, UpdateSourceTrigger=PropertyChanged}"
                                                          Style="{DynamicResource ServizioWheelTextBoxStyle}"
-                                                         TextWrapping="Wrap"
-                                                         AcceptsReturn="True"
-                                                         MinHeight="54" />
+                                                         TextWrapping="Wrap" AcceptsReturn="True" MinHeight="54" />
                                             </StackPanel>
-                                        </Grid>
+                                        </StackPanel>
                                     </Border>
 
-                                    <TextBlock Text="Personale impiegato"
+                                    <TextBlock TextWrapping="Wrap" Text="Personale impiegato"
                                                FontSize="19"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource AppTextBrush}" />
@@ -656,17 +581,17 @@
                                                       infra:MouseWheelScrollViewerBehavior.ForwardToParent="True">
                                             <Grid MinWidth="830" Width="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
                                                 <StackPanel>
-                                                <UniformGrid Columns="2">
+                                                <infra:AdaptiveUniformGrid MaxColumns="2" MinItemWidth="180">
                                                     <ContentControl Content="Intestazione" HorizontalContentAlignment="Stretch" ContentTemplate="{StaticResource ServizioPersonaleHeaderTemplate}" />
                                                     <ContentControl Content="Intestazione" HorizontalContentAlignment="Stretch" ContentTemplate="{StaticResource ServizioPersonaleHeaderTemplate}" />
-                                                </UniformGrid>
+                                                </infra:AdaptiveUniformGrid>
                                                 <ItemsControl x:Name="ServizioPersonaleSelezione"
                                                               ItemsSource="{Binding ServizioPartecipantiBozza}"
                                                               AlternationCount="4"
                                                               infra:MouseWheelScrollViewerBehavior.ForwardToParent="True">
                                                     <ItemsControl.ItemsPanel>
                                                         <ItemsPanelTemplate>
-                                                            <UniformGrid Columns="2" />
+                                                            <infra:ColumnFirstUniformGrid Columns="2" />
                                                         </ItemsPanelTemplate>
                                                     </ItemsControl.ItemsPanel>
                                                     <ItemsControl.ItemTemplate>
@@ -693,9 +618,9 @@
                                                                         <ColumnDefinition Width="*" MinWidth="90" />
                                                                         <ColumnDefinition Width="0.7*" MinWidth="68" />
                                                                     </Grid.ColumnDefinitions>
-                                                                    <TextBlock Text="{Binding QualificaBreve}" ToolTip="{Binding Qualifica}"
+                                                                    <TextBlock TextWrapping="Wrap" Text="{Binding QualificaBreve}" ToolTip="{Binding Qualifica}"
                                                                                Style="{StaticResource ServizioPersonaleTextStyle}" />
-                                                                    <TextBlock Grid.Column="1" Text="{Binding Nominativo}"
+                                                                    <TextBlock TextWrapping="Wrap" Grid.Column="1" Text="{Binding Nominativo}"
                                                                                Style="{StaticResource ServizioPersonaleTextStyle}" />
                                                                     <CheckBox Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                                               AutomationProperties.Name="{Binding Nominativo}"
@@ -721,14 +646,19 @@
                                         </ScrollViewer>
                                     </Border>
 
-                                    <DockPanel Margin="0,24,0,0" LastChildFill="False">
-                                        <TextBlock DockPanel.Dock="Left"
+                                    <infra:AdaptiveGrid Margin="0,24,0,0" CollapseBelow="1000" MinItemWidth="600" MaxColumns="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="18"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" TextWrapping="Wrap"
                                                    Text="Operatori sub altri reparti"
                                                    FontSize="19"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource AppTextBrush}"
                                                    VerticalAlignment="Center" />
-                                        <StackPanel DockPanel.Dock="Right"
+                                        <WrapPanel Grid.Column="2"
                                                     Orientation="Horizontal">
                                             <Button Content="Aggiungi operatore"
                                                     Command="{Binding AddOperatoreSubEsternoCommand}"
@@ -736,8 +666,8 @@
                                             <Button Content="Rimuovi selezionato"
                                                     Command="{Binding RemoveOperatoreSubEsternoCommand}"
                                                     Style="{DynamicResource DangerButtonStyle}" />
-                                        </StackPanel>
-                                    </DockPanel>
+                                        </WrapPanel>
+                                    </infra:AdaptiveGrid>
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Operatori SMZ o OSSALC di altri reparti inseriti solo per questo servizio. Una volta compilati compaiono tra i presenti immersione."
                                                Foreground="{DynamicResource AppMutedTextBrush}"
@@ -752,16 +682,16 @@
                                               HeadersVisibility="Column"
                                               RowHeaderWidth="0"
                                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                              ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="PerID"
-                                                                Width="100"
+                                                                Width="100" MinWidth="100"
                                                                 Binding="{Binding PerId, UpdateSourceTrigger=PropertyChanged}" />
                                             <DataGridTemplateColumn Header="Qualifica"
-                                                                    Width="150">
+                                                                    Width="150" MinWidth="150">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
-                                                        <TextBlock Text="{Binding QualificaDisplay}" />
+                                                        <TextBlock TextWrapping="Wrap" Text="{Binding QualificaDisplay}" />
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>
                                                 <DataGridTemplateColumn.CellEditingTemplate>
@@ -774,16 +704,16 @@
                                                 </DataGridTemplateColumn.CellEditingTemplate>
                                             </DataGridTemplateColumn>
                                             <DataGridTextColumn Header="Nominativo"
-                                                                Width="220"
+                                                                Width="220" MinWidth="220"
                                                                 Binding="{Binding Nominativo, UpdateSourceTrigger=PropertyChanged}" />
                                             <DataGridTextColumn Header="Reparto"
-                                                                Width="180"
+                                                                Width="180" MinWidth="180"
                                                                 Binding="{Binding Reparto, UpdateSourceTrigger=PropertyChanged}" />
                                             <DataGridTemplateColumn Header="Gruppo"
-                                                                    Width="150">
+                                                                    Width="150" MinWidth="150">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
-                                                        <TextBlock Text="{Binding GruppoOperativo.Codice}" />
+                                                        <TextBlock TextWrapping="Wrap" Text="{Binding GruppoOperativo.Codice}" />
                                                     </DataTemplate>
                                                 </DataGridTemplateColumn.CellTemplate>
                                                 <DataGridTemplateColumn.CellEditingTemplate>
@@ -795,19 +725,24 @@
                                                 </DataGridTemplateColumn.CellEditingTemplate>
                                             </DataGridTemplateColumn>
                                             <DataGridTextColumn Header="Note"
-                                                                Width="*"
+                                                                Width="*" MinWidth="240"
                                                                 Binding="{Binding Note, UpdateSourceTrigger=PropertyChanged}" />
                                         </DataGrid.Columns>
                                     </DataGrid>
 
-                                    <DockPanel Margin="0,24,0,0" LastChildFill="False">
-                                        <TextBlock DockPanel.Dock="Left"
+                                    <infra:AdaptiveGrid Margin="0,24,0,0" CollapseBelow="1000" MinItemWidth="600" MaxColumns="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="18"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" TextWrapping="Wrap"
                                                    Text="Assistenza SMZ"
                                                    FontSize="19"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource AppTextBrush}"
                                                    VerticalAlignment="Center" />
-                                        <StackPanel DockPanel.Dock="Right"
+                                        <WrapPanel Grid.Column="2"
                                                     Orientation="Horizontal">
                                             <Button Content="Aggiungi assistenza SMZ"
                                                     Command="{Binding AddSupportoOccasionaleCommand}"
@@ -815,8 +750,8 @@
                                             <Button Content="Rimuovi selezionato"
                                                     Command="{Binding RemoveSupportoOccasionaleCommand}"
                                                     Style="{DynamicResource DangerButtonStyle}" />
-                                        </StackPanel>
-                                    </DockPanel>
+                                        </WrapPanel>
+                                    </infra:AdaptiveGrid>
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Usa questa griglia per assistenza SMZ sporadica che non deve entrare in anagrafica. Resta legata solo al singolo servizio."
                                                Foreground="{DynamicResource AppMutedTextBrush}"
@@ -831,19 +766,19 @@
                                               HeadersVisibility="Column"
                                               RowHeaderWidth="0"
                                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                              ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                              ScrollViewer.VerticalScrollBarVisibility="Auto">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Nominativo"
-                                                                Width="220"
+                                                                Width="220" MinWidth="220"
                                                                 Binding="{Binding Nominativo, UpdateSourceTrigger=PropertyChanged}" />
                                             <DataGridTextColumn Header="Qualifica"
-                                                                Width="140"
+                                                                Width="140" MinWidth="140"
                                                                 Binding="{Binding Qualifica, UpdateSourceTrigger=PropertyChanged}" />
                                             <DataGridTextColumn Header="Ruolo"
-                                                                Width="160"
+                                                                Width="160" MinWidth="160"
                                                                 Binding="{Binding Ruolo, UpdateSourceTrigger=PropertyChanged}" />
                                             <DataGridTemplateColumn Header="Presente"
-                                                                    Width="90">
+                                                                    Width="90" MinWidth="90">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
                                                         <CheckBox HorizontalAlignment="Center"
@@ -854,27 +789,31 @@
                                                 </DataGridTemplateColumn.CellTemplate>
                                             </DataGridTemplateColumn>
                                             <DataGridTextColumn Header="Contatti"
-                                                                Width="180"
+                                                                Width="180" MinWidth="180"
                                                                 Binding="{Binding Contatti, UpdateSourceTrigger=PropertyChanged}" />
                                             <DataGridTextColumn Header="Note"
-                                                                Width="*"
+                                                                Width="*" MinWidth="240"
                                                                 Binding="{Binding Note, UpdateSourceTrigger=PropertyChanged}" />
                                         </DataGrid.Columns>
                                     </DataGrid>
 
-                                    <DockPanel Margin="0,24,14,0"
-                                               LastChildFill="False">
-                                        <TextBlock DockPanel.Dock="Left"
+                                    <infra:AdaptiveGrid Margin="0,24,14,0" CollapseBelow="1000" MinItemWidth="600" MaxColumns="1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="18"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" TextWrapping="Wrap"
                                                    Text="Immersioni del servizio"
                                                    FontSize="19"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource AppTextBrush}"
                                                    VerticalAlignment="Center" />
-                                        <Button DockPanel.Dock="Right"
+                                        <Button Grid.Column="2"
                                                 Content="Aggiungi immersione"
                                                 Command="{Binding AddImmersioneCommand}"
                                                 Style="{DynamicResource SecondaryButtonStyle}" />
-                                    </DockPanel>
+                                    </infra:AdaptiveGrid>
                                     <TextBlock Margin="0,8,0,0"
                                                Text="Compila solo i ruoli di intestazione per ogni immersione. Direttori e assistenti restano evidenziati nella tabella unica e non vengono conteggiati in acqua nello stesso turno."
                                                Foreground="{DynamicResource AppMutedTextBrush}"
@@ -896,19 +835,24 @@
                                                         CornerRadius="18"
                                                         Padding="14">
                                                     <StackPanel>
-                                                        <DockPanel LastChildFill="False">
-                                                            <TextBlock DockPanel.Dock="Left"
+                                                        <infra:AdaptiveGrid CollapseBelow="1000" MinItemWidth="600" MaxColumns="1">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="18"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" TextWrapping="Wrap"
                                                                        Text="{Binding NumeroImmersione, StringFormat=Immersione {0}}"
                                                                        FontSize="18"
                                                                        FontWeight="SemiBold"
                                                                        Foreground="{DynamicResource AppTextBrush}"
                                                                        VerticalAlignment="Center" />
-                                                            <Button DockPanel.Dock="Right"
+                                                            <Button Grid.Column="2"
                                                                     Content="Rimuovi"
                                                                     Command="{Binding DataContext.RemoveImmersioneCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                     CommandParameter="{Binding}"
                                                                     Style="{DynamicResource DangerButtonStyle}" />
-                                                        </DockPanel>
+                                                        </infra:AdaptiveGrid>
 
                                                         <Border Margin="0,12,0,0"
                                                                 Background="#EEF6FB"
@@ -918,22 +862,27 @@
                                                                 Padding="12,10"
                                                                 Visibility="Collapsed">
                                                             <StackPanel>
-                                                                <DockPanel LastChildFill="False">
-                                                                    <TextBlock DockPanel.Dock="Left"
+                                                                <infra:AdaptiveGrid CollapseBelow="1000" MinItemWidth="600" MaxColumns="1">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="18"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock Grid.Column="0" TextWrapping="Wrap"
                                                                                Text="Orario immersione"
                                                                                FontWeight="SemiBold"
                                                                                Foreground="{DynamicResource AppTextBrush}" />
-                                                                    <TextBlock DockPanel.Dock="Right"
+                                                                    <TextBlock Grid.Column="2" TextWrapping="Wrap"
                                                                                Text="Digita 0830 o 1015, il campo formatta da solo"
                                                                                Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                FontSize="11" />
-                                                                </DockPanel>
+                                                                </infra:AdaptiveGrid>
 
-                                                                <StackPanel Margin="0,8,0,0"
+                                                                <WrapPanel Margin="0,8,0,0"
                                                                             Orientation="Horizontal"
                                                                             VerticalAlignment="Center">
                                                                     <StackPanel>
-                                                                        <TextBlock Text="Inizio"
+                                                                        <TextBlock TextWrapping="Wrap" Text="Inizio"
                                                                                    Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                    FontSize="11" />
                                                                         <Grid Width="96">
@@ -942,7 +891,7 @@
                                                                                      MaxLength="5"
                                                                                      ToolTip="Digita solo cifre, ad esempio 0830"
                                                                                      infra:TimeInputBehavior.AutoFormat="True" />
-                                                                            <TextBlock Text="08:30"
+                                                                            <TextBlock TextWrapping="Wrap" Text="08:30"
                                                                                        Margin="0,8,0,0"
                                                                                        HorizontalAlignment="Center"
                                                                                        Foreground="#9AAAB5"
@@ -961,7 +910,7 @@
                                                                         </Grid>
                                                                     </StackPanel>
 
-                                                                    <TextBlock Margin="12,20,12,0"
+                                                                    <TextBlock TextWrapping="Wrap" Margin="12,20,12,0"
                                                                                Text="→"
                                                                                FontSize="18"
                                                                                FontWeight="Bold"
@@ -969,7 +918,7 @@
                                                                                VerticalAlignment="Center" />
 
                                                                     <StackPanel>
-                                                                        <TextBlock Text="Fine"
+                                                                        <TextBlock TextWrapping="Wrap" Text="Fine"
                                                                                    Foreground="{DynamicResource AppMutedTextBrush}"
                                                                                    FontSize="11" />
                                                                         <Grid Width="96">
@@ -978,7 +927,7 @@
                                                                                      MaxLength="5"
                                                                                      ToolTip="Digita solo cifre, ad esempio 1015"
                                                                                      infra:TimeInputBehavior.AutoFormat="True" />
-                                                                            <TextBlock Text="10:15"
+                                                                            <TextBlock TextWrapping="Wrap" Text="10:15"
                                                                                        Margin="0,8,0,0"
                                                                                        HorizontalAlignment="Center"
                                                                                        Foreground="#9AAAB5"
@@ -996,11 +945,11 @@
                                                                             </TextBlock>
                                                                         </Grid>
                                                                     </StackPanel>
-                                                                </StackPanel>
+                                                                </WrapPanel>
                                                             </StackPanel>
                                                         </Border>
 
-                                                        <Grid Margin="0,12,0,0">
+                                                        <infra:AdaptiveGrid Margin="0,12,0,0" CollapseBelow="740" MinItemWidth="260" MaxColumns="2">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="14" />
@@ -1012,7 +961,7 @@
                                                             </Grid.RowDefinitions>
 
                                                             <StackPanel>
-                                                                <TextBlock Text="Direttore immersione" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                                <TextBlock TextWrapping="Wrap" Text="Direttore immersione" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                                 <ComboBox Margin="0,6,0,0"
                                                                           ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding DirettoreImmersione}"
@@ -1020,7 +969,7 @@
                                                             </StackPanel>
 
                                                             <StackPanel Grid.Column="2">
-                                                                <TextBlock Text="Operatore soccorso" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                                <TextBlock TextWrapping="Wrap" Text="Operatore soccorso" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                                 <ComboBox Margin="0,6,0,0"
                                                                           ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding OperatoreSoccorso}"
@@ -1028,7 +977,7 @@
                                                             </StackPanel>
 
                                                             <StackPanel Grid.Row="1" Margin="0,10,0,0">
-                                                                <TextBlock Text="Assistenza BLSD" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                                <TextBlock TextWrapping="Wrap" Text="Assistenza BLSD" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                                 <ComboBox Margin="0,6,0,0"
                                                                           ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding AssistenteBlsd}"
@@ -1036,15 +985,15 @@
                                                             </StackPanel>
 
                                                             <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,0,0">
-                                                                <TextBlock Text="Assistenza sanitaria" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                                <TextBlock TextWrapping="Wrap" Text="Assistenza sanitaria" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                                 <ComboBox Margin="0,6,0,0"
                                                                           ItemsSource="{Binding DataContext.OperatoriServizioPresentiDisponibili, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                           SelectedItem="{Binding AssistenteSanitario}"
                                                                           DisplayMemberPath="NominativoConQualifica" />
                                                             </StackPanel>
-                                                        </Grid>
+                                                        </infra:AdaptiveGrid>
 
-                                                        <TextBlock Margin="0,10,0,0" Text="Note immersione" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                                        <TextBlock TextWrapping="Wrap" Margin="0,10,0,0" Text="Note immersione" Foreground="{DynamicResource AppMutedTextBrush}" />
                                                         <TextBox Text="{Binding Note, UpdateSourceTrigger=PropertyChanged}"
                                                                  Style="{DynamicResource ServizioWheelTextBoxStyle}"
                                                                  TextWrapping="Wrap"
@@ -1064,14 +1013,14 @@
                                             Padding="14">
                                         <StackPanel>
                                             <DockPanel LastChildFill="False">
-                                                <TextBlock DockPanel.Dock="Left"
+                                                <TextBlock TextWrapping="Wrap" DockPanel.Dock="Left"
                                                            Text="Dettaglio contabile SMZ"
                                                            Foreground="{DynamicResource AppTextBrush}"
                                                            FontWeight="SemiBold"
                                                            VerticalAlignment="Center" />
                                             </DockPanel>
                                             <TextBlock Margin="0,4,0,0"
-                                                       Text="Compila una sola riga per operatore: apparato, profondita, ore e categoria vengono applicati automaticamente a tutte le immersioni utili. Correggi solo le eccezioni."
+                                                       Text="Immersione e ruolo di direttori e assistenti sono riportati automaticamente dalle scelte sopra. Per gli operatori in immersione scegli il numero e compila apparato, profondita, ore e categoria."
                                                        Foreground="{DynamicResource AppMutedTextBrush}"
                                                        TextWrapping="Wrap" />
 
@@ -1083,7 +1032,7 @@
                                                       HeadersVisibility="Column"
                                                       RowHeaderWidth="0"
                                                       ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                                      ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                                      ScrollViewer.VerticalScrollBarVisibility="Auto">
                                                 <DataGrid.RowStyle>
                                                     <Style TargetType="DataGridRow">
                                                         <Style.Triggers>
@@ -1092,18 +1041,44 @@
                                                                 <Setter Property="BorderBrush" Value="#E7B75F" />
                                                                 <Setter Property="BorderThickness" Value="0,0,0,1" />
                                                             </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsSoloAssistenza}" Value="True">
+                                                                <Setter Property="IsEnabled" Value="False" />
+                                                            </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </DataGrid.RowStyle>
                                                 <DataGrid.Columns>
                                                     <DataGridTextColumn Header="Operatore"
-                                                                        Width="250"
+                                                                        Width="250" MinWidth="250"
                                                                         Binding="{Binding NominativoConQualifica}" />
-                                                    <DataGridTextColumn Header="Ruoli"
-                                                                        Width="150"
-                                                                        Binding="{Binding RuoliImmersione}" />
+                                                    <DataGridTemplateColumn Header="Immersione" Width="92" MinWidth="92">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding NumeriImmersioneRuolo}" LineHeight="20"
+                                                                               Visibility="{Binding HasIncarichiImmersione, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                               ToolTip="Immersioni degli incarichi selezionati sopra." />
+                                                                    <ComboBox ItemsSource="{Binding ImmersioniDisponibili}"
+                                                                              SelectedItem="{Binding NumeroImmersione, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                              Visibility="{Binding MostraSceltaImmersione, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                              ToolTip="Scegli l'immersione come operatore subacqueo." />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
+                                                    <DataGridTemplateColumn Header="Ruolo" Width="200" MinWidth="200">
+                                                        <DataGridTemplateColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding RuoliImmersione}" LineHeight="20" ToolTip="{Binding RuoliImmersione}" />
+                                                                    <TextBlock Text="Operatore subacqueo" Margin="0,6,0,0" MinHeight="28" VerticalAlignment="Center"
+                                                                               Visibility="{Binding MostraRuoloOperatore, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </DataGridTemplateColumn.CellTemplate>
+                                                    </DataGridTemplateColumn>
                                                     <DataGridTemplateColumn Header="Apparato"
-                                                                            Width="120">
+                                                                            Width="120" MinWidth="120">
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate>
                                                                 <ComboBox ItemsSource="{Binding DataContext.TipologieImmersioneOperativeCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -1113,7 +1088,7 @@
                                                         </DataGridTemplateColumn.CellTemplate>
                                                     </DataGridTemplateColumn>
                                                     <DataGridTemplateColumn Header="Prof."
-                                                                            Width="68">
+                                                                            Width="68" MinWidth="68">
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate>
                                                                 <TextBox Text="{Binding ProfonditaMetri, UpdateSourceTrigger=LostFocus}"
@@ -1123,7 +1098,7 @@
                                                         </DataGridTemplateColumn.CellTemplate>
                                                     </DataGridTemplateColumn>
                                                     <DataGridTemplateColumn Header="Fascia"
-                                                                            Width="88">
+                                                                            Width="88" MinWidth="88">
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate>
                                                                 <ComboBox ItemsSource="{Binding DataContext.FasceProfonditaCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -1133,7 +1108,7 @@
                                                         </DataGridTemplateColumn.CellTemplate>
                                                     </DataGridTemplateColumn>
                                                     <DataGridTemplateColumn Header="Ore"
-                                                                            Width="68">
+                                                                            Width="68" MinWidth="68">
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate>
                                                                 <TextBox Text="{Binding OreImmersione, UpdateSourceTrigger=PropertyChanged}" />
@@ -1141,7 +1116,7 @@
                                                         </DataGridTemplateColumn.CellTemplate>
                                                     </DataGridTemplateColumn>
                                                     <DataGridTemplateColumn Header="Cat."
-                                                                            Width="96">
+                                                                            Width="96" MinWidth="96">
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate>
                                                                 <ComboBox ItemsSource="{Binding DataContext.CategorieContabiliOreCatalogo, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -1151,15 +1126,17 @@
                                                         </DataGridTemplateColumn.CellTemplate>
                                                     </DataGridTemplateColumn>
                                                     <DataGridTextColumn Header="Tariffa"
-                                                                        Width="72"
+                                                                        Width="72" MinWidth="72"
                                                                         Binding="{Binding TariffaPropostaDisplay}" />
                                                     <DataGridTextColumn Header="Importo"
-                                                                        Width="78"
+                                                                        Width="78" MinWidth="78"
                                                                         Binding="{Binding ImportoStimatoDisplay}" />
                                                 </DataGrid.Columns>
                                             </DataGrid>
                                         </StackPanel>
                                     </Border>
+                                    <Button Content="Salva servizio" HorizontalAlignment="Right" Margin="0,18,0,0"
+                                            Command="{Binding SaveServizioCommand}" />
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>

@@ -1,11 +1,13 @@
 <Window x:Class="SMZ.Conta.App.Views.LandingWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:infra="clr-namespace:SMZ.Conta.App.Infrastructure"
+        infra:WindowFitBehavior.Enabled="True" UseLayoutRounding="True"
         xmlns:views="clr-namespace:SMZ.Conta.App.Views"
         Title="SMZ La Spezia"
         Icon="/SMZ.App;component/Assets/logo_smz.ico"
         Width="1280" Height="760"
-        MinWidth="900" MinHeight="560"
+        MinWidth="640" MinHeight="360"
         WindowState="Maximized"
         Background="#071528"
         FontFamily="Bahnschrift">
@@ -109,7 +111,7 @@
                 Panel.ZIndex="10"
                 Background="#E6071528"
                 Visibility="Collapsed">
-            <StackPanel Width="420"
+            <StackPanel MaxWidth="420" Margin="24"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center">
                 <TextBlock Text="SMZ LA SPEZIA"

@@ -6,6 +6,8 @@ public sealed class TipoVisitaMedica
 
     public string Descrizione { get; set; } = string.Empty;
 
+    public IReadOnlyList<string> DescrizioniAlternative { get; init; } = [];
+
     public int? MesiValidita { get; set; }
 
     public bool Attiva { get; set; } = true;

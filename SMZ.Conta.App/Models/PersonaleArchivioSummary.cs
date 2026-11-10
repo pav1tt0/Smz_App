@@ -6,6 +6,11 @@ public sealed class PersonaleArchivioSummary
 
     public int PerIdOriginale { get; set; }
 
+    public string Qualifica { get; set; } = string.Empty;
+    public DateOnly? DataDecorrenzaQualifica { get; set; }
+    public string ProfiloPersonale { get; set; } = string.Empty;
+    public string RuoloSanitario { get; set; } = string.Empty;
+
     public string Cognome { get; set; } = string.Empty;
 
     public string Nome { get; set; } = string.Empty;

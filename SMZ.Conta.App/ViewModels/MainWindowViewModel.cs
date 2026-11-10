@@ -173,6 +173,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private LocalitaOperativa? _servizioLocalitaSelezionata;
     private ScopoImmersioneItem? _servizioScopoSelezionato;
     private UnitaNavale? _servizioUnitaNavaleSelezionata;
+    private UnitaNavale? _servizioSecondaUnitaNavale;
+    private UnitaNavale? _servizioTerzaUnitaNavale;
     private PersonaleListItemViewModel? _servizioResponsabileSelezionato;
     private bool _servizioFuoriSede;
     private bool _servizioIndennitaOrdinePubblico;
@@ -1164,6 +1166,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
         set => SetProperty(ref _nuovaLocalitaOperativa, value);
     }
 
+    public UnitaNavale? ServizioSecondaUnitaNavale
+    {
+        get => _servizioSecondaUnitaNavale;
+        set => SetProperty(ref _servizioSecondaUnitaNavale, value);
+    }
+
+    public UnitaNavale? ServizioTerzaUnitaNavale
+    {
+        get => _servizioTerzaUnitaNavale;
+        set => SetProperty(ref _servizioTerzaUnitaNavale, value);
+    }
+
     public string NuovaUnitaNavale
     {
         get => _nuovaUnitaNavale;
@@ -1306,7 +1320,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public string ElaborazioneMensileStato =>
         _elaborazioneMensileInfo is null
             ? "Periodo non ancora chiuso: le tabelle mostrano il calcolo live corrente."
-            : $"Chiusura mensile registrata il {_elaborazioneMensileInfo.AggiornataIlDescrizione}. Le tabelle mostrano lo snapshot congelato da consegnare ai pagamenti.";
+            : $"Chiusura mensile registrata il {_elaborazioneMensileInfo.AggiornataIlDescrizione}. Le tabelle mostrano gli importi salvati. Per ricalcolarli dai servizi con le tariffe correnti usa Rigenera chiusura.";
 
     public string SalvaElaborazioneMensileLabel =>
         _elaborazioneMensileInfo is null ? "Chiudi mese" : "Rigenera chiusura";
@@ -1701,6 +1715,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             {
                 CaricaEditorAbilitazioneDaSelezione();
                 OnPropertyChanged(nameof(AzioneAbilitazioneLabel));
+                OnPropertyChanged(nameof(AbilitazioneIndicazioni));
             }
         }
     }
@@ -2193,6 +2208,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
             if (AbilitazioneTipoSelezionato is null)
             {
                 return "Seleziona un tipo per vedere quali campi sono richiesti.";
+            }
+
+            if (Abilitazioni.Any(row => row != SelectedAbilitazione
+                && row.TipoAbilitazioneId == AbilitazioneTipoSelezionato.TipoAbilitazioneId))
+            {
+                return "Abilitazione gia presente: seleziona la riga esistente per modificarla. Ogni tipo si puo inserire una sola volta nella stessa scheda.";
             }
 
             var richieste = new List<string> { "Data conseguimento facoltativa" };

@@ -381,6 +381,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 throw new InvalidOperationException("Seleziona prima il tipo di abilitazione.");
             }
 
+            if (Abilitazioni.Any(row => row != SelectedAbilitazione
+                && row.TipoAbilitazioneId == AbilitazioneTipoSelezionato.TipoAbilitazioneId))
+            {
+                Stato = "Abilitazione gia presente: seleziona la riga esistente per modificarla.";
+                return;
+            }
+
             if (AbilitazioneRichiedeLivello && string.IsNullOrWhiteSpace(AbilitazioneLivello))
             {
                 throw new InvalidOperationException("Per questa abilitazione il livello e obbligatorio.");

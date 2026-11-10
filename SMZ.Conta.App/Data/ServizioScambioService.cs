@@ -108,6 +108,9 @@ public sealed class ServizioScambioService
                 UnitaNavaleSigla = servizio.UnitaNavaleId is { } siglaId && unitaById.TryGetValue(siglaId, out var unitaSigla)
                     ? unitaSigla.Sigla
                     : string.Empty,
+                UnitaNavaliAggiuntive = servizio.UnitaNavaliAggiuntiveIds
+                    .Select(id => unitaById[id])
+                    .Select(item => new ServizioScambioNatante { Sigla = item.Sigla, Descrizione = item.Descrizione }).ToList(),
                 ResponsabileServizio = BuildNullablePersonRef(servizio.ResponsabileServizioPerId, personaleById),
                 FuoriSede = servizio.FuoriSede,
                 IndennitaOrdinePubblico = servizio.IndennitaOrdinePubblico,
@@ -297,6 +300,9 @@ public sealed class ServizioScambioService
             LocalitaOperativaId = ResolveOptionalLocalitaId(package.LocalitaDescrizione, localitaByDescription),
             ScopoImmersioneId = ResolveOptionalScopoId(package.ScopoDescrizione, scopiByDescription),
             UnitaNavaleId = ResolveOptionalUnitaId(package.UnitaNavaleSigla, package.UnitaNavaleDescrizione, unitaBySigla, unitaByDescription),
+            UnitaNavaliAggiuntiveIds = (package.UnitaNavaliAggiuntive ?? [])
+                .Select(item => ResolveOptionalUnitaId(item.Sigla, item.Descrizione, unitaBySigla, unitaByDescription))
+                .Where(id => id is not null).Select(id => id!.Value).Distinct().ToList(),
             ResponsabileServizioPerId = ResolveRolePersonId(package.ResponsabileServizio, peopleResolver, partecipantiByPerId, "responsabile servizio"),
             FuoriSede = package.FuoriSede,
             IndennitaOrdinePubblico = package.IndennitaOrdinePubblico,

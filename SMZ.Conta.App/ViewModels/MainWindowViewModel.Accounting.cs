@@ -129,13 +129,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ApplicaFiltriContabilitaSmz();
 
         ContabilitaSanitariItems.Clear();
-        foreach (var item in snapshot.Sanitari)
+        foreach (var item in snapshot.Sanitari.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica, isSanitario: true, ruoloSanitario: item.RuoloSanitario)).ThenBy(item => item.Nominativo))
         {
             ContabilitaSanitariItems.Add(item);
         }
 
         ContabilitaSupportiItems.Clear();
-        foreach (var item in snapshot.SupportiOccasionali)
+        foreach (var item in snapshot.SupportiOccasionali.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica)).ThenBy(item => item.Nominativo))
         {
             ContabilitaSupportiItems.Add(item);
         }
@@ -231,10 +231,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         ContabilitaSmzItems.Clear();
         foreach (var item in items
-                     .OrderBy(item => item.DataServizio)
-                     .ThenBy(item => item.NumeroOrdineServizio)
+                     .OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))
                      .ThenBy(item => item.Cognome)
                      .ThenBy(item => item.Nome)
+                     .ThenBy(item => item.DataServizio)
+                     .ThenBy(item => item.NumeroOrdineServizio)
                      .ThenBy(item => item.Apparato)
                      .ThenBy(item => item.FasciaProfondita))
         {
@@ -406,9 +407,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         ReportPersonaleItems.Clear();
         foreach (var item in items
-                     .OrderBy(item => item.DataServizio)
-                     .ThenBy(item => item.NumeroOrdineServizio)
+                     .OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))
                      .ThenBy(item => item.Nominativo)
+                     .ThenBy(item => item.DataServizio)
+                     .ThenBy(item => item.NumeroOrdineServizio)
                      .ThenBy(item => item.TipoRiga)
                      .ThenBy(item => item.NumeroImmersione ?? 0))
         {
@@ -529,7 +531,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
             var periodo = $"{ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoSelezionato}";
             foreach (var item in ContabilitaSmzItems
-                         .OrderBy(x => x.Cognome)
+                         .OrderBy(x => QualificaFormatter.GetChiaveOrdinamento(x.Qualifica))
+                         .ThenBy(x => x.Cognome)
                          .ThenBy(x => x.Nome)
                          .ThenBy(x => x.DataServizio)
                          .ThenBy(x => x.NumeroOrdineServizio)
@@ -779,13 +782,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
             .Select(item => new AssistenzaSmzDocxRow(
                 $"{item.QualificaDisplay} {item.Nominativo}".Trim(),
                 item.TrentesimiMaturati,
-                item.Nominativo))
+                item.Nominativo, QualificaFormatter.GetChiaveOrdinamento(item.Qualifica)))
             .Concat(ContabilitaSupportiItems.Select(item => new AssistenzaSmzDocxRow(
                 $"{item.QualificaDisplay} {item.Nominativo}".Trim(),
                 item.TrentesimiMaturati,
-                item.Nominativo)))
+                item.Nominativo, QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))))
             .Where(item => item.Trentesimi > 0 && !string.IsNullOrWhiteSpace(item.Nominativo))
-            .OrderBy(item => item.SortKey, StringComparer.CurrentCultureIgnoreCase)
+            .OrderBy(item => item.OrdineQualifica)
+            .ThenBy(item => item.SortKey, StringComparer.CurrentCultureIgnoreCase)
             .ThenBy(item => item.Nominativo, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
@@ -866,7 +870,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
         else
         {
-            foreach (var item in IndennitaFuoriSedeItems.OrderBy(item => item.Cognome).ThenBy(item => item.Nome))
+            foreach (var item in IndennitaFuoriSedeItems.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica)).ThenBy(item => item.Cognome).ThenBy(item => item.Nome))
             {
                 builder.AppendLine(WTableRow(
                     (item.QualificaDisplay, 900, false, "center", 1),
@@ -944,7 +948,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         var groups = ContabilitaSmzItems
             .GroupBy(item => new { item.PerId, item.Cognome, item.Nome, item.Qualifica })
-            .OrderBy(group => group.Key.Cognome)
+            .OrderBy(group => QualificaFormatter.GetChiaveOrdinamento(group.Key.Qualifica))
+            .ThenBy(group => group.Key.Cognome)
             .ThenBy(group => group.Key.Nome)
             .ToList();
 
@@ -1178,7 +1183,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         AddPrintHeader(table, "Qual", "Cognome e Nome", "Appar.", "Prof.", "Tariffa", "ORE ORD", "ORE ADD", "ORE SPER", "ORE C.I.", "Importo", "Med. Rag.", "TOTALE");
         foreach (var group in ContabilitaSmzItems
                      .GroupBy(item => new { item.PerId, item.Cognome, item.Nome, item.Qualifica })
-                     .OrderBy(item => item.Key.Cognome)
+                     .OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Key.Qualifica))
+                     .ThenBy(item => item.Key.Cognome)
                      .ThenBy(item => item.Key.Nome))
         {
             var righe = BuildRigheMensiliOperatore(group).Where(HasValoriContabili).ToList();
@@ -1464,7 +1470,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private static string Xml(string value) => WebUtility.HtmlEncode(value);
 
-    private sealed record AssistenzaSmzDocxRow(string Nominativo, int Trentesimi, string SortKey);
+    private sealed record AssistenzaSmzDocxRow(string Nominativo, int Trentesimi, string SortKey, long OrdineQualifica);
 
     private sealed record ContabilitaMensileOperatoreRow(
         string Apparato,
@@ -1537,6 +1543,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 }
             }
 
+            AggiornaImportiRigheUniche();
             CaricaContabilitaMensile();
             RegistraSnapshotTariffeContabili();
             Stato = "Tariffe contabili aggiornate nel database.";

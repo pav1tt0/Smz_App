@@ -16,7 +16,9 @@ public sealed partial class PersonaleRepository
                    Cognome,
                    Nome,
                    CodiceFiscale,
-                   DataArchiviazione
+                   DataArchiviazione,
+                   COALESCE(Qualifica, ''), DataDecorrenzaQualifica,
+                   ProfiloPersonale, COALESCE(RuoloSanitario, '')
             FROM PersonaleArchivio
             ORDER BY DataArchiviazione DESC, Cognome, Nome;
             """;
@@ -34,10 +36,16 @@ public sealed partial class PersonaleRepository
                 Nome = reader.GetString(3),
                 CodiceFiscale = reader.GetString(4),
                 DataArchiviazione = DateTime.Parse(reader.GetString(5)),
+                Qualifica = reader.GetString(6),
+                DataDecorrenzaQualifica = reader.IsDBNull(7) ? null : DateOnly.Parse(reader.GetString(7)),
+                ProfiloPersonale = reader.GetString(8),
+                RuoloSanitario = reader.GetString(9),
             });
         }
 
-        return items;
+        return items.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica,
+                item.DataDecorrenzaQualifica, ProfiliPersonaleCatalogo.IsSanitario(item.ProfiloPersonale), item.RuoloSanitario))
+            .ThenBy(item => item.Cognome).ThenBy(item => item.Nome).ToList();
     }
 
     public List<string> GetSearchSuggestions()

@@ -56,7 +56,9 @@ public sealed class ServizioGiornalieroPrintService
         var persone = GetPersone(servizio);
         var localita = cataloghi.LocalitaOperative.FirstOrDefault(item => item.LocalitaOperativaId == servizio.LocalitaOperativaId)?.Descrizione ?? string.Empty;
         var scopo = cataloghi.ScopiImmersione.FirstOrDefault(item => item.ScopoImmersioneId == servizio.ScopoImmersioneId)?.Descrizione ?? string.Empty;
-        var unita = cataloghi.UnitaNavali.FirstOrDefault(item => item.UnitaNavaleId == servizio.UnitaNavaleId)?.Descrizione ?? string.Empty;
+        var unita = string.Join(", ", servizio.GetUnitaNavaliIds()
+            .Select(id => cataloghi.UnitaNavali.FirstOrDefault(item => item.UnitaNavaleId == id)?.Descrizione)
+            .Where(item => !string.IsNullOrWhiteSpace(item)));
         var responsabile = servizio.ResponsabileServizioPerId is { } responsabileId && persone.TryGetValue(responsabileId, out var responsabilePersonale)
             ? FormatPersona(responsabilePersonale)
             : string.Empty;
@@ -161,7 +163,7 @@ public sealed class ServizioGiornalieroPrintService
                 nominativo,
                 BuildMansioneEsterna(servizio, operatore.ServizioOperatoreSubEsternoId),
                 BuildApparatiEsterni(servizio, operatore.ServizioOperatoreSubEsternoId, cataloghi),
-                long.MaxValue));
+                QualificaFormatter.GetChiaveOrdinamento(operatore.Qualifica)));
         }
 
         foreach (var supporto in servizio.SupportiOccasionali.Where(item => item.Presente))
@@ -178,7 +180,7 @@ public sealed class ServizioGiornalieroPrintService
                 nominativo,
                 NormalizeMansione(supporto.Ruolo),
                 string.Empty,
-                long.MaxValue));
+                QualificaFormatter.GetChiaveOrdinamento(supporto.Qualifica)));
         }
 
         return rows
@@ -355,7 +357,7 @@ public sealed class ServizioGiornalieroPrintService
             "Indennità supplementare di fuori sede di cui all’art. 12 D.P.R. 57/2022",
             true, 0, 0, columnSpan: 2));
         table.RowGroups[0].Rows.Add(heading);
-        AddRow(table, "UNITÀ NAVALE", servizio.FuoriSede ? EmptyField(unita) : string.Empty);
+        AddRow(table, "UNITÀ NAVALI", unita);
         AddRow(table, "LOCALITÀ", servizio.FuoriSede ? EmptyField(localita) : string.Empty);
         return table;
     }
@@ -740,11 +742,9 @@ public sealed class ServizioGiornalieroPrintService
             return long.MaxValue;
         }
 
-        return QualificaFormatter.GetGerarchiaOrdine(persona.Qualifica, persona.IsProfiloSanitario, persona.RuoloSanitario) * 1_000_000L
-            + GetDateOrder(persona.DataDecorrenzaQualifica);
+        return QualificaFormatter.GetChiaveOrdinamento(persona.Qualifica, persona.DataDecorrenzaQualifica,
+            persona.IsProfiloSanitario, persona.RuoloSanitario);
     }
-
-    private static int GetDateOrder(DateOnly? date) => date?.DayNumber ?? int.MaxValue;
 
     private static string FormatPersona(Personale persona)
     {

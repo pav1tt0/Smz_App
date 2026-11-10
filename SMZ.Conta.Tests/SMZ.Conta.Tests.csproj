@@ -3,12 +3,14 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SMZ.Conta.App\SMZ.Conta.App.csproj" />
+    <Resource Include="..\SMZ.Conta.App\Assets\stemma-repubblica.png" Link="Assets\stemma-repubblica.png" />
   </ItemGroup>
 
 </Project>

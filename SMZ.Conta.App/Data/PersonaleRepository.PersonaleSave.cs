@@ -7,6 +7,15 @@ public sealed partial class PersonaleRepository
 {
     public int SavePersonale(Personale personale, bool isNewRecord)
     {
+        var duplicato = personale.Abilitazioni.GroupBy(item => item.TipoAbilitazioneId)
+            .FirstOrDefault(group => group.Count() > 1);
+        if (duplicato is not null)
+        {
+            var descrizione = duplicato.First().Tipo?.Descrizione ?? $"tipo {duplicato.Key}";
+            throw new InvalidOperationException(
+                $"L'abilitazione '{descrizione}' e presente piu volte. Mantieni una sola riga di questo tipo nella scheda.");
+        }
+
         using var connection = OpenConnection();
         using var transaction = connection.BeginTransaction();
 

@@ -141,8 +141,25 @@ public sealed partial class MainWindowViewModel : ObservableObject
             partecipazione.PropertyChanged -= ServizioPartecipazioneImmersione_PropertyChanged;
         }
 
+        var immersioniScelte = ServizioPartecipazioniContabiliUnicheBozza.ToDictionary(
+            item => item.PerId,
+            item => ServizioImmersioniBozza.FirstOrDefault(dive => dive.NumeroImmersione == item.NumeroImmersione));
         ServizioImmersioniBozza.Remove(immersione);
         RinumeraImmersioniBozza();
+        _isSyncingPartecipazioniUniche = true;
+        try
+        {
+            foreach (var row in ServizioPartecipazioniContabiliUnicheBozza)
+            {
+                var scelta = immersioniScelte[row.PerId];
+                row.NumeroImmersione = scelta is not null && ServizioImmersioniBozza.Contains(scelta)
+                    ? scelta.NumeroImmersione : null;
+            }
+        }
+        finally
+        {
+            _isSyncingPartecipazioniUniche = false;
+        }
         SincronizzaPartecipazioniImmersioneBozza();
         AggiornaRiepilogoBozzaServizio();
         Stato = "Immersione rimossa.";
@@ -262,12 +279,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 item.item.Nominativo.Trim(),
                 IsEsterno: true,
                 Reparto: item.item.Reparto.Trim(),
-                Ordine: QualificaFormatter.GetGerarchiaOrdine(item.item.Qualifica, isSanitario: false, ruoloSanitario: string.Empty) + 10_000,
+                Ordine: QualificaFormatter.GetGerarchiaOrdine(item.item.Qualifica, isSanitario: false, ruoloSanitario: string.Empty),
                 CognomeNome: item.item.Nominativo.Trim()));
 
         return interni
             .Concat(esterni)
             .OrderBy(item => item.Ordine)
+            .ThenBy(item => GetOrdineDecorrenzaQualifica(item.DataDecorrenzaQualifica))
             .ThenBy(item => item.IsEsterno)
             .ThenBy(item => item.CognomeNome)
             .ToList();
@@ -284,7 +302,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             var existing = ServizioPartecipazioniContabiliUnicheBozza.ToDictionary(item => item.PerId);
-            var operatoriSmzPresenti = GetOperatoriSubPresentiOrdinati();
+            var sanitariIncaricati = OperatoriServizioPresentiDisponibili
+                .Where(item => item.PerId > 0 && item.IsProfiloSanitario
+                    && ServizioImmersioniBozza.Any(immersione => IsOperatoreInRuoloImmersione(immersione, item.PerId)))
+                .ToList();
+            var operatoriSmzPresenti = GetOperatoriSubPresentiOrdinati()
+                .Concat(sanitariIncaricati.Select(item => new OperatoreSubServizioDraft(
+                    item.PerId, item.Qualifica, item.DataDecorrenzaQualifica, item.Nominativo,
+                    false, string.Empty, QualificaFormatter.GetGerarchiaOrdine(item.Qualifica, true, item.RuoloSanitario),
+                    $"{item.Cognome} {item.Nome}".Trim())))
+                .OrderBy(item => item.Ordine)
+                .ThenBy(item => GetOrdineDecorrenzaQualifica(item.DataDecorrenzaQualifica))
+                .ThenBy(item => item.CognomeNome).ToList();
             var orderedRows = new List<ServizioPartecipanteImmersioneUnicoDraftViewModel>();
 
             foreach (var operatore in operatoriSmzPresenti)
@@ -292,6 +321,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 if (!existing.TryGetValue(operatore.PerId, out var row))
                 {
                     row = new ServizioPartecipanteImmersioneUnicoDraftViewModel { PerId = operatore.PerId };
+                    row.NumeroImmersione = TrovaPrimaImmersioneUtilePerOperatore(operatore.PerId)?.NumeroImmersione;
                     row.PropertyChanged += ServizioPartecipazioneUnicaImmersione_PropertyChanged;
                 }
 
@@ -300,12 +330,27 @@ public sealed partial class MainWindowViewModel : ObservableObject
                 row.Nominativo = operatore.Nominativo;
                 row.IsEsterno = operatore.IsEsterno;
                 row.Reparto = operatore.Reparto;
-                row.RuoliImmersione = operatore.IsEsterno ? "Altro reparto" : BuildRuoliImmersioneDisplay(operatore.PerId);
+                var incarichi = operatore.IsEsterno ? [] : BuildRuoliImmersioneDisplay(operatore.PerId);
+                row.NumeriImmersioneRuolo = string.Join(Environment.NewLine, incarichi.Select(item => item.Numero));
+                row.RuoliImmersione = operatore.IsEsterno ? "Altro reparto" : string.Join(Environment.NewLine, incarichi.Select(item => item.Ruolo));
+                row.IsSoloAssistenza = !operatore.IsEsterno && sanitariIncaricati.Any(item => item.PerId == operatore.PerId);
                 if (aggiornaDaPartecipazioni)
                 {
                     PopolaRigaUnicaDaPartecipazioni(row);
                 }
 
+                var numeriDisponibili = ServizioImmersioniBozza
+                    .Where(item => !row.IsSoloAssistenza && (operatore.IsEsterno || !IsOperatoreInRuoloImmersione(item, operatore.PerId)))
+                    .OrderBy(item => item.NumeroImmersione)
+                    .Select(item => (int?)item.NumeroImmersione).Prepend(null).ToList();
+                var numeroSelezionato = row.NumeroImmersione;
+                if (!row.ImmersioniDisponibili.SequenceEqual(numeriDisponibili))
+                {
+                    row.ImmersioniDisponibili.Clear();
+                    foreach (var numero in numeriDisponibili) row.ImmersioniDisponibili.Add(numero);
+                }
+                row.NumeroImmersione = numeriDisponibili.Contains(numeroSelezionato)
+                    ? numeroSelezionato : numeriDisponibili.FirstOrDefault(item => item is not null);
                 orderedRows.Add(row);
             }
 
@@ -346,6 +391,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             .OrderBy(item => item.NumeroImmersione)
             .SelectMany(item => item.Partecipazioni)
             .FirstOrDefault(item => item.PerId == row.PerId && item.InImmersione);
+        row.NumeroImmersione = partecipazione?.NumeroImmersione;
         if (partecipazione is null)
         {
             row.TipologiaImmersioneOperativa = null;
@@ -367,22 +413,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
         row.Note = partecipazione.Note;
     }
 
-    private string BuildRuoliImmersioneDisplay(int perId)
+    private List<(int Numero, string Ruolo)> BuildRuoliImmersioneDisplay(int perId)
     {
-        var ruoli = new List<string>();
+        var ruoli = new List<(int Numero, string Ruolo)>();
         foreach (var immersione in ServizioImmersioniBozza.OrderBy(item => item.NumeroImmersione))
         {
-            AggiungiRuoloImmersioneSelezionato(ruoli, immersione, perId, immersione.DirettoreImmersione, "Dir.");
-            AggiungiRuoloImmersioneSelezionato(ruoli, immersione, perId, immersione.OperatoreSoccorso, "Soccorso");
-            AggiungiRuoloImmersioneSelezionato(ruoli, immersione, perId, immersione.AssistenteBlsd, "BLSD");
-            AggiungiRuoloImmersioneSelezionato(ruoli, immersione, perId, immersione.AssistenteSanitario, "San.");
+            AggiungiRuoloImmersioneSelezionato(ruoli, immersione, perId, immersione.DirettoreImmersione, "Direttore immersione");
+            AggiungiRuoloImmersioneSelezionato(ruoli, immersione, perId, immersione.OperatoreSoccorso, "Operatore soccorso");
+            AggiungiRuoloImmersioneSelezionato(ruoli, immersione, perId, immersione.AssistenteBlsd, "Assistenza BLSD");
+            AggiungiRuoloImmersioneSelezionato(ruoli, immersione, perId, immersione.AssistenteSanitario, "Assistenza sanitaria");
         }
 
-        return string.Join(", ", ruoli);
+        return ruoli;
     }
 
     private static void AggiungiRuoloImmersioneSelezionato(
-        ICollection<string> ruoli,
+        ICollection<(int Numero, string Ruolo)> ruoli,
         ServizioImmersioneDraftViewModel immersione,
         int perId,
         PersonaleListItemViewModel? operatore,
@@ -390,7 +436,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         if (GetPerIdOperatoreSelezionato(operatore) == perId)
         {
-            ruoli.Add($"Imm. {immersione.NumeroImmersione}: {ruolo}");
+            ruoli.Add((immersione.NumeroImmersione, ruolo));
         }
     }
 
@@ -406,15 +452,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         try
         {
             var righeUniche = ServizioPartecipazioniContabiliUnicheBozza.ToDictionary(item => item.PerId);
-            var immersioneUtileByPerId = righeUniche.Keys.ToDictionary(
-                perId => perId,
-                TrovaPrimaImmersioneUtilePerOperatore);
             foreach (var immersione in ServizioImmersioniBozza)
             {
                 foreach (var partecipazione in immersione.Partecipazioni)
                 {
                     if (!righeUniche.TryGetValue(partecipazione.PerId, out var rigaUnica)
-                        || !ReferenceEquals(immersioneUtileByPerId[partecipazione.PerId], immersione)
+                        || rigaUnica.NumeroImmersione != immersione.NumeroImmersione
+                        || (!partecipazione.IsEsterno && IsOperatoreInRuoloImmersione(immersione, partecipazione.PerId))
                         || !IsRigaUnicaContabileCompilata(rigaUnica))
                     {
                         partecipazione.InImmersione = false;
@@ -890,7 +934,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             MostraAvvisoProfonditaNonValida(row.TipologiaImmersioneOperativa, row.ProfonditaMetri);
         }
 
-        if (e.PropertyName is nameof(ServizioPartecipanteImmersioneUnicoDraftViewModel.TipologiaImmersioneOperativa)
+        if (e.PropertyName is nameof(ServizioPartecipanteImmersioneUnicoDraftViewModel.NumeroImmersione)
+            or nameof(ServizioPartecipanteImmersioneUnicoDraftViewModel.TipologiaImmersioneOperativa)
             or nameof(ServizioPartecipanteImmersioneUnicoDraftViewModel.ProfonditaMetri)
             or nameof(ServizioPartecipanteImmersioneUnicoDraftViewModel.FasciaProfondita)
             or nameof(ServizioPartecipanteImmersioneUnicoDraftViewModel.OreImmersione)
@@ -1296,6 +1341,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var localitaId = preserveSelections ? ServizioLocalitaSelezionata?.LocalitaOperativaId : null;
         var scopoId = preserveSelections ? ServizioScopoSelezionato?.ScopoImmersioneId : null;
         var unitaId = preserveSelections ? ServizioUnitaNavaleSelezionata?.UnitaNavaleId : null;
+        var secondaUnitaId = preserveSelections ? ServizioSecondaUnitaNavale?.UnitaNavaleId : null;
+        var terzaUnitaId = preserveSelections ? ServizioTerzaUnitaNavale?.UnitaNavaleId : null;
 
         var cataloghiServizio = _repository.GetCataloghiServizio();
         SostituisciCollection(CategorieRegistroCatalogo, cataloghiServizio.CategorieRegistro);
@@ -1321,6 +1368,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ? UnitaNavaliCatalogo.FirstOrDefault()
             : UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == unitaId.Value) ?? UnitaNavaliCatalogo.FirstOrDefault();
 
+        ServizioSecondaUnitaNavale = UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == secondaUnitaId) ?? UnitaNavaliCatalogo.FirstOrDefault();
+        ServizioTerzaUnitaNavale = UnitaNavaliCatalogo.FirstOrDefault(item => item.UnitaNavaleId == terzaUnitaId) ?? UnitaNavaliCatalogo.FirstOrDefault();
         OnPropertyChanged(nameof(ServizioLocalitaSelezionata));
         OnPropertyChanged(nameof(ServizioScopoSelezionato));
         OnPropertyChanged(nameof(ServizioUnitaNavaleSelezionata));

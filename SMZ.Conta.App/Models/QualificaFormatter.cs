@@ -96,7 +96,7 @@ public static class QualificaFormatter
 
     public static int GetGerarchiaOrdine(string? qualifica, bool isSanitario, string? ruoloSanitario = null)
     {
-        if (isSanitario)
+        if (isSanitario || RuoloSanitarioOrdine.ContainsKey(AbbreviaPerVisualizzazione(qualifica).Trim()))
         {
             return 10_000 + GetOrdineSanitario(qualifica, ruoloSanitario);
         }
@@ -106,6 +106,11 @@ public static class QualificaFormatter
             ? ordine
             : 1_000;
     }
+
+    public static long GetChiaveOrdinamento(string? qualifica, DateOnly? decorrenza = null,
+        bool isSanitario = false, string? ruoloSanitario = null) =>
+        GetGerarchiaOrdine(qualifica, isSanitario, ruoloSanitario) * 4_000_000L
+        + (decorrenza ?? DateOnly.MaxValue).DayNumber;
 
     private static int GetOrdineSanitario(string? qualifica, string? ruoloSanitario)
     {

@@ -113,7 +113,7 @@ public sealed class BackupService
         }
     }
 
-    private static ValidatedBackup ExtractAndValidateBackup(string backupFilePath, string tempDirectory)
+    internal static ValidatedBackup ExtractAndValidateBackup(string backupFilePath, string tempDirectory)
     {
         try
         {
@@ -321,7 +321,7 @@ public sealed class BackupService
 
     }
 
-    private static void ValidateDatabase(string databasePath)
+    internal static void ValidateDatabase(string databasePath)
     {
         try
         {

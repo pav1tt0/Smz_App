@@ -11,6 +11,13 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        if (e.Args.FirstOrDefault() == OperationalDatabaseSetup.Command)
+        {
+            try { Shutdown(OperationalDatabaseSetup.RunCommand(e.Args)); }
+            catch { Shutdown(2); }
+            return;
+        }
+
         try
         {
             DatabaseInitializer.EnsureDatabase();

@@ -206,7 +206,7 @@ public sealed class RegistroImmersioniMensilePrintService
         AddRow(
             table,
             "Servizio svolto a bordo dell'unita navale",
-            ResolveUnitaNavale(servizio.UnitaNavaleId, cataloghi),
+            string.Join(", ", servizio.GetUnitaNavaliIds().Select(id => ResolveUnitaNavale(id, cataloghi))),
             "Indennita supp. di fuori sede art. 12 D.P.R. 57/2022",
             servizio.FuoriSede ? "SI" : string.Empty);
         return table;
@@ -231,7 +231,8 @@ public sealed class RegistroImmersioniMensilePrintService
             .Where(item => item.Presente)
             .SelectMany(partecipante => BuildPartecipanteRows(servizio, partecipante, persone, cataloghi))
             .Concat(servizio.OperatoriSubEsterni.SelectMany(operatore => BuildOperatoreEsternoRows(servizio, operatore, cataloghi)))
-            .ToList();
+            .OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))
+            .ThenBy(item => item.Nominativo).ToList();
 
         if (righe.Count == 0)
         {

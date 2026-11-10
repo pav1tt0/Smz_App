@@ -1,6 +1,7 @@
 <UserControl x:Class="SMZ.Conta.App.Views.WelcomeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:infra="clr-namespace:SMZ.Conta.App.Infrastructure"
              UseLayoutRounding="True"
              SnapsToDevicePixels="True"
              TextOptions.TextFormattingMode="Display"
@@ -163,7 +164,7 @@
                         ToolTip="{Binding WelcomeAudioTooltip}"
                         Style="{DynamicResource WelcomeIconButtonStyle}" />
 
-                <StackPanel Margin="0,28,34,0"
+                <WrapPanel Margin="0,28,34,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Orientation="Horizontal">
@@ -172,21 +173,16 @@
                             Content="ESCI"
                             Click="CloseAppButton_Click"
                             Style="{DynamicResource WelcomeAudioButtonStyle}" />
-                </StackPanel>
+                </WrapPanel>
 
-                <Viewbox Margin="70,58,70,38"
-                         UseLayoutRounding="True"
-                         SnapsToDevicePixels="True"
-                         Stretch="Uniform"
-                         StretchDirection="DownOnly">
-                    <Grid Width="1420"
-                          Height="800">
+                <ScrollViewer Margin="24,64,24,24" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalContentAlignment="Center">
+                    <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
-                            <RowDefinition Height="46" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <Grid>
+                        <infra:AdaptiveGrid CollapseBelow="1100" MinItemWidth="500" MaxColumns="1">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="1.1*" />
                                 <ColumnDefinition Width="0.9*" />
@@ -194,32 +190,32 @@
 
                             <StackPanel VerticalAlignment="Center"
                                         Margin="0">
-                                <TextBlock Width="700"
+                                <TextBlock x:Name="BrandTitle" MaxWidth="700"
                                            Text="POLIZIA DI STATO"
                                            Foreground="#FFFFFF"
-                                           FontSize="68"
+                                           FontSize="48"
                                            FontWeight="Bold"
-                                           LineHeight="72"
+                                           LineHeight="56"
                                            TextAlignment="Center"
-                                           TextWrapping="NoWrap" />
-                                <TextBlock Width="700"
+                                           TextWrapping="Wrap" />
+                                <TextBlock x:Name="BrandSubtitle" MaxWidth="700"
                                            Margin="0,12,0,0"
                                            Text="CENTRO NAUTICO E SMZ"
                                            Foreground="#D3E2F2"
-                                           FontSize="38"
+                                           FontSize="28"
                                            FontWeight="SemiBold"
                                            TextAlignment="Center"
-                                           TextWrapping="NoWrap" />
-                                <TextBlock Width="700"
+                                           TextWrapping="Wrap" />
+                                <TextBlock x:Name="UnitTitle" MaxWidth="700"
                                            Margin="0,8,0,0"
                                            Text="NUCLEO SOMMOZZATORI"
                                            Foreground="#FFFFFF"
-                                           FontSize="38"
+                                           FontSize="28"
                                            FontWeight="SemiBold"
                                            TextAlignment="Center"
-                                           TextWrapping="NoWrap" />
-                                <TextBlock Margin="0,30,0,0"
-                                           Width="700"
+                                           TextWrapping="Wrap" />
+                                <TextBlock x:Name="WelcomeDescription" Margin="0,30,0,0"
+                                           MaxWidth="700"
                                            Text="Gestionale operativo per servizi giornalieri, personale&#x0a;immersioni, archivio e contabilita."
                                            Foreground="#DDE8F4"
                                            FontSize="20"
@@ -227,9 +223,9 @@
                                            TextAlignment="Center"
                                            TextWrapping="Wrap" />
 
-                                <Button Margin="0,48,0,0"
-                                        Width="390"
-                                        Height="78"
+                                <Button x:Name="EnterButton" Margin="0,48,0,0"
+                                        MaxWidth="390"
+                                        Height="64"
                                         Content="Entra nel gestionale"
                                         Command="{Binding EnterAppCommand}"
                                         IsDefault="True"
@@ -241,11 +237,11 @@
                                         Style="{DynamicResource WelcomeEnterButtonStyle}" />
                             </StackPanel>
 
-                            <Grid Grid.Column="1"
+                            <Grid x:Name="DecorativeLogo" Grid.Column="1"
                                   VerticalAlignment="Center"
                                   HorizontalAlignment="Center">
-                                <Image Width="620"
-                                       Height="620"
+                                <Image MaxWidth="480"
+                                       Height="480"
                                        Source="/SMZ.App;component/Assets/logo_smz.png"
                                        Stretch="Uniform">
                                     <Image.Effect>
@@ -257,10 +253,9 @@
                                     </Image.Effect>
                                 </Image>
                             </Grid>
-                        </Grid>
+                        </infra:AdaptiveGrid>
 
-                        <StackPanel Grid.Row="1"
-                                    Orientation="Horizontal"
+                        <WrapPanel Grid.Row="1" Orientation="Horizontal"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center">
                             <TextBlock Text="{Binding WelcomeCredits}"
@@ -270,9 +265,9 @@
                                        Style="{DynamicResource WelcomeMetaTextStyle}" />
                             <TextBlock Text="{Binding WelcomeVersione}"
                                        Style="{DynamicResource WelcomeMetaTextStyle}" />
-                        </StackPanel>
+                        </WrapPanel>
                     </Grid>
-                </Viewbox>
+                </ScrollViewer>
             </Grid>
         </Border>
     </Grid>

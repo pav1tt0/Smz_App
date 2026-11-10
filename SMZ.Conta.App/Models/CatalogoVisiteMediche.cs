@@ -20,6 +20,7 @@ public static class CatalogoVisiteMediche
         {
             Codice = "BIMESTRALE",
             Descrizione = "Visita periodica bimestrale",
+            DescrizioniAlternative = ["Bimestrale", "Visita bimestrale", "Visite bimestrali"],
             MesiValidita = 2,
             // Impostare a true per riabilitare menu, scheda e scadenze.
             Attiva = false,
@@ -30,8 +31,15 @@ public static class CatalogoVisiteMediche
 
     public static bool IsAttiva(string descrizione) => TrovaPerDescrizione(descrizione)?.Attiva ?? true;
 
+    public static IEnumerable<string> DescrizioniDisattivate => Tutte
+        .Where(tipo => !tipo.Attiva)
+        .SelectMany(tipo => tipo.DescrizioniAlternative.Prepend(tipo.Descrizione));
+
     public static TipoVisitaMedica? TrovaPerDescrizione(string descrizione)
     {
-        return Tutte.FirstOrDefault(tipo => tipo.Descrizione.Equals(descrizione.Trim(), StringComparison.OrdinalIgnoreCase));
+        var valore = descrizione.Trim();
+        return Tutte.FirstOrDefault(tipo =>
+            tipo.Descrizione.Equals(valore, StringComparison.OrdinalIgnoreCase)
+            || tipo.DescrizioniAlternative.Contains(valore, StringComparer.OrdinalIgnoreCase));
     }
 }

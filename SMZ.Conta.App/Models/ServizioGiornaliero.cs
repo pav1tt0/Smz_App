@@ -24,6 +24,12 @@ public sealed class ServizioGiornaliero
 
     public int? UnitaNavaleId { get; set; }
 
+    public List<int> UnitaNavaliAggiuntiveIds { get; set; } = [];
+
+    public IEnumerable<int> GetUnitaNavaliIds() =>
+        (UnitaNavaleId is { } id ? new[] { id } : Array.Empty<int>())
+        .Concat(UnitaNavaliAggiuntiveIds).Distinct();
+
     public int? ResponsabileServizioPerId { get; set; }
 
     public bool FuoriSede { get; set; }

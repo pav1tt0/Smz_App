@@ -10,8 +10,11 @@
         Icon="Assets/logo_smz.png"
         Width="1280"
         Height="760"
-        MinWidth="900"
-        MinHeight="560"
+        MinWidth="640"
+        MinHeight="360"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        infra:WindowFitBehavior.Enabled="True"
         WindowState="Maximized"
         Background="#071528"
         FontFamily="Bahnschrift">
@@ -91,6 +94,8 @@
         </Style>
 
         <Style TargetType="DataGrid">
+            <Setter Property="MinHeight" Value="180" />
+            <Setter Property="MaxHeight" Value="520" />
             <Setter Property="infra:MouseWheelScrollViewerBehavior.ForwardToParent" Value="True" />
             <Setter Property="Background" Value="#FFFFFF" />
             <Setter Property="BorderBrush" Value="#D5DEE8" />
@@ -99,11 +104,21 @@
             <Setter Property="HorizontalGridLinesBrush" Value="#E7EDF3" />
             <Setter Property="RowBackground" Value="#FFFFFF" />
             <Setter Property="AlternatingRowBackground" Value="#F8FAFC" />
-            <Setter Property="ColumnHeaderHeight" Value="38" />
+            <Setter Property="ColumnHeaderHeight" Value="NaN" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
             <Setter Property="RowHeight" Value="36" />
         </Style>
 
         <Style TargetType="DataGridColumnHeader">
+            <Setter Property="MinHeight" Value="38" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
             <Setter Property="Background" Value="#EFF4F9" />
             <Setter Property="Foreground" Value="#243B57" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -444,13 +459,16 @@
         </Style>
     </Window.Resources>
 
-    <Grid Background="{StaticResource AppWorkspaceBrush}">
+    <Grid x:Name="ShellLayout" Background="{StaticResource AppWorkspaceBrush}" SizeChanged="ShellLayout_SizeChanged">
+        <Grid.LayoutTransform>
+            <ScaleTransform x:Name="InterfaceScale" />
+        </Grid.LayoutTransform>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="312" />
+            <ColumnDefinition x:Name="SidebarColumn" Width="312" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="86" />
+            <RowDefinition x:Name="HeaderRow" Height="86" />
             <RowDefinition Height="*" />
             <RowDefinition Height="44" />
         </Grid.RowDefinitions>
@@ -464,20 +482,20 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Margin="20,12,20,8">
-                    <Image Width="221"
+                <StackPanel x:Name="SidebarBrand" Margin="20,12,20,8">
+                    <Image x:Name="SidebarLogo" Width="221"
                            Height="221"
                            Margin="0,0,0,-8"
                            HorizontalAlignment="Center"
                            Source="Assets/logo_smz.png"
                            Stretch="Uniform" />
-                    <TextBlock Margin="0,0,0,0"
+                    <TextBlock x:Name="SidebarBrandTitle" Margin="0,0,0,0"
                                Text="POLIZIA DI STATO"
                                Foreground="#FFFFFF"
                                FontSize="17"
                                FontWeight="SemiBold"
                                TextAlignment="Center" />
-                    <TextBlock Margin="0,4,0,0"
+                    <TextBlock x:Name="SidebarBrandSubtitle" Margin="0,4,0,0"
                                Text="Centro Nautico e SMZ"
                                Foreground="#D0DEEE"
                                FontSize="15"
@@ -491,7 +509,7 @@
                               Margin="0,0,0,8"
                               VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel>
+                    <StackPanel x:Name="SidebarNavigation">
                     <Button Command="{Binding NavigateSectionCommand}"
                             CommandParameter="0"
                             Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -703,24 +721,24 @@
                     </StackPanel>
                 </ScrollViewer>
 
-                <StackPanel Grid.Row="2"
+                <StackPanel x:Name="SidebarAccount" Grid.Row="2"
                             Margin="20,0,20,10">
                     <Border Height="1"
                             Background="#36506C"
                             Margin="0,0,0,12" />
-                    <TextBlock Text="{Binding CurrentUserDisplay}"
+                    <TextBlock x:Name="SidebarUser" Text="{Binding CurrentUserDisplay}"
                                Foreground="#E8F1FA"
                                FontSize="14"
                                TextWrapping="Wrap" />
-                    <TextBlock Margin="0,4,0,10"
+                    <TextBlock x:Name="SidebarRole" Margin="0,4,0,10"
                                Text="{Binding CurrentRoleDisplay}"
                                Foreground="#AFC4D9"
                                FontSize="13" />
-                    <Button Content="Cambia password"
+                    <Button x:Name="ChangePasswordButton" Content="Cambia password"
                             Height="34" MinWidth="0" Margin="0,0,0,7"
                             Padding="8,4" Click="ChangePasswordButton_Click"
                             Style="{StaticResource SecondaryButtonStyle}" />
-                    <Button Content="Disconnetti"
+                    <Button x:Name="LogoutButton" Content="Disconnetti"
                             Height="34" MinWidth="0" Margin="0"
                             Padding="8,4" Click="LogoutButton_Click"
                             Style="{StaticResource SecondaryButtonStyle}" />
@@ -728,7 +746,7 @@
             </Grid>
         </Border>
 
-        <Border Grid.Column="1"
+        <Border x:Name="HeaderBorder" Grid.Column="1"
                 Grid.Row="0"
                 Background="{StaticResource AppNavyBrush}"
                 BorderBrush="#173A62"
@@ -740,16 +758,17 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Nucleo Sommozzatori"
+                <TextBlock x:Name="HeaderTitle" Text="Nucleo Sommozzatori"
                            Foreground="#FFFFFF"
                            FontSize="38"
                            FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis"
                            VerticalAlignment="Center" />
 
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal"
+                    <StackPanel x:Name="HeaderDate" Orientation="Horizontal"
                                 VerticalAlignment="Center">
                         <TextBlock Text="&#xE787;"
                                    FontFamily="Segoe MDL2 Assets"
@@ -762,11 +781,11 @@
                                    FontSize="16"
                                    VerticalAlignment="Center" />
                     </StackPanel>
-                    <Border Width="1"
+                    <Border x:Name="HeaderDateDivider" Width="1"
                             Height="26"
                             Margin="22,0"
                             Background="#607A96" />
-                    <StackPanel Orientation="Horizontal"
+                    <StackPanel x:Name="HeaderTime" Orientation="Horizontal"
                                 VerticalAlignment="Center">
                         <TextBlock Text="&#xE823;"
                                    FontFamily="Segoe MDL2 Assets"
@@ -779,11 +798,19 @@
                                    FontSize="16"
                                    VerticalAlignment="Center" />
                     </StackPanel>
-                    <Border Width="1"
+                    <Border x:Name="HeaderTimeDivider" Width="1"
                             Height="26"
                             Margin="22,0"
                             Background="#607A96" />
-                    <Button Width="104"
+                    <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
+                        <Button x:Name="ZoomOutButton" Content="A−" ToolTip="Riduci interfaccia (Ctrl e −)" AutomationProperties.Name="Riduci dimensione interfaccia"
+                                MinWidth="0" Width="34" Height="34" Padding="0" Margin="0" Click="ZoomOut_Click" Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button x:Name="ZoomResetButton" Content="100%" ToolTip="Dimensione predefinita (Ctrl e 0)" AutomationProperties.Name="Ripristina dimensione interfaccia"
+                                MinWidth="0" Width="48" Height="34" Padding="0" Margin="3,0" Click="ZoomReset_Click" Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button x:Name="ZoomInButton" Content="A+" ToolTip="Ingrandisci interfaccia (Ctrl e +)" AutomationProperties.Name="Ingrandisci dimensione interfaccia"
+                                MinWidth="0" Width="34" Height="34" Padding="0" Margin="0" Click="ZoomIn_Click" Style="{StaticResource SecondaryButtonStyle}" />
+                    </StackPanel>
+                    <Button x:Name="ExitButton" Width="104"
                             Height="38"
                             Content="ESCI"
                             Click="CloseAppButton_Click"
@@ -795,10 +822,11 @@
         <Border Grid.Column="1"
                 Grid.Row="1"
                 Background="{StaticResource AppWorkspaceBrush}">
-            <ScrollViewer Margin="20"
+            <ScrollViewer x:Name="WorkspaceScroll" Margin="20"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Auto">
-                <TabControl SelectedIndex="{Binding SezioneAttivaIndex}"
+                <TabControl x:Name="WorkspaceTabs" MinWidth="360" Width="{Binding ViewportWidth, ElementName=WorkspaceScroll}"
+                            SelectedIndex="{Binding SezioneAttivaIndex}"
                             Style="{StaticResource HiddenTabControlStyle}">
                     <TabItem Header="Home"
                              Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}">
@@ -848,13 +876,13 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding Stato}"
+                <TextBlock Text="{Binding Stato}" ToolTip="{Binding Stato}"
                            Foreground="#D8E4F2"
                            FontSize="13"
                            VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis" />
 
-                <StackPanel Grid.Column="1"
+                <StackPanel x:Name="FooterBackup" Grid.Column="1"
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
                     <TextBlock Text="&#xE777;"

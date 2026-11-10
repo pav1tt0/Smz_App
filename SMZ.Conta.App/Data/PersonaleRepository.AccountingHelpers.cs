@@ -50,7 +50,8 @@ public sealed partial class PersonaleRepository
             });
         }
 
-        return items;
+        return items.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica, isSanitario: true, ruoloSanitario: item.RuoloSanitario))
+            .ThenBy(item => item.Cognome).ThenBy(item => item.Nome).ToList();
     }
 
     private static List<ContabilitaSmzSummary> GetContabilitaSmzImmersioni(
@@ -89,12 +90,7 @@ public sealed partial class PersonaleRepository
                        CASE WHEN cco.Codice = 'ADD' THEN COALESCE(spi.OreImmersione, 0) ELSE 0 END AS OreAdd,
                        CASE WHEN cco.Codice = 'SPER' THEN COALESCE(spi.OreImmersione, 0) ELSE 0 END AS OreSper,
                        CASE WHEN cco.Codice = 'CI' THEN COALESCE(spi.OreImmersione, 0) ELSE 0 END AS OreCi,
-                       CASE cco.Codice
-                           WHEN 'ADD' THEN COALESCE(rci.Tariffa, 0) * COALESCE(spi.OreImmersione, 0) / 2.0
-                           WHEN 'SPER' THEN (COALESCE(rci.Tariffa, 0) + COALESCE(rci.Tariffa, 0) * 0.25) * COALESCE(spi.OreImmersione, 0)
-                           WHEN 'CI' THEN COALESCE(rci.Tariffa, 0) * COALESCE(spi.OreImmersione, 0) * 0.8
-                           ELSE COALESCE(rci.Tariffa, 0) * COALESCE(spi.OreImmersione, 0)
-                       END AS Importo,
+                       COALESCE(rci.Tariffa, 0) * COALESCE(spi.OreImmersione, 0) AS Importo,
                        tio.Ordine AS ApparatoOrdine,
                        fp.Ordine AS FasciaOrdine
                 FROM ServizioPartecipantiImmersioni spi
@@ -128,12 +124,7 @@ public sealed partial class PersonaleRepository
                        CASE WHEN cco.Codice = 'ADD' THEN COALESCE(sei.OreImmersione, 0) ELSE 0 END AS OreAdd,
                        CASE WHEN cco.Codice = 'SPER' THEN COALESCE(sei.OreImmersione, 0) ELSE 0 END AS OreSper,
                        CASE WHEN cco.Codice = 'CI' THEN COALESCE(sei.OreImmersione, 0) ELSE 0 END AS OreCi,
-                       CASE cco.Codice
-                           WHEN 'ADD' THEN COALESCE(rci.Tariffa, 0) * COALESCE(sei.OreImmersione, 0) / 2.0
-                           WHEN 'SPER' THEN (COALESCE(rci.Tariffa, 0) + COALESCE(rci.Tariffa, 0) * 0.25) * COALESCE(sei.OreImmersione, 0)
-                           WHEN 'CI' THEN COALESCE(rci.Tariffa, 0) * COALESCE(sei.OreImmersione, 0) * 0.8
-                           ELSE COALESCE(rci.Tariffa, 0) * COALESCE(sei.OreImmersione, 0)
-                       END AS Importo,
+                       COALESCE(rci.Tariffa, 0) * COALESCE(sei.OreImmersione, 0) AS Importo,
                        tio.Ordine AS ApparatoOrdine,
                        fp.Ordine AS FasciaOrdine
                 FROM ServizioOperatoriSubEsterniImmersioni sei
@@ -181,7 +172,9 @@ public sealed partial class PersonaleRepository
             });
         }
 
-        return items;
+        return items.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))
+            .ThenBy(item => item.Cognome).ThenBy(item => item.Nome)
+            .ThenBy(item => item.DataServizio).ThenBy(item => item.NumeroOrdineServizio).ToList();
     }
 
     private static List<RegistroImmersioneRiga> GetRegistroImmersioniMensile(
@@ -306,7 +299,9 @@ public sealed partial class PersonaleRepository
             });
         }
 
-        return items;
+        return items.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))
+            .ThenBy(item => item.Cognome).ThenBy(item => item.Nome)
+            .ThenBy(item => item.DataServizio).ThenBy(item => item.NumeroImmersione).ToList();
     }
 
     private static List<ContabilitaSupportoSummary> GetContabilitaSupportiOccasionali(
@@ -349,7 +344,8 @@ public sealed partial class PersonaleRepository
             });
         }
 
-        return items;
+        return items.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))
+            .ThenBy(item => item.Nominativo).ToList();
     }
 
     private static List<IndennitaFuoriSedeSummary> GetIndennitaFuoriSede(
@@ -406,7 +402,8 @@ public sealed partial class PersonaleRepository
             });
         }
 
-        return items;
+        return items.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))
+            .ThenBy(item => item.Cognome).ThenBy(item => item.Nome).ToList();
     }
 
     private static List<ReportPersonaleMensileRiga> GetReportPersonaleServizi(

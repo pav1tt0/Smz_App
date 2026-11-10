@@ -49,13 +49,15 @@ Sul vecchio PC:
 
 Sul nuovo PC:
 
-1. Installare o copiare SMZ.
-2. Aprire il programma.
-3. Andare in `Stampe e report`.
-4. Premere `Ripristina da backup`.
-5. Selezionare il file `.smzbak` piu recente.
-6. Confermare il ripristino.
-7. Riconfigurare la cartella backup esterno.
+1. Estrarre il pacchetto di installazione per dati reali.
+2. Avviare `INSTALLA-E-AVVIA-SMZ.cmd`.
+3. Se il database reale e gia presente e viene riconosciuto, scegliere `SI` per usarlo.
+4. Altrimenti scegliere il file `.smzbak` salvato sul nuovo PC, oppure il database `.db` reale. Il file sorgente resta conservato; un altro database gia presente non viene sovrascritto.
+5. L'installatore crea una copia di sicurezza, configura il database e aggiunge il collegamento `SMZ` al desktop e al menu Start.
+6. Accedere con gli account presenti nel database. Se non ce ne sono, creare il primo amministratore usando un PerID dell'anagrafica reale.
+7. Verificare personale, servizi e contabilita, quindi riconfigurare la cartella backup esterno.
+
+Il pacchetto operativo non contiene dati di esempio. Non occorre creare prima un'anagrafica fittizia per poter ripristinare il backup.
 
 ## Cosa contiene il backup
 

@@ -1,6 +1,7 @@
 <UserControl x:Class="SMZ.Conta.App.Views.BackupArchiveView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:infra="clr-namespace:SMZ.Conta.App.Infrastructure">
                     <Grid Margin="6">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -9,7 +10,7 @@
                         </Grid.RowDefinitions>
 
                         <Border Style="{DynamicResource CardStyle}">
-                            <Grid>
+                            <infra:AdaptiveGrid CollapseBelow="900" MinItemWidth="500" MaxColumns="1">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1.35*" />
                                     <ColumnDefinition Width="18" />
@@ -17,7 +18,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel>
-                                    <TextBlock Text="Backup dati"
+                                    <TextBlock TextWrapping="Wrap" Text="Backup dati"
                                                FontSize="22"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource AppTextBrush}" />
@@ -55,7 +56,7 @@
                                             Command="{Binding RestoreBackupCommand}"
                                             Style="{DynamicResource SecondaryButtonStyle}" />
                                 </StackPanel>
-                            </Grid>
+                            </infra:AdaptiveGrid>
                         </Border>
 
                         <Border Grid.Row="2" Style="{DynamicResource CardStyle}">
@@ -66,7 +67,7 @@
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Text="Backup e archivio"
+                                <TextBlock TextWrapping="Wrap" Text="Backup e archivio"
                                            FontSize="22"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}" />
@@ -92,10 +93,10 @@
                                           RowHeaderWidth="0">
                                     <DataGrid.Columns>
                                         <DataGridTemplateColumn Header="Azioni"
-                                                                Width="310">
+                                                                Width="310" MinWidth="310">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
-                                                    <StackPanel Orientation="Horizontal">
+                                                    <WrapPanel Orientation="Horizontal">
                                                         <Button Content="Ripristina"
                                                                 Width="130"
                                                                 Padding="10,6"
@@ -108,24 +109,24 @@
                                                                 Command="{Binding DataContext.DeleteArchivioDefinitivoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                                 CommandParameter="{Binding}"
                                                                 Style="{DynamicResource DangerButtonStyle}" />
-                                                    </StackPanel>
+                                                    </WrapPanel>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="Cognome"
-                                                            Width="180"
+                                                            Width="180" MinWidth="180"
                                                             Binding="{Binding Cognome}" />
                                         <DataGridTextColumn Header="Nome"
-                                                            Width="180"
+                                                            Width="180" MinWidth="180"
                                                             Binding="{Binding Nome}" />
                                         <DataGridTextColumn Header="PerID"
-                                                            Width="80"
+                                                            Width="80" MinWidth="80"
                                                             Binding="{Binding PerIdOriginale}" />
                                         <DataGridTextColumn Header="Codice fiscale"
-                                                            Width="170"
+                                                            Width="170" MinWidth="170"
                                                             Binding="{Binding CodiceFiscale}" />
                                         <DataGridTextColumn Header="Archiviazione"
-                                                            Width="165"
+                                                            Width="165" MinWidth="165"
                                                             Binding="{Binding DataArchiviazione, StringFormat=dd/MM/yyyy HH:mm}" />
                                     </DataGrid.Columns>
                                 </DataGrid>

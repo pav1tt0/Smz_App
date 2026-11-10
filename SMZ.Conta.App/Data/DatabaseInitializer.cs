@@ -4,7 +4,7 @@ using SMZ.Conta.App.Models;
 
 namespace SMZ.Conta.App.Data;
 
-public static class DatabaseInitializer
+public static partial class DatabaseInitializer
 {
     public static void EnsureDatabase()
     {
@@ -18,6 +18,7 @@ public static class DatabaseInitializer
         CreateSchema(connection, transaction);
         SeedTipiAbilitazione(connection, transaction);
         EnsureColumnMigrations(connection, transaction);
+        AggiornaCatalogoTariffeOriginale(connection, transaction);
         SeedCataloghiServizio(connection, transaction);
 
         transaction.Commit();
@@ -353,6 +354,15 @@ public static class DatabaseInitializer
 
             CREATE INDEX IF NOT EXISTS IX_ServiziGiornalieri_DataServizio
                 ON ServiziGiornalieri (DataServizio);
+
+            CREATE TABLE IF NOT EXISTS ServizioUnitaNavaliAggiuntive (
+                ServizioGiornalieroId INTEGER NOT NULL,
+                UnitaNavaleId INTEGER NOT NULL,
+                Ordine INTEGER NOT NULL,
+                PRIMARY KEY (ServizioGiornalieroId, UnitaNavaleId),
+                FOREIGN KEY (ServizioGiornalieroId) REFERENCES ServiziGiornalieri (ServizioGiornalieroId) ON DELETE CASCADE,
+                FOREIGN KEY (UnitaNavaleId) REFERENCES UnitaNavali (UnitaNavaleId) ON DELETE RESTRICT
+            );
 
             CREATE TABLE IF NOT EXISTS ServizioImmersioni (
                 ServizioImmersioneId INTEGER PRIMARY KEY AUTOINCREMENT,

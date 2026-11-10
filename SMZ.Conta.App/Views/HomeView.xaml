@@ -1,6 +1,7 @@
 <UserControl x:Class="SMZ.Conta.App.Views.HomeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:infra="clr-namespace:SMZ.Conta.App.Infrastructure">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -18,12 +19,12 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="&#xE8A9;"
+                    <TextBlock TextWrapping="Wrap" Text="&#xE8A9;"
                                FontFamily="Segoe MDL2 Assets"
                                FontSize="24"
                                Foreground="#0E5AA7"
                                VerticalAlignment="Center" />
-                    <TextBlock Margin="12,0,0,0"
+                    <TextBlock TextWrapping="Wrap" Margin="12,0,0,0"
                                Text="Moduli principali"
                                Foreground="{DynamicResource AppTextBrush}"
                                FontSize="22"
@@ -31,12 +32,11 @@
                                VerticalAlignment="Center" />
                 </StackPanel>
 
-                <UniformGrid Grid.Row="2"
-                             Columns="5">
+                <infra:AdaptiveUniformGrid Grid.Row="2" MaxColumns="5" MinItemWidth="230">
                     <Button Command="{Binding NavigateSectionCommand}"
                             CommandParameter="1"
                             Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,12,0">
+                            Margin="0,0,12,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="52" />
@@ -63,12 +63,12 @@
                                            FontSize="15"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}"
-                                           TextWrapping="NoWrap" />
+                                           TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Pianificazione e turni"
                                            FontSize="12"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="NoWrap" />
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -76,7 +76,7 @@
                     <Button Command="{Binding NavigateSectionCommand}"
                             CommandParameter="2"
                             Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,12,0">
+                            Margin="0,0,12,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="52" />
@@ -97,12 +97,12 @@
                                            FontSize="15"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}"
-                                           TextWrapping="NoWrap" />
+                                           TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Anagrafica e qualifiche"
                                            FontSize="12"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="NoWrap" />
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -110,7 +110,7 @@
                     <Button Command="{Binding NavigateSectionCommand}"
                             CommandParameter="3"
                             Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,12,0">
+                            Margin="0,0,12,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="52" />
@@ -130,12 +130,12 @@
                                            FontSize="15"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}"
-                                           TextWrapping="NoWrap" />
+                                           TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Dati e documenti storici"
                                            FontSize="12"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="NoWrap" />
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -143,13 +143,13 @@
                     <Button Command="{Binding NavigateSectionCommand}"
                             CommandParameter="4"
                             Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,12,0">
+                            Margin="0,0,12,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="52" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="&#x20AC;"
+                            <TextBlock TextWrapping="Wrap" Text="&#x20AC;"
                                        FontFamily="Segoe UI"
                                        FontSize="50"
                                        FontWeight="SemiBold"
@@ -162,12 +162,12 @@
                                            FontSize="15"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}"
-                                           TextWrapping="NoWrap" />
+                                           TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Movimenti e bilanci"
                                            FontSize="12"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="NoWrap" />
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
@@ -195,20 +195,20 @@
                                            FontSize="15"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource AppTextBrush}"
-                                           TextWrapping="NoWrap" />
+                                           TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
                                            Text="Stampe e documenti"
                                            FontSize="12"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="NoWrap" />
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </Grid>
                     </Button>
-                </UniformGrid>
+                </infra:AdaptiveUniformGrid>
             </Grid>
         </Border>
 
-        <Grid Grid.Row="2">
+        <infra:AdaptiveGrid Grid.Row="2" CollapseBelow="1000" MinItemWidth="500" MaxColumns="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.55*" />
                 <ColumnDefinition Width="20" />
@@ -225,13 +225,13 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="Scadenze visite mediche"
+                    <TextBlock TextWrapping="Wrap" Text="Scadenze visite mediche"
                                FontSize="22"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource AppTextBrush}" />
 
-                    <Grid Grid.Row="1"
-                          Margin="0,20,0,16">
+                    <infra:AdaptiveGrid Grid.Row="1"
+                          Margin="0,20,0,16" CollapseBelow="460" MinItemWidth="220" MaxColumns="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="18" />
@@ -245,18 +245,18 @@
                                 Padding="22,14">
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Center">
-                                <TextBlock Text="&#xE7BA;"
+                                <TextBlock TextWrapping="Wrap" Text="&#xE7BA;"
                                            FontFamily="Segoe MDL2 Assets"
                                            Foreground="#D40F1F"
                                            FontSize="22"
                                            VerticalAlignment="Center" />
-                                <TextBlock Margin="12,0,0,0"
+                                <TextBlock TextWrapping="Wrap" Margin="12,0,0,0"
                                            Text="{Binding DashboardVisiteScadutePersonale}"
                                            Foreground="#D40F1F"
                                            FontSize="20"
                                            FontWeight="Bold"
                                            VerticalAlignment="Center" />
-                                <TextBlock Margin="8,0,0,0"
+                                <TextBlock TextWrapping="Wrap" Margin="8,0,0,0"
                                            Text="Scadute"
                                            Foreground="#D40F1F"
                                            FontSize="17"
@@ -273,18 +273,18 @@
                                 Padding="22,14">
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Center">
-                                <TextBlock Text="&#xE823;"
+                                <TextBlock TextWrapping="Wrap" Text="&#xE823;"
                                            FontFamily="Segoe MDL2 Assets"
                                            Foreground="#EF7D00"
                                            FontSize="22"
                                            VerticalAlignment="Center" />
-                                <TextBlock Margin="12,0,0,0"
+                                <TextBlock TextWrapping="Wrap" Margin="12,0,0,0"
                                            Text="{Binding DashboardVisiteInScadenzaPersonale}"
                                            Foreground="#EF7D00"
                                            FontSize="20"
                                            FontWeight="Bold"
                                            VerticalAlignment="Center" />
-                                <TextBlock Margin="8,0,0,0"
+                                <TextBlock TextWrapping="Wrap" Margin="8,0,0,0"
                                            Text="In scadenza"
                                            Foreground="#EF7D00"
                                            FontSize="17"
@@ -292,7 +292,7 @@
                                            VerticalAlignment="Center" />
                             </StackPanel>
                         </Border>
-                    </Grid>
+                    </infra:AdaptiveGrid>
 
                     <Border Grid.Row="2"
                             BorderBrush="{DynamicResource AppBorderBrush}"
@@ -313,8 +313,8 @@
                                                 <ContentPresenter />
                                             </ControlTemplate>
                                         </Button.Template>
-                                        <Grid MinHeight="52"
-                                              Margin="16,0">
+                                        <infra:AdaptiveGrid MinHeight="52"
+                                              Margin="16,0" CollapseBelow="600" MinItemWidth="250" MaxColumns="1">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="1.2*" />
                                                 <ColumnDefinition Width="1.1*" />
@@ -339,7 +339,7 @@
                                                        VerticalAlignment="Center"
                                                        TextAlignment="Right"
                                                        TextTrimming="CharacterEllipsis" />
-                                        </Grid>
+                                        </infra:AdaptiveGrid>
                                     </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -367,18 +367,18 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <Grid>
+                    <infra:AdaptiveGrid CollapseBelow="600" MinItemWidth="300" MaxColumns="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE783;"
+                            <TextBlock TextWrapping="Wrap" Text="&#xE783;"
                                        FontFamily="Segoe MDL2 Assets"
                                        Foreground="#D40F1F"
                                        FontSize="23"
                                        VerticalAlignment="Center" />
-                            <TextBlock Margin="10,0,0,0"
+                            <TextBlock TextWrapping="Wrap" Margin="10,0,0,0"
                                        Text="Criticità operative"
                                        FontSize="20"
                                        FontWeight="SemiBold"
@@ -391,14 +391,14 @@
                                 Padding="8,0"
                                 Background="#D40F1F"
                                 CornerRadius="6">
-                            <TextBlock Text="{Binding DashboardCriticitaItems.Count}"
+                            <TextBlock TextWrapping="Wrap" Text="{Binding DashboardCriticitaItems.Count}"
                                        Foreground="#FFFFFF"
                                        FontSize="16"
                                        FontWeight="Bold"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
-                    </Grid>
+                    </infra:AdaptiveGrid>
 
                     <ItemsControl Grid.Row="1"
                                   Margin="0,24,0,0"
@@ -426,7 +426,7 @@
                                             <ContentPresenter />
                                         </ControlTemplate>
                                     </Button.Template>
-                                    <Grid MinHeight="58">
+                                    <infra:AdaptiveGrid MinHeight="58" CollapseBelow="680" MinItemWidth="240" MaxColumns="1">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="1.1*" />
                                             <ColumnDefinition Width="1*" />
@@ -443,13 +443,13 @@
                                                    FontSize="14"
                                                    VerticalAlignment="Center"
                                                    TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Grid.Column="2"
+                                        <TextBlock TextWrapping="Wrap" Grid.Column="2"
                                                    Text="{Binding CriticitaBadgeText}"
                                                    Foreground="{Binding TitoloForeground}"
                                                    FontSize="13"
                                                    FontWeight="SemiBold"
                                                    VerticalAlignment="Center" />
-                                    </Grid>
+                                    </infra:AdaptiveGrid>
                                 </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -489,6 +489,6 @@
                             Style="{DynamicResource SecondaryButtonStyle}" />
                 </Grid>
             </Border>
-        </Grid>
+        </infra:AdaptiveGrid>
     </Grid>
 </UserControl>

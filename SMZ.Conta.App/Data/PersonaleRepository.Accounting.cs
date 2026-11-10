@@ -69,9 +69,10 @@ public sealed partial class PersonaleRepository
         righe.AddRange(GetReportPersonaleSupporti(connection, dataInizio, dataFine));
 
         return righe
-            .OrderBy(item => item.DataServizio)
-            .ThenBy(item => item.NumeroOrdineServizio)
+            .OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))
             .ThenBy(item => item.Nominativo)
+            .ThenBy(item => item.DataServizio)
+            .ThenBy(item => item.NumeroOrdineServizio)
             .ThenBy(item => item.TipoRiga)
             .ThenBy(item => item.NumeroImmersione ?? 0)
             .ToList();
