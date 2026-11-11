@@ -446,6 +446,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void PulisciEditorAbilitazione()
     {
         _selectedAbilitazione = null;
+        OnPropertyChanged(nameof(TipiAbilitazioneSelezionabili));
         OnPropertyChanged(nameof(SelectedAbilitazione));
         OnPropertyChanged(nameof(AzioneAbilitazioneLabel));
 

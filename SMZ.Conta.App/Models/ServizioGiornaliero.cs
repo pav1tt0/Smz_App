@@ -215,6 +215,8 @@ public sealed class ServizioGiornalieroSummary
 
     public decimal OreImmersioneTotali { get; set; }
 
+    public IReadOnlyList<decimal> OreImmersioneEffettive { get; set; } = [];
+
     public string CategorieOreDescrizione { get; set; } = string.Empty;
 
     public string ProfonditaMassimaDescrizione =>
@@ -223,9 +225,13 @@ public sealed class ServizioGiornalieroSummary
     public string OreImmersioneTotaliDescrizione =>
         OreImmersioneTotali > 0 ? OreImmersioneTotali.ToString("0.##") : string.Empty;
 
+    public string OreImmersioneEffettiveDescrizione => string.Join("-",
+        OreImmersioneEffettive.Where(ore => ore > 0).Distinct().OrderBy(ore => ore)
+            .Select(ore => ore.ToString("0.##")));
+
     public string DettaglioImmersioniDescrizione => ImmersioniTotali == 0
         ? "Nessuna immersione registrata."
-        : $"Apparati: {ValoreDettaglio(ApparatiDescrizione)}  |  Profondità max: {ValoreDettaglio(ProfonditaMassimaDescrizione)}  |  Ore: {ValoreDettaglio(OreImmersioneTotaliDescrizione)}  |  Categorie: {ValoreDettaglio(CategorieOreDescrizione)}";
+        : $"Apparati: {ValoreDettaglio(ApparatiDescrizione)}  |  Profondità max: {ValoreDettaglio(ProfonditaMassimaDescrizione)}  |  Ore: {ValoreDettaglio(OreImmersioneEffettiveDescrizione)}  |  Categorie: {ValoreDettaglio(CategorieOreDescrizione)}";
 
     public DateTime AggiornatoIl { get; set; }
 

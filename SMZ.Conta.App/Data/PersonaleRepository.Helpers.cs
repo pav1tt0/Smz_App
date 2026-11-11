@@ -314,10 +314,6 @@ public sealed partial class PersonaleRepository
 
     private static List<PersonaleAbilitazione> GetAbilitazioniArchivio(SqliteConnection connection, long archiveId)
     {
-        var tipiAttivi = CatalogoAbilitazioni.Tutte
-            .Select(item => item.TipoAbilitazioneId)
-            .ToHashSet();
-
         using var command = connection.CreateCommand();
         command.CommandText =
             """
@@ -332,7 +328,9 @@ public sealed partial class PersonaleRepository
                    ta.Categoria,
                    ta.RichiedeLivello,
                    ta.RichiedeScadenza,
-                   ta.RichiedeProfondita
+                   ta.RichiedeProfondita,
+                   ta.Attiva,
+                   ta.Ordine
             FROM PersonaleAbilitazioniArchivio paa
             INNER JOIN TipiAbilitazione ta ON ta.TipoAbilitazioneId = paa.TipoAbilitazioneId
             WHERE paa.PersonaleArchivioId = $archiveId
@@ -345,11 +343,6 @@ public sealed partial class PersonaleRepository
 
         while (reader.Read())
         {
-            if (!tipiAttivi.Contains(reader.GetInt32(0)))
-            {
-                continue;
-            }
-
             items.Add(new PersonaleAbilitazione
             {
                 TipoAbilitazioneId = reader.GetInt32(0),
@@ -367,6 +360,8 @@ public sealed partial class PersonaleRepository
                     RichiedeLivello = reader.GetInt32(9) == 1,
                     RichiedeScadenza = reader.GetInt32(10) == 1,
                     RichiedeProfondita = reader.GetInt32(11) == 1,
+                    Attiva = reader.GetInt32(12) == 1,
+                    Ordine = reader.GetInt32(13),
                 },
             });
         }
@@ -434,10 +429,6 @@ public sealed partial class PersonaleRepository
 
     private static List<PersonaleAbilitazione> GetAbilitazioni(SqliteConnection connection, int perId)
     {
-        var tipiAttivi = CatalogoAbilitazioni.Tutte
-            .Select(item => item.TipoAbilitazioneId)
-            .ToHashSet();
-
         using var command = connection.CreateCommand();
         command.CommandText =
             """
@@ -454,7 +445,9 @@ public sealed partial class PersonaleRepository
                    ta.Categoria,
                    ta.RichiedeLivello,
                    ta.RichiedeScadenza,
-                   ta.RichiedeProfondita
+                   ta.RichiedeProfondita,
+                   ta.Attiva,
+                   ta.Ordine
             FROM PersonaleAbilitazioni pa
             INNER JOIN TipiAbilitazione ta ON ta.TipoAbilitazioneId = pa.TipoAbilitazioneId
             WHERE pa.PerId = $perId
@@ -467,11 +460,6 @@ public sealed partial class PersonaleRepository
 
         while (reader.Read())
         {
-            if (!tipiAttivi.Contains(reader.GetInt32(2)))
-            {
-                continue;
-            }
-
             items.Add(new PersonaleAbilitazione
             {
                 PersonaleAbilitazioneId = reader.GetInt32(0),
@@ -491,6 +479,8 @@ public sealed partial class PersonaleRepository
                     RichiedeLivello = reader.GetInt32(11) == 1,
                     RichiedeScadenza = reader.GetInt32(12) == 1,
                     RichiedeProfondita = reader.GetInt32(13) == 1,
+                    Attiva = reader.GetInt32(14) == 1,
+                    Ordine = reader.GetInt32(15),
                 },
             });
         }

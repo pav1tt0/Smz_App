@@ -96,20 +96,18 @@ public sealed partial class PersonaleRepository
         return Convert.ToInt32(command.ExecuteScalar()) > 0;
     }
 
-    public List<TipoAbilitazione> GetTipiAbilitazione()
+    public List<TipoAbilitazione> GetTipiAbilitazione(bool includeInactive = false)
     {
-        var tipiAttivi = CatalogoAbilitazioni.Tutte
-            .Select(item => item.TipoAbilitazioneId)
-            .ToHashSet();
-
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
         command.CommandText =
             """
-            SELECT TipoAbilitazioneId, Codice, Descrizione, Categoria, RichiedeLivello, RichiedeScadenza, RichiedeProfondita
+            SELECT TipoAbilitazioneId, Codice, Descrizione, Categoria, RichiedeLivello, RichiedeScadenza, RichiedeProfondita, Attiva, Ordine
             FROM TipiAbilitazione
-            ORDER BY TipoAbilitazioneId;
+            WHERE $includeInactive = 1 OR Attiva = 1
+            ORDER BY Ordine, Descrizione;
             """;
+        command.Parameters.AddWithValue("$includeInactive", includeInactive ? 1 : 0);
 
         using var reader = command.ExecuteReader();
         var items = new List<TipoAbilitazione>();
@@ -117,11 +115,6 @@ public sealed partial class PersonaleRepository
         while (reader.Read())
         {
             var tipoAbilitazioneId = reader.GetInt32(0);
-            if (!tipiAttivi.Contains(tipoAbilitazioneId))
-            {
-                continue;
-            }
-
             items.Add(CatalogoAbilitazioni.ApplicaSuggerimenti(new TipoAbilitazione
             {
                 TipoAbilitazioneId = tipoAbilitazioneId,
@@ -131,12 +124,11 @@ public sealed partial class PersonaleRepository
                 RichiedeLivello = reader.GetInt32(4) == 1,
                 RichiedeScadenza = reader.GetInt32(5) == 1,
                 RichiedeProfondita = reader.GetInt32(6) == 1,
+                Attiva = reader.GetInt32(7) == 1,
+                Ordine = reader.GetInt32(8),
             }));
         }
 
-        return items
-            .OrderBy(CatalogoAbilitazioni.GetOrdineVisualizzazione)
-            .ThenBy(item => item.Descrizione)
-            .ToList();
+        return items;
     }
 }

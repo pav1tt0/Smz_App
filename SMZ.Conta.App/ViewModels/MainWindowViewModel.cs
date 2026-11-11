@@ -350,7 +350,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ScadenzeProssime = new ObservableCollection<ScadenzaItemViewModel>();
         SearchSuggestions = new ObservableCollection<string>();
         FiltriScadenze = new ObservableCollection<string>(["Tutte", "Solo visite", "Solo abilitazioni"]);
-        TipiAbilitazioneCatalogo = new ObservableCollection<TipoAbilitazione>(_repository.GetTipiAbilitazione());
+        TipiAbilitazioneCatalogo = new ObservableCollection<TipoAbilitazione>(_repository.GetTipiAbilitazione(includeInactive: true));
         TipiServizioDisponibili = new ObservableCollection<string>(["InSede", "FuoriSede"]);
         OrariServizioFissiDisponibili = new ObservableCollection<string>(["", .. OrariServizioFissi]);
         CategorieRegistroCatalogo = new ObservableCollection<CategoriaRegistroItem>(cataloghiServizio.CategorieRegistro);
@@ -379,6 +379,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ]);
 
         _filtroAbilitazione = FiltroAbilitazioni.FirstOrDefault();
+        InizializzaGestioneAbilitazioni();
         _servizioLocalitaSelezionata = LocalitaOperativeServizioCatalogo.FirstOrDefault();
         _servizioScopoSelezionato = ScopiImmersioneCatalogo.FirstOrDefault();
         _servizioUnitaNavaleSelezionata = UnitaNavaliCatalogo.FirstOrDefault();
@@ -1713,6 +1714,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             if (SetProperty(ref _selectedAbilitazione, value))
             {
+                OnPropertyChanged(nameof(TipiAbilitazioneSelezionabili));
                 CaricaEditorAbilitazioneDaSelezione();
                 OnPropertyChanged(nameof(AzioneAbilitazioneLabel));
                 OnPropertyChanged(nameof(AbilitazioneIndicazioni));

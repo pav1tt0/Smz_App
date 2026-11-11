@@ -16,6 +16,10 @@ public sealed class TipoAbilitazione
 
     public bool RichiedeProfondita { get; set; }
 
+    public bool Attiva { get; set; } = true;
+
+    public int Ordine { get; set; }
+
     public IReadOnlyList<string> LivelliSuggeriti { get; set; } = [];
 
     public IReadOnlyList<string> ProfonditaSuggerite { get; set; } = [];

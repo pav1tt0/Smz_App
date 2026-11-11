@@ -11,6 +11,8 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="18" />
                             <RowDefinition Height="*" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
                         <Border Style="{DynamicResource CardStyle}">
@@ -203,7 +205,75 @@
                             </Border>
                         </infra:AdaptiveGrid>
 
-                        <Border Grid.Row="6"
+                        <Border Grid.Row="6" Style="{DynamicResource CardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <infra:AdaptiveGrid CollapseBelow="800" MinItemWidth="450" MaxColumns="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Abilitazioni" TextWrapping="Wrap"
+                                                   FontSize="18" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource AppTextBrush}" />
+                                        <TextBlock Margin="0,6,0,0" TextWrapping="Wrap"
+                                                   Text="Modifica descrizione, categoria, ordine, stato attivo e campi previsti nell'anagrafica. Le voci disattivate restano nelle schede gia registrate."
+                                                   Foreground="{DynamicResource AppMutedTextBrush}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Content="Salva abilitazioni"
+                                            Command="{Binding SaveTipiAbilitazioneCommand}"
+                                            MinWidth="144" Margin="0"
+                                            Style="{DynamicResource AccentButtonStyle}" />
+                                </infra:AdaptiveGrid>
+                                <infra:AdaptiveGrid Grid.Row="1" Margin="0,14,0,0"
+                                                    CollapseBelow="520" MinItemWidth="600" MaxColumns="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="18" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding NuovaAbilitazione, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="120" ToolTip="Descrizione della nuova abilitazione" />
+                                    <Button Grid.Column="2" Content="Aggiungi"
+                                            Command="{Binding AddTipoAbilitazioneCommand}"
+                                            MinWidth="96" Margin="10,0,0,0"
+                                            Style="{DynamicResource SecondaryButtonStyle}" />
+                                </infra:AdaptiveGrid>
+                                <DataGrid x:Name="AbilitazioniCatalogoGrid" Grid.Row="2" Margin="0,16,0,0"
+                                          ItemsSource="{Binding AbilitazioniGestioneCatalogo}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                                          HeadersVisibility="Column" RowHeaderWidth="0" MinHeight="280"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID" Width="60" MinWidth="60"
+                                                            IsReadOnly="True" Binding="{Binding TipoAbilitazioneId}" />
+                                        <DataGridTextColumn Header="Descrizione" Width="*" MinWidth="280"
+                                                            Binding="{Binding Descrizione, UpdateSourceTrigger=PropertyChanged}" />
+                                        <DataGridTextColumn Header="Categoria" Width="150" MinWidth="120"
+                                                            Binding="{Binding Categoria, UpdateSourceTrigger=PropertyChanged}" />
+                                        <DataGridTextColumn Header="Ordine" Width="80" MinWidth="80"
+                                                            Binding="{Binding Ordine, UpdateSourceTrigger=PropertyChanged}" />
+                                        <DataGridCheckBoxColumn Header="Attiva" Width="80" MinWidth="80"
+                                                               Binding="{Binding Attiva, UpdateSourceTrigger=PropertyChanged}" />
+                                        <DataGridCheckBoxColumn Header="Livello" Width="90" MinWidth="90"
+                                                               Binding="{Binding RichiedeLivello, UpdateSourceTrigger=PropertyChanged}" />
+                                        <DataGridCheckBoxColumn Header="Scadenza" Width="100" MinWidth="100"
+                                                               Binding="{Binding RichiedeScadenza, UpdateSourceTrigger=PropertyChanged}" />
+                                        <DataGridCheckBoxColumn Header="Profondità" Width="100" MinWidth="100"
+                                                               Binding="{Binding RichiedeProfondita, UpdateSourceTrigger=PropertyChanged}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Row="8"
                                 Style="{DynamicResource CardStyle}">
                             <Grid>
                                 <Grid.RowDefinitions>

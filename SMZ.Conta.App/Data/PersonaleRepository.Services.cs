@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Data.Sqlite;
 using SMZ.Conta.App.Models;
 
@@ -142,7 +143,25 @@ public sealed partial class PersonaleRepository
                            ORDER BY Descrizione
                        )
                    ), '') AS CategorieOreDescrizione,
-                   s.AggiornatoIl
+                   s.AggiornatoIl,
+                   COALESCE((
+                       SELECT GROUP_CONCAT(OreImmersione, ';')
+                       FROM (
+                           SELECT spi.OreImmersione
+                           FROM ServizioImmersioni si
+                           INNER JOIN ServizioPartecipantiImmersioni spi
+                               ON spi.ServizioImmersioneId = si.ServizioImmersioneId
+                           WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                             AND spi.OreImmersione > 0
+                           UNION
+                           SELECT sei.OreImmersione
+                           FROM ServizioImmersioni si
+                           INNER JOIN ServizioOperatoriSubEsterniImmersioni sei
+                               ON sei.ServizioImmersioneId = si.ServizioImmersioneId
+                           WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
+                             AND sei.OreImmersione > 0
+                       )
+                   ), '') AS OreImmersioneEffettive
             FROM ServiziGiornalieri s
             LEFT JOIN LocalitaOperative lo ON lo.LocalitaOperativaId = s.LocalitaOperativaId
             LEFT JOIN ScopiImmersione sc ON sc.ScopoImmersioneId = s.ScopoImmersioneId
@@ -194,6 +213,10 @@ public sealed partial class PersonaleRepository
                 OreImmersioneTotali = reader.GetDecimal(15),
                 CategorieOreDescrizione = reader.GetString(16),
                 AggiornatoIl = DateTime.Parse(reader.GetString(17)),
+                OreImmersioneEffettive = reader.GetString(18)
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(value => decimal.Parse(value, CultureInfo.InvariantCulture))
+                    .ToArray(),
             });
         }
 

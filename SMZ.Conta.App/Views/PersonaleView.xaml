@@ -818,7 +818,7 @@
 
                                                     <StackPanel>
                                                         <TextBlock TextWrapping="Wrap" Text="Tipo abilitazione" Foreground="{DynamicResource AppMutedTextBrush}" />
-                                                        <ComboBox ItemsSource="{Binding TipiAbilitazioneCatalogo}"
+                                                        <ComboBox ItemsSource="{Binding TipiAbilitazioneSelezionabili}"
                                                                   SelectedItem="{Binding AbilitazioneTipoSelezionato}"
                                                                   DisplayMemberPath="EtichettaCompleta" />
 

@@ -510,65 +510,75 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         var perIdByServizioPartecipanteId = servizio.Partecipanti.ToDictionary(item => item.ServizioPartecipanteId, item => item.PerId);
         var perIdByServizioOperatoreEsternoId = servizio.OperatoriSubEsterni.ToDictionary(item => item.ServizioOperatoreSubEsternoId, item => item.PerId);
-        foreach (var immersione in servizio.Immersioni)
+        // I valori salvati sono individuali: caricarli non deve attivare l'autocompilazione.
+        var sincronizzazioneValoriInCorso = _isSyncingValoriCondivisiImmersione;
+        _isSyncingValoriCondivisiImmersione = true;
+        try
         {
-            var immersioneBozza = ServizioImmersioniBozza.FirstOrDefault(item => item.NumeroImmersione == immersione.NumeroImmersione);
-            if (immersioneBozza is null)
+            foreach (var immersione in servizio.Immersioni)
             {
-                continue;
-            }
-
-            foreach (var partecipazione in immersione.Partecipazioni)
-            {
-                if (!perIdByServizioPartecipanteId.TryGetValue(partecipazione.ServizioPartecipanteId, out var perId))
+                var immersioneBozza = ServizioImmersioniBozza.FirstOrDefault(item => item.NumeroImmersione == immersione.NumeroImmersione);
+                if (immersioneBozza is null)
                 {
                     continue;
                 }
 
-                var partecipazioneBozza = immersioneBozza.Partecipazioni.FirstOrDefault(item => item.PerId == perId);
-                if (partecipazioneBozza is null)
+                foreach (var partecipazione in immersione.Partecipazioni)
                 {
-                    continue;
+                    if (!perIdByServizioPartecipanteId.TryGetValue(partecipazione.ServizioPartecipanteId, out var perId))
+                    {
+                        continue;
+                    }
+
+                    var partecipazioneBozza = immersioneBozza.Partecipazioni.FirstOrDefault(item => item.PerId == perId);
+                    if (partecipazioneBozza is null)
+                    {
+                        continue;
+                    }
+
+                    partecipazioneBozza.InImmersione = true;
+                    partecipazioneBozza.TipologiaImmersioneOperativa = TipologieImmersioneOperativeCatalogo.FirstOrDefault(item => item.TipologiaImmersioneOperativaId == partecipazione.TipologiaImmersioneOperativaId);
+                    partecipazioneBozza.ProfonditaMetri = partecipazione.ProfonditaMetri?.ToString() ?? string.Empty;
+                    partecipazioneBozza.FasciaProfondita = FasceProfonditaCatalogo.FirstOrDefault(item => item.FasciaProfonditaId == partecipazione.FasciaProfonditaId);
+                    partecipazioneBozza.OreImmersione = FormatDecimal(partecipazione.OreImmersione);
+                    partecipazioneBozza.CategoriaContabileOre = CategorieContabiliOreCatalogo.FirstOrDefault(item => item.CategoriaContabileOreId == partecipazione.CategoriaContabileOreId);
+                    partecipazioneBozza.Note = partecipazione.Note;
+                    AggiornaCalcoliPartecipazioneImmersione(partecipazioneBozza);
                 }
 
-                partecipazioneBozza.InImmersione = true;
-                partecipazioneBozza.TipologiaImmersioneOperativa = TipologieImmersioneOperativeCatalogo.FirstOrDefault(item => item.TipologiaImmersioneOperativaId == partecipazione.TipologiaImmersioneOperativaId);
-                partecipazioneBozza.ProfonditaMetri = partecipazione.ProfonditaMetri?.ToString() ?? string.Empty;
-                partecipazioneBozza.FasciaProfondita = FasceProfonditaCatalogo.FirstOrDefault(item => item.FasciaProfonditaId == partecipazione.FasciaProfonditaId);
-                partecipazioneBozza.OreImmersione = FormatDecimal(partecipazione.OreImmersione);
-                partecipazioneBozza.CategoriaContabileOre = CategorieContabiliOreCatalogo.FirstOrDefault(item => item.CategoriaContabileOreId == partecipazione.CategoriaContabileOreId);
-                partecipazioneBozza.Note = partecipazione.Note;
-                AggiornaCalcoliPartecipazioneImmersione(partecipazioneBozza);
-            }
-
-            foreach (var partecipazione in immersione.PartecipazioniEsterne)
-            {
-                if (!perIdByServizioOperatoreEsternoId.TryGetValue(partecipazione.ServizioOperatoreSubEsternoId, out var perId))
+                foreach (var partecipazione in immersione.PartecipazioniEsterne)
                 {
-                    continue;
+                    if (!perIdByServizioOperatoreEsternoId.TryGetValue(partecipazione.ServizioOperatoreSubEsternoId, out var perId))
+                    {
+                        continue;
+                    }
+
+                    var partecipazioneBozza = immersioneBozza.Partecipazioni.FirstOrDefault(item => item.PerId == perId && item.IsEsterno);
+                    if (partecipazioneBozza is null)
+                    {
+                        continue;
+                    }
+
+                    partecipazioneBozza.InImmersione = true;
+                    partecipazioneBozza.TipologiaImmersioneOperativa = TipologieImmersioneOperativeCatalogo.FirstOrDefault(item => item.TipologiaImmersioneOperativaId == partecipazione.TipologiaImmersioneOperativaId);
+                    partecipazioneBozza.ProfonditaMetri = partecipazione.ProfonditaMetri?.ToString() ?? string.Empty;
+                    partecipazioneBozza.FasciaProfondita = FasceProfonditaCatalogo.FirstOrDefault(item => item.FasciaProfonditaId == partecipazione.FasciaProfonditaId);
+                    partecipazioneBozza.OreImmersione = FormatDecimal(partecipazione.OreImmersione);
+                    partecipazioneBozza.CategoriaContabileOre = CategorieContabiliOreCatalogo.FirstOrDefault(item => item.CategoriaContabileOreId == partecipazione.CategoriaContabileOreId);
+                    partecipazioneBozza.Note = partecipazione.Note;
+                    AggiornaCalcoliPartecipazioneImmersione(partecipazioneBozza);
                 }
 
-                var partecipazioneBozza = immersioneBozza.Partecipazioni.FirstOrDefault(item => item.PerId == perId && item.IsEsterno);
-                if (partecipazioneBozza is null)
+                if (immersione.Partecipazioni.Count > 0 || immersione.PartecipazioniEsterne.Count > 0)
                 {
-                    continue;
+                    immersioneBozza.ProfonditaCondivisaInizializzata = true;
+                    immersioneBozza.OreCondiviseInizializzate = true;
                 }
-
-                partecipazioneBozza.InImmersione = true;
-                partecipazioneBozza.TipologiaImmersioneOperativa = TipologieImmersioneOperativeCatalogo.FirstOrDefault(item => item.TipologiaImmersioneOperativaId == partecipazione.TipologiaImmersioneOperativaId);
-                partecipazioneBozza.ProfonditaMetri = partecipazione.ProfonditaMetri?.ToString() ?? string.Empty;
-                partecipazioneBozza.FasciaProfondita = FasceProfonditaCatalogo.FirstOrDefault(item => item.FasciaProfonditaId == partecipazione.FasciaProfonditaId);
-                partecipazioneBozza.OreImmersione = FormatDecimal(partecipazione.OreImmersione);
-                partecipazioneBozza.CategoriaContabileOre = CategorieContabiliOreCatalogo.FirstOrDefault(item => item.CategoriaContabileOreId == partecipazione.CategoriaContabileOreId);
-                partecipazioneBozza.Note = partecipazione.Note;
-                AggiornaCalcoliPartecipazioneImmersione(partecipazioneBozza);
             }
-
-            if (immersione.Partecipazioni.Count > 0 || immersione.PartecipazioniEsterne.Count > 0)
-            {
-                immersioneBozza.ProfonditaCondivisaInizializzata = true;
-                immersioneBozza.OreCondiviseInizializzate = true;
-            }
+        }
+        finally
+        {
+            _isSyncingValoriCondivisiImmersione = sincronizzazioneValoriInCorso;
         }
 
         ServizioSupportiOccasionaliBozza.Clear();

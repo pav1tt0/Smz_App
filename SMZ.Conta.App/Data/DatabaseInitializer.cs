@@ -16,6 +16,7 @@ public static partial class DatabaseInitializer
         using var transaction = connection.BeginTransaction();
 
         CreateSchema(connection, transaction);
+        MigraCatalogoAbilitazioni(connection, transaction);
         SeedTipiAbilitazione(connection, transaction);
         EnsureColumnMigrations(connection, transaction);
         AggiornaCatalogoTariffeOriginale(connection, transaction);
@@ -744,6 +745,28 @@ public static partial class DatabaseInitializer
         command.ExecuteNonQuery();
     }
 
+    private static void MigraCatalogoAbilitazioni(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        if (!ColumnExists(connection, transaction, "TipiAbilitazione", "Attiva"))
+        {
+            AddColumnIfMissing(connection, transaction, "TipiAbilitazione", "Attiva", "INTEGER NOT NULL DEFAULT 1");
+            // Mantiene disattivate le vecchie voci sostituite dal catalogo attuale.
+            var ids = string.Join(",", CatalogoAbilitazioni.Tutte.Select(tipo => tipo.TipoAbilitazioneId));
+            ExecuteMigration(connection, transaction,
+                $"UPDATE TipiAbilitazione SET Attiva = 0 WHERE TipoAbilitazioneId NOT IN ({ids});");
+        }
+
+        if (!ColumnExists(connection, transaction, "TipiAbilitazione", "Ordine"))
+        {
+            AddColumnIfMissing(connection, transaction, "TipiAbilitazione", "Ordine", "INTEGER NOT NULL DEFAULT 9999");
+            foreach (var tipo in CatalogoAbilitazioni.Tutte)
+            {
+                ExecuteMigration(connection, transaction,
+                    $"UPDATE TipiAbilitazione SET Ordine = {CatalogoAbilitazioni.GetOrdineVisualizzazione(tipo)} WHERE TipoAbilitazioneId = {tipo.TipoAbilitazioneId};");
+            }
+        }
+    }
+
     private static void SeedTipiAbilitazione(SqliteConnection connection, SqliteTransaction transaction)
     {
         foreach (var tipo in CatalogoAbilitazioni.Tutte)
@@ -759,7 +782,9 @@ public static partial class DatabaseInitializer
                     Categoria,
                     RichiedeLivello,
                     RichiedeScadenza,
-                    RichiedeProfondita
+                    RichiedeProfondita,
+                    Attiva,
+                    Ordine
                 )
                 VALUES (
                     $tipoAbilitazioneId,
@@ -768,15 +793,11 @@ public static partial class DatabaseInitializer
                     $categoria,
                     $richiedeLivello,
                     $richiedeScadenza,
-                    $richiedeProfondita
+                    $richiedeProfondita,
+                    1,
+                    $ordine
                 )
-                ON CONFLICT(TipoAbilitazioneId) DO UPDATE SET
-                    Codice = excluded.Codice,
-                    Descrizione = excluded.Descrizione,
-                    Categoria = excluded.Categoria,
-                    RichiedeLivello = excluded.RichiedeLivello,
-                    RichiedeScadenza = excluded.RichiedeScadenza,
-                    RichiedeProfondita = excluded.RichiedeProfondita;
+                ON CONFLICT(TipoAbilitazioneId) DO NOTHING;
                 """;
 
             command.Parameters.AddWithValue("$tipoAbilitazioneId", tipo.TipoAbilitazioneId);
@@ -786,6 +807,7 @@ public static partial class DatabaseInitializer
             command.Parameters.AddWithValue("$richiedeLivello", tipo.RichiedeLivello ? 1 : 0);
             command.Parameters.AddWithValue("$richiedeScadenza", tipo.RichiedeScadenza ? 1 : 0);
             command.Parameters.AddWithValue("$richiedeProfondita", tipo.RichiedeProfondita ? 1 : 0);
+            command.Parameters.AddWithValue("$ordine", CatalogoAbilitazioni.GetOrdineVisualizzazione(tipo));
             command.ExecuteNonQuery();
         }
     }
