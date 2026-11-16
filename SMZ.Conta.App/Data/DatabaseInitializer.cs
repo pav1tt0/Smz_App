@@ -33,6 +33,18 @@ public static partial class DatabaseInitializer
             """
             PRAGMA foreign_keys = ON;
 
+            CREATE TABLE IF NOT EXISTS EventiCalendario (
+                EventoId INTEGER PRIMARY KEY AUTOINCREMENT,
+                Titolo TEXT NOT NULL CHECK (length(trim(Titolo)) > 0),
+                Categoria TEXT NOT NULL CHECK (Categoria IN ('Appuntamento', 'Scadenza')),
+                Data TEXT NOT NULL,
+                Ora TEXT NULL,
+                Note TEXT NOT NULL DEFAULT '',
+                Completata INTEGER NOT NULL DEFAULT 0 CHECK (Completata IN (0, 1)),
+                CHECK (Categoria = 'Scadenza' OR Completata = 0)
+            );
+            CREATE INDEX IF NOT EXISTS IX_EventiCalendario_Data ON EventiCalendario (Data);
+
             CREATE TABLE IF NOT EXISTS Personale (
                 PerId INTEGER PRIMARY KEY AUTOINCREMENT,
                 Cognome TEXT NOT NULL,

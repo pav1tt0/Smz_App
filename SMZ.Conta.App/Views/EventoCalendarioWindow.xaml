@@ -1,0 +1,32 @@
+<Window x:Class="SMZ.Conta.App.Views.EventoCalendarioWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:infra="clr-namespace:SMZ.Conta.App.Infrastructure"
+        infra:WindowFitBehavior.Enabled="True" UseLayoutRounding="True" Language="it-IT"
+        Title="Evento del reparto" Width="520" Height="620" MinWidth="320" MinHeight="360"
+        WindowStartupLocation="CenterOwner" Background="#F3F6FA" FontFamily="Bahnschrift">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24">
+            <TextBlock x:Name="Intestazione" FontSize="23" FontWeight="SemiBold" Foreground="#0D1B3D" TextWrapping="Wrap"/>
+            <TextBlock Text="Titolo *" Margin="0,18,0,5"/>
+            <TextBox x:Name="TitoloInput" Padding="8"/>
+            <TextBlock Text="Categoria *" Margin="0,14,0,5"/>
+            <ComboBox x:Name="CategoriaInput" SelectedIndex="0" Padding="8" SelectionChanged="Categoria_Changed">
+                <ComboBoxItem Content="Appuntamento"/><ComboBoxItem Content="Scadenza"/>
+            </ComboBox>
+            <TextBlock Text="Data *" Margin="0,14,0,5"/>
+            <DatePicker x:Name="DataInput" Language="it-IT" FirstDayOfWeek="Monday" Padding="5"/>
+            <TextBlock Text="Ora (facoltativa, HH:mm)" Margin="0,14,0,5"/>
+            <TextBox x:Name="OraInput" Padding="8" MaxLength="5"/>
+            <TextBlock Text="Note" Margin="0,14,0,5"/>
+            <TextBox x:Name="NoteInput" Padding="8" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="75" MaxHeight="160" VerticalScrollBarVisibility="Auto"/>
+            <CheckBox x:Name="CompletataInput" Content="Scadenza completata" Margin="0,14,0,0"/>
+            <TextBlock x:Name="ErroreText" Foreground="#BD2735" TextWrapping="Wrap" Margin="0,12,0,0"/>
+            <WrapPanel HorizontalAlignment="Right" Margin="0,14,0,0">
+                <Button x:Name="EliminaButton" Content="Elimina" Padding="12,8" Margin="0,0,8,8" Click="Elimina_Click" Foreground="#BD2735"/>
+                <Button Content="Annulla" Padding="12,8" Margin="0,0,8,8" IsCancel="True"/>
+                <Button Content="Salva" Padding="18,8" Margin="0,0,0,8" IsDefault="True" Click="Salva_Click" Background="#0E5AA7" Foreground="White"/>
+            </WrapPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

@@ -33,6 +33,10 @@ internal static partial class Program
             Run("separazione dati pacchetto test", TestProfiloDatiPacchetto);
             Run("ridisposizione campi e ripristino layout", TestAdaptiveGrid);
             Run("schede adattate alla larghezza", TestAdaptiveCards);
+            Run("calendario: eventi persistenti e validazione", TestCalendarioPersistenza);
+            Run("calendario: migrazione e backup con ripristino", TestCalendarioBackup);
+            Run("calendario: mesi, giorni e scadenze", TestCalendarioNavigazione);
+            Run("dashboard: apertura, moduli, permessi e zoom", TestDashboardCalendario);
             Run("preferenza dimensione interfaccia isolata", TestDisplayPreferences);
             Run("versione SQLite sicura", TestVersioneSqliteSicura);
             Run("numero ordine servizio automatico", TestNumeroOrdineServizioAutomatico);

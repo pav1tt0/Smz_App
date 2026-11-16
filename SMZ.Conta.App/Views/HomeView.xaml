@@ -1,360 +1,227 @@
 <UserControl x:Class="SMZ.Conta.App.Views.HomeView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:infra="clr-namespace:SMZ.Conta.App.Infrastructure">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="22" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <Border Style="{DynamicResource CardStyle}"
-                Padding="22">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="16" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock TextWrapping="Wrap" Text="&#xE8A9;"
-                               FontFamily="Segoe MDL2 Assets"
-                               FontSize="24"
-                               Foreground="#0E5AA7"
-                               VerticalAlignment="Center" />
-                    <TextBlock TextWrapping="Wrap" Margin="12,0,0,0"
-                               Text="Moduli principali"
-                               Foreground="{DynamicResource AppTextBrush}"
-                               FontSize="22"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center" />
-                </StackPanel>
-
-                <infra:AdaptiveUniformGrid Grid.Row="2" MaxColumns="5" MinItemWidth="230">
-                    <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="1"
-                            Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,12,12">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Canvas Width="44"
-                                    Height="44"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-                                <Rectangle Canvas.Left="6" Canvas.Top="10" Width="32" Height="29" Stroke="#0E5AA7" StrokeThickness="4" RadiusX="3" RadiusY="3" />
-                                <Rectangle Canvas.Left="6" Canvas.Top="10" Width="32" Height="9" Fill="#0E5AA7" RadiusX="3" RadiusY="3" />
-                                <Rectangle Canvas.Left="13" Canvas.Top="5" Width="4" Height="10" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
-                                <Rectangle Canvas.Left="27" Canvas.Top="5" Width="4" Height="10" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
-                                <Rectangle Canvas.Left="14" Canvas.Top="24" Width="4" Height="4" Fill="#0E5AA7" />
-                                <Rectangle Canvas.Left="21" Canvas.Top="24" Width="4" Height="4" Fill="#0E5AA7" />
-                                <Rectangle Canvas.Left="28" Canvas.Top="24" Width="4" Height="4" Fill="#0E5AA7" />
-                                <Rectangle Canvas.Left="14" Canvas.Top="31" Width="4" Height="4" Fill="#0E5AA7" />
-                                <Rectangle Canvas.Left="21" Canvas.Top="31" Width="4" Height="4" Fill="#0E5AA7" />
-                                <Rectangle Canvas.Left="28" Canvas.Top="31" Width="4" Height="4" Fill="#0E5AA7" />
-                            </Canvas>
-                            <StackPanel Grid.Column="1"
-                                        VerticalAlignment="Center">
-                                <TextBlock Text="Servizio giornaliero"
-                                           FontSize="15"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,6,0,0"
-                                           Text="Pianificazione e turni"
-                                           FontSize="12"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Grid>
-                    </Button>
-
-                    <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="2"
-                            Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,12,12">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Canvas Width="44"
-                                    Height="44"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-                                <Ellipse Canvas.Left="7" Canvas.Top="6" Width="16" Height="16" Fill="#0E5AA7" />
-                                <Ellipse Canvas.Left="27" Canvas.Top="11" Width="12" Height="12" Fill="#0E5AA7" />
-                                <Path Fill="#0E5AA7" Data="M 3,39 L 3,32 C 3,24 9,20 17,20 C 25,20 31,24 31,32 L 31,39 Z" />
-                                <Path Fill="#0E5AA7" Data="M 27,39 L 27,32 C 27,28 25,25 22,23 C 25,22 28,21 32,21 C 39,21 43,25 43,32 L 43,39 Z" />
-                            </Canvas>
-                            <StackPanel Grid.Column="1"
-                                        VerticalAlignment="Center">
-                                <TextBlock Text="Personale"
-                                           FontSize="15"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,6,0,0"
-                                           Text="Anagrafica e qualifiche"
-                                           FontSize="12"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Grid>
-                    </Button>
-
-                    <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="3"
-                            Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,12,12">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Canvas Width="44"
-                                    Height="44"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-                                <Rectangle Canvas.Left="5" Canvas.Top="12" Width="34" Height="8" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
-                                <Rectangle Canvas.Left="8" Canvas.Top="21" Width="28" Height="20" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
-                                <Rectangle Canvas.Left="13" Canvas.Top="27" Width="18" Height="4" Fill="#FFFFFF" RadiusX="2" RadiusY="2" />
-                            </Canvas>
-                            <StackPanel Grid.Column="1"
-                                        VerticalAlignment="Center">
-                                <TextBlock Text="Backup e archivio"
-                                           FontSize="15"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,6,0,0"
-                                           Text="Dati e documenti storici"
-                                           FontSize="12"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Grid>
-                    </Button>
-
-                    <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="4"
-                            Style="{DynamicResource HomeModuleButtonStyle}"
-                            Margin="0,0,12,12">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock TextWrapping="Wrap" Text="&#x20AC;"
-                                       FontFamily="Segoe UI"
-                                       FontSize="50"
-                                       FontWeight="SemiBold"
-                                       Foreground="#0E5AA7"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="1"
-                                        VerticalAlignment="Center">
-                                <TextBlock Text="Contabilita"
-                                           FontSize="15"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,6,0,0"
-                                           Text="Movimenti e bilanci"
-                                           FontSize="12"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Grid>
-                    </Button>
-
-                    <Button Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="5"
-                            Style="{DynamicResource HomeModuleButtonStyle}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="52" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Canvas Width="44"
-                                    Height="44"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-                                <Rectangle Canvas.Left="10" Canvas.Top="4" Width="24" Height="15" Fill="#FFFFFF" Stroke="#0E5AA7" StrokeThickness="4" RadiusX="2" RadiusY="2" />
-                                <Rectangle Canvas.Left="4" Canvas.Top="17" Width="36" Height="18" Fill="#0E5AA7" RadiusX="3" RadiusY="3" />
-                                <Rectangle Canvas.Left="9" Canvas.Top="29" Width="26" Height="12" Fill="#FFFFFF" Stroke="#0E5AA7" StrokeThickness="4" RadiusX="2" RadiusY="2" />
-                                <Ellipse Canvas.Left="31" Canvas.Top="21" Width="4" Height="4" Fill="#FFFFFF" />
-                            </Canvas>
-                            <StackPanel Grid.Column="1"
-                                        VerticalAlignment="Center">
-                                <TextBlock Text="Stampe e report"
-                                           FontSize="15"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource AppTextBrush}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Margin="0,6,0,0"
-                                           Text="Stampe e documenti"
-                                           FontSize="12"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Grid>
-                    </Button>
-                </infra:AdaptiveUniformGrid>
-            </Grid>
-        </Border>
-
-        <infra:AdaptiveGrid Grid.Row="2" CollapseBelow="1000" MinItemWidth="500" MaxColumns="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <Border Style="{DynamicResource CardStyle}"
-                    Padding="24">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <TextBlock TextWrapping="Wrap" Text="Scadenze visite mediche"
-                               FontSize="22"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource AppTextBrush}" />
-
-                    <infra:AdaptiveGrid Grid.Row="1"
-                          Margin="0,20,0,16" CollapseBelow="460" MinItemWidth="220" MaxColumns="1">
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:infra="clr-namespace:SMZ.Conta.App.Infrastructure"
+    xmlns:views="clr-namespace:SMZ.Conta.App.Views"
+    Background="{DynamicResource AppWorkspaceBrush}">
+    <StackPanel>
+        <Border Style="{DynamicResource CardStyle}" Padding="12" Margin="0,0,0,18">
+            <infra:AdaptiveUniformGrid MaxColumns="3" MinItemWidth="280">
+                <Button Command="{Binding NavigateSectionCommand}" CommandParameter="1"
+                        Style="{DynamicResource HomeModuleButtonStyle}" Margin="6">
+                    <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="18" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="76"/>
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-
-                        <Border Background="#FFF3F4"
-                                BorderBrush="#F0B2B8"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="22,14">
-                            <StackPanel Orientation="Horizontal"
-                                        HorizontalAlignment="Center">
-                                <TextBlock TextWrapping="Wrap" Text="&#xE7BA;"
-                                           FontFamily="Segoe MDL2 Assets"
-                                           Foreground="#D40F1F"
-                                           FontSize="22"
-                                           VerticalAlignment="Center" />
-                                <TextBlock TextWrapping="Wrap" Margin="12,0,0,0"
-                                           Text="{Binding DashboardVisiteScadutePersonale}"
-                                           Foreground="#D40F1F"
-                                           FontSize="20"
-                                           FontWeight="Bold"
-                                           VerticalAlignment="Center" />
-                                <TextBlock TextWrapping="Wrap" Margin="8,0,0,0"
-                                           Text="Scadute"
-                                           Foreground="#D40F1F"
-                                           FontSize="17"
-                                           FontWeight="SemiBold"
-                                           VerticalAlignment="Center" />
-                            </StackPanel>
+                        <Border Width="60" Height="60" Background="#E8F1FA" CornerRadius="10"
+                                HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Viewbox Width="36" Height="36" Stretch="Uniform">
+                                <Canvas Width="44"
+                                        Height="44"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                    <Rectangle Canvas.Left="6" Canvas.Top="10" Width="32" Height="29" Stroke="#0E5AA7" StrokeThickness="4" RadiusX="3" RadiusY="3" />
+                                    <Rectangle Canvas.Left="6" Canvas.Top="10" Width="32" Height="9" Fill="#0E5AA7" RadiusX="3" RadiusY="3" />
+                                    <Rectangle Canvas.Left="13" Canvas.Top="5" Width="4" Height="10" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
+                                    <Rectangle Canvas.Left="27" Canvas.Top="5" Width="4" Height="10" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
+                                    <Rectangle Canvas.Left="14" Canvas.Top="24" Width="4" Height="4" Fill="#0E5AA7" />
+                                    <Rectangle Canvas.Left="21" Canvas.Top="24" Width="4" Height="4" Fill="#0E5AA7" />
+                                    <Rectangle Canvas.Left="28" Canvas.Top="24" Width="4" Height="4" Fill="#0E5AA7" />
+                                    <Rectangle Canvas.Left="14" Canvas.Top="31" Width="4" Height="4" Fill="#0E5AA7" />
+                                    <Rectangle Canvas.Left="21" Canvas.Top="31" Width="4" Height="4" Fill="#0E5AA7" />
+                                    <Rectangle Canvas.Left="28" Canvas.Top="31" Width="4" Height="4" Fill="#0E5AA7" />
+                                </Canvas>
+                            </Viewbox>
                         </Border>
-
-                        <Border Grid.Column="2"
-                                Background="#FFF7EB"
-                                BorderBrush="#F2C78F"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="22,14">
-                            <StackPanel Orientation="Horizontal"
-                                        HorizontalAlignment="Center">
-                                <TextBlock TextWrapping="Wrap" Text="&#xE823;"
-                                           FontFamily="Segoe MDL2 Assets"
-                                           Foreground="#EF7D00"
-                                           FontSize="22"
-                                           VerticalAlignment="Center" />
-                                <TextBlock TextWrapping="Wrap" Margin="12,0,0,0"
-                                           Text="{Binding DashboardVisiteInScadenzaPersonale}"
-                                           Foreground="#EF7D00"
-                                           FontSize="20"
-                                           FontWeight="Bold"
-                                           VerticalAlignment="Center" />
-                                <TextBlock TextWrapping="Wrap" Margin="8,0,0,0"
-                                           Text="In scadenza"
-                                           Foreground="#EF7D00"
-                                           FontSize="17"
-                                           FontWeight="SemiBold"
-                                           VerticalAlignment="Center" />
-                            </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Servizio giornaliero" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Pianificazione e turni" FontSize="14" Margin="0,7,0,0"
+                                       Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </Button>
+                <Button Command="{Binding NavigateSectionCommand}" CommandParameter="2"
+                        Style="{DynamicResource HomeModuleButtonStyle}" Margin="6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="76"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="60" Height="60" Background="#E8F1FA" CornerRadius="10"
+                                HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Viewbox Width="36" Height="36" Stretch="Uniform">
+                                <Canvas Width="44"
+                                        Height="44"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                    <Ellipse Canvas.Left="7" Canvas.Top="6" Width="16" Height="16" Fill="#0E5AA7" />
+                                    <Ellipse Canvas.Left="27" Canvas.Top="11" Width="12" Height="12" Fill="#0E5AA7" />
+                                    <Path Fill="#0E5AA7" Data="M 3,39 L 3,32 C 3,24 9,20 17,20 C 25,20 31,24 31,32 L 31,39 Z" />
+                                    <Path Fill="#0E5AA7" Data="M 27,39 L 27,32 C 27,28 25,25 22,23 C 25,22 28,21 32,21 C 39,21 43,25 43,32 L 43,39 Z" />
+                                </Canvas>
+                            </Viewbox>
                         </Border>
-                    </infra:AdaptiveGrid>
-
-                    <Border Grid.Row="2"
-                            BorderBrush="{DynamicResource AppBorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8"
-                            Padding="0">
-                        <ItemsControl ItemsSource="{Binding DashboardTopScadenze}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Padding="0"
-                                            Margin="0"
-                                            BorderThickness="0"
-                                            Background="Transparent"
-                                            Command="{Binding DataContext.OpenScadenzaCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                            CommandParameter="{Binding}">
-                                        <Button.Template>
-                                            <ControlTemplate TargetType="Button">
-                                                <ContentPresenter />
-                                            </ControlTemplate>
-                                        </Button.Template>
-                                        <infra:AdaptiveGrid MinHeight="52"
-                                              Margin="16,0" CollapseBelow="600" MinItemWidth="250" MaxColumns="1">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="1.2*" />
-                                                <ColumnDefinition Width="1.1*" />
-                                                <ColumnDefinition Width="1.1*" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{Binding Nominativo}"
-                                                       Foreground="{DynamicResource AppTextBrush}"
-                                                       FontSize="15"
-                                                       VerticalAlignment="Center"
-                                                       TextTrimming="CharacterEllipsis" />
-                                            <TextBlock Grid.Column="1"
-                                                       Text="{Binding Titolo}"
-                                                       Foreground="{DynamicResource AppTextBrush}"
-                                                       FontSize="14"
-                                                       VerticalAlignment="Center"
-                                                       TextTrimming="CharacterEllipsis" />
-                                            <TextBlock Grid.Column="2"
-                                                       Text="{Binding CriticitaDataText}"
-                                                       Foreground="{Binding TitoloForeground}"
-                                                       FontSize="14"
-                                                       FontWeight="SemiBold"
-                                                       VerticalAlignment="Center"
-                                                       TextAlignment="Right"
-                                                       TextTrimming="CharacterEllipsis" />
-                                        </infra:AdaptiveGrid>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Personale" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Anagrafica e qualifiche" FontSize="14" Margin="0,7,0,0"
+                                       Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </Button>
+                <Button Command="{Binding NavigateSectionCommand}" CommandParameter="4"
+                        Style="{DynamicResource HomeModuleButtonStyle}" Margin="6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="76"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="60" Height="60" Background="#E8F1FA" CornerRadius="10"
+                                HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <TextBlock Text="&#x20AC;" FontFamily="Segoe UI" FontSize="44" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AppBlueBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Contabilità" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Movimenti e bilanci" FontSize="14" Margin="0,7,0,0"
+                                       Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </Button>
+                <Button Command="{Binding NavigateSectionCommand}" CommandParameter="3"
+                        Style="{DynamicResource HomeModuleButtonStyle}" Margin="6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="76"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="60" Height="60" Background="#E8F1FA" CornerRadius="10"
+                                HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Viewbox Width="36" Height="36" Stretch="Uniform">
+                                <Canvas Width="44"
+                                        Height="44"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                    <Rectangle Canvas.Left="5" Canvas.Top="12" Width="34" Height="8" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
+                                    <Rectangle Canvas.Left="8" Canvas.Top="21" Width="28" Height="20" Fill="#0E5AA7" RadiusX="2" RadiusY="2" />
+                                    <Rectangle Canvas.Left="13" Canvas.Top="27" Width="18" Height="4" Fill="#FFFFFF" RadiusX="2" RadiusY="2" />
+                                </Canvas>
+                            </Viewbox>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Backup e archivio" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Dati e documenti storici" FontSize="14" Margin="0,7,0,0"
+                                       Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </Button>
+                <Button Command="{Binding NavigateSectionCommand}" CommandParameter="5"
+                        Style="{DynamicResource HomeModuleButtonStyle}" Margin="6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="76"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="60" Height="60" Background="#E8F1FA" CornerRadius="10"
+                                HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Viewbox Width="36" Height="36" Stretch="Uniform">
+                                <Canvas Width="44"
+                                        Height="44"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                    <Rectangle Canvas.Left="10" Canvas.Top="4" Width="24" Height="15" Fill="#FFFFFF" Stroke="#0E5AA7" StrokeThickness="4" RadiusX="2" RadiusY="2" />
+                                    <Rectangle Canvas.Left="4" Canvas.Top="17" Width="36" Height="18" Fill="#0E5AA7" RadiusX="3" RadiusY="3" />
+                                    <Rectangle Canvas.Left="9" Canvas.Top="29" Width="26" Height="12" Fill="#FFFFFF" Stroke="#0E5AA7" StrokeThickness="4" RadiusX="2" RadiusY="2" />
+                                    <Ellipse Canvas.Left="31" Canvas.Top="21" Width="4" Height="4" Fill="#FFFFFF" />
+                                </Canvas>
+                            </Viewbox>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Stampe e report" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Stampe e documenti" FontSize="14" Margin="0,7,0,0"
+                                       Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </Button>
+                <Button Command="{Binding NavigateSectionCommand}" CommandParameter="6"
+                            Visibility="{Binding IsAdministrator, Converter={StaticResource BoolToVisibilityConverter}}"
+                        Style="{DynamicResource HomeModuleButtonStyle}" Margin="6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="76"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="60" Height="60" Background="#E8F1FA" CornerRadius="10"
+                                HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Viewbox Width="36" Height="36" Stretch="Uniform">
+                                <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="36" Foreground="{DynamicResource AppBlueBrush}"/>
+                            </Viewbox>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Amministrazione" FontSize="18" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Impostazioni e cataloghi" FontSize="14" Margin="0,7,0,0"
+                                       Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </Button>
+            </infra:AdaptiveUniformGrid>
+        </Border>
+        <infra:AdaptiveGrid CollapseBelow="900" MinItemWidth="360" MaxColumns="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="35*"/><ColumnDefinition Width="65*"/></Grid.ColumnDefinitions>
+            <Border Style="{DynamicResource CardStyle}" Padding="20" Margin="0,0,16,0" VerticalAlignment="Top">
+                <StackPanel>
+                    <Border Background="#E8F1FA" BorderBrush="#D4E4F4" BorderThickness="0,0,0,1"
+                            CornerRadius="8,8,0,0" Padding="20,16" Margin="-20,-20,-20,12">
+                        <TextBlock Text="Scadenze visite mediche" FontSize="23" FontWeight="SemiBold" Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap"/>
                     </Border>
-
-                    <Button Grid.Row="3"
-                            Margin="0,16,0,0"
-                            HorizontalAlignment="Left"
-                            MinWidth="0"
-                            Content="Vai all'elenco"
-                            Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="2"
-                            Style="{DynamicResource SecondaryButtonStyle}" />
-                </Grid>
+                    <TextBlock Text="Personale con visite scadute o in scadenza" FontSize="14" Foreground="{DynamicResource AppMutedTextBrush}" Margin="0,6,0,12" TextWrapping="Wrap"/>
+                    <Border CornerRadius="6" Padding="14,12" BorderThickness="1" Margin="0,0,0,8">
+                        <Border.Style><Style TargetType="Border">
+                            <Setter Property="Background" Value="#FFF3F4"/><Setter Property="BorderBrush" Value="#F0B2B8"/><Setter Property="TextElement.Foreground" Value="#BD2735"/>
+                            <Style.Triggers><DataTrigger Binding="{Binding DashboardVisiteScadutePersonale}" Value="0">
+                                <Setter Property="Background" Value="#F6F8FA"/><Setter Property="BorderBrush" Value="#DFE5EB"/><Setter Property="TextElement.Foreground" Value="#52647A"/>
+                            </DataTrigger></Style.Triggers>
+                        </Style></Border.Style>
+                        <WrapPanel><TextBlock Text="{Binding DashboardVisiteScadutePersonale}" FontSize="28" FontWeight="SemiBold" Margin="0,0,12,0"/><TextBlock Text="Scadute" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/></WrapPanel>
+                    </Border>
+                    <Border CornerRadius="6" Padding="14,12" BorderThickness="1" Margin="0,0,0,12">
+                        <Border.Style><Style TargetType="Border">
+                            <Setter Property="Background" Value="#FFF7EB"/><Setter Property="BorderBrush" Value="#F2C78F"/><Setter Property="TextElement.Foreground" Value="#B76500"/>
+                            <Style.Triggers><DataTrigger Binding="{Binding DashboardVisiteInScadenzaPersonale}" Value="0">
+                                <Setter Property="Background" Value="#F6F8FA"/><Setter Property="BorderBrush" Value="#DFE5EB"/><Setter Property="TextElement.Foreground" Value="#52647A"/>
+                            </DataTrigger></Style.Triggers>
+                        </Style></Border.Style>
+                        <WrapPanel><TextBlock Text="{Binding DashboardVisiteInScadenzaPersonale}" FontSize="28" FontWeight="SemiBold" Margin="0,0,12,0"/><TextBlock Text="In scadenza" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"/></WrapPanel>
+                    </Border>
+                    <TextBlock Text="Nessuna scadenza da segnalare." FontSize="14" Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap">
+                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers><DataTrigger Binding="{Binding DashboardTopScadenze.Count}" Value="0"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+                        </Style></TextBlock.Style>
+                    </TextBlock>
+                    <ItemsControl ItemsSource="{Binding DashboardTopScadenze}">
+                        <ItemsControl.ItemTemplate><DataTemplate>
+                            <Button Command="{Binding DataContext.OpenScadenzaCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"
+                                    Style="{DynamicResource SecondaryButtonStyle}" MinWidth="0" HorizontalContentAlignment="Stretch" Padding="10,8" Margin="0,0,0,6">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Nominativo}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding Titolo}" FontSize="14" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding CriticitaDataText}" FontSize="14" Foreground="{Binding TitoloForeground}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate></ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Content="Vai all'elenco" Command="{Binding NavigateSectionCommand}" CommandParameter="2" Style="{DynamicResource AccentButtonStyle}" FontSize="14" MinWidth="0" MinHeight="40" HorizontalAlignment="Left" Margin="0,16,0,0"/>
+                </StackPanel>
             </Border>
-
+            <Border Grid.Column="1" Style="{DynamicResource CardStyle}" Padding="20" VerticalAlignment="Top">
+                <views:CalendarioRepartoView/>
+            </Border>
         </infra:AdaptiveGrid>
-    </Grid>
+    </StackPanel>
 </UserControl>

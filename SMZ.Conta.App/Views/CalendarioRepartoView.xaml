@@ -1,0 +1,137 @@
+<UserControl x:Class="SMZ.Conta.App.Views.CalendarioRepartoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Language="it-IT"
+             Loaded="Calendario_Loaded" IsVisibleChanged="Calendario_IsVisibleChanged">
+    <UserControl.Resources>
+        <Style x:Key="GiornoStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="MinHeight" Value="44"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="#152D4A"/>
+            <Setter Property="Opacity" Value="{Binding Opacita}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#EDF4FC"/></Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True"><Setter Property="BorderBrush" Value="#0E5AA7"/></Trigger>
+                <DataTrigger Binding="{Binding IsOggi}" Value="True">
+                    <Setter Property="BorderBrush" Value="#0E5AA7"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                    <Setter Property="Background" Value="#E8F1FA"/>
+                    <Setter Property="Foreground" Value="#0E5AA7"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
+                    <Setter Property="Background" Value="#0E5AA7"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Data}" Value="{x:Null}"><Setter Property="IsEnabled" Value="False"/></DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <StackPanel x:Name="CalendarioHost">
+        <Border Background="#E8F1FA" BorderBrush="#D4E4F4" BorderThickness="0,0,0,1"
+                CornerRadius="8,8,0,0" Padding="20,16" Margin="-20,-20,-20,0">
+            <TextBlock Text="Calendario reparto" FontSize="23" FontWeight="SemiBold" Foreground="{DynamicResource AppTextBrush}" TextWrapping="Wrap"/>
+        </Border>
+        <WrapPanel Margin="0,12,0,8">
+            <Button Content="‹" Command="{Binding MesePrecedenteCommand}" ToolTip="Mese precedente" AutomationProperties.Name="Mese precedente" Style="{DynamicResource SecondaryButtonStyle}" FontSize="20" MinWidth="40" MinHeight="38" Padding="10,4" Margin="0,0,6,6"/>
+            <Button Content="›" Command="{Binding MeseSuccessivoCommand}" ToolTip="Mese successivo" AutomationProperties.Name="Mese successivo" Style="{DynamicResource SecondaryButtonStyle}" FontSize="20" MinWidth="40" MinHeight="38" Padding="10,4" Margin="0,0,14,6"/>
+            <TextBlock Text="{Binding TitoloMese}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource AppTextBrush}" Margin="0,4,16,6" VerticalAlignment="Center"/>
+            <Button Content="Oggi" Command="{Binding OggiCommand}" Style="{DynamicResource SecondaryButtonStyle}" FontSize="14" MinWidth="0" MinHeight="38" Padding="12,7" Margin="0,0,8,6"/>
+            <Button Content="+ Nuovo evento" Click="NuovoEvento_Click" Style="{DynamicResource AccentButtonStyle}" FontSize="14" MinWidth="0" MinHeight="38" Padding="12,7" Margin="0,0,0,6"/>
+        </WrapPanel>
+        <UniformGrid Columns="7" Margin="0,4,0,8" TextBlock.FontSize="14" TextBlock.FontWeight="SemiBold" TextBlock.TextAlignment="Center" TextBlock.Foreground="{DynamicResource AppMutedTextBrush}">
+            <TextBlock Text="Lun"/><TextBlock Text="Mar"/><TextBlock Text="Mer"/><TextBlock Text="Gio"/>
+            <TextBlock Text="Ven"/><TextBlock Text="Sab"/><TextBlock Text="Dom"/>
+        </UniformGrid>
+        <ItemsControl ItemsSource="{Binding Giorni}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="7"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Style="{StaticResource GiornoStyle}" Command="{Binding DataContext.SelezionaGiornoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding Data}" ToolTip="{Binding Descrizione}" AutomationProperties.Name="{Binding Descrizione}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Numero}" HorizontalAlignment="Center"/>
+                            <Border x:Name="OggiMarker" Width="14" Height="2" Margin="0,2,0,1"
+                                    Background="#0E5AA7" CornerRadius="1" Opacity="0"/>
+                            <ItemsControl ItemsSource="{Binding Indicatori}" Height="7" HorizontalAlignment="Center" Margin="0,3,0,0">
+                                <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate><DataTemplate><Ellipse Width="5" Height="5" Margin="1,0" Fill="{Binding}" Stroke="White" StrokeThickness="0.8"/></DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Button>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsOggi}" Value="True">
+                            <Setter TargetName="OggiMarker" Property="Opacity" Value="1"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsSelezionato}" Value="True">
+                            <Setter TargetName="OggiMarker" Property="Background" Value="White"/>
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Text="{Binding TitoloGiorno}" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource AppTextBrush}" Margin="0,16,0,10" TextWrapping="Wrap"/>
+        <TextBlock Text="Nessun evento per questa giornata." FontSize="14" Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap">
+            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/>
+                <Style.Triggers><DataTrigger Binding="{Binding EventiGiorno.Count}" Value="0"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers>
+            </Style></TextBlock.Style>
+        </TextBlock>
+        <ItemsControl ItemsSource="{Binding EventiGiorno}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Click="ApriEvento_Click" Tag="{Binding}" HorizontalContentAlignment="Stretch" Style="{DynamicResource SecondaryButtonStyle}" Background="White" FontSize="14" MinWidth="0" Margin="0,0,0,8" Padding="12,10">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="EventoBorder" Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                                        CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="EventoBorder" Property="Background" Value="#F2F7FD"/>
+                                        <Setter TargetName="EventoBorder" Property="BorderBrush" Value="#8EB6DC"/>
+                                    </Trigger>
+                                    <Trigger Property="IsKeyboardFocused" Value="True">
+                                        <Setter TargetName="EventoBorder" Property="BorderBrush" Value="#0E5AA7"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="EventoBorder" Property="Background" Value="#E8F1FA"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Border BorderBrush="{Binding Colore}" BorderThickness="3,0,0,0" Padding="10,0,0,0">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Titolo}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <WrapPanel Margin="0,5,0,0">
+                                    <TextBlock Text="{Binding OrarioTesto}" Margin="0,0,12,0"/>
+                                    <TextBlock Text="{Binding Stato}" Foreground="{Binding Colore}"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Text="{Binding Errore}" FontSize="14" Foreground="#BD2735" TextWrapping="Wrap" Margin="0,8,0,0"/>
+    </StackPanel>
+</UserControl>
