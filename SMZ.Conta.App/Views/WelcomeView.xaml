@@ -156,14 +156,6 @@
                     </Canvas.Triggers>
                 </Canvas>
 
-                <Button Margin="34,0,0,34"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Bottom"
-                        Content="&#xE767;"
-                        Command="{Binding ToggleWelcomeAudioCommand}"
-                        ToolTip="{Binding WelcomeAudioTooltip}"
-                        Style="{DynamicResource WelcomeIconButtonStyle}" />
-
                 <WrapPanel Margin="0,28,34,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
@@ -255,17 +247,17 @@
                             </Grid>
                         </infra:AdaptiveGrid>
 
-                        <WrapPanel Grid.Row="1" Orientation="Horizontal"
-                                    HorizontalAlignment="Center"
+                        <StackPanel Grid.Row="1"
+                                    HorizontalAlignment="Stretch"
                                     VerticalAlignment="Center">
                             <TextBlock Text="{Binding WelcomeCredits}"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center"
                                        Style="{DynamicResource WelcomeMetaTextStyle}" />
-                            <TextBlock Margin="18,0"
-                                       Text="|"
+                            <TextBlock Margin="0,4,0,0" Text="{Binding WelcomeVersione}"
+                                       TextAlignment="Center"
                                        Style="{DynamicResource WelcomeMetaTextStyle}" />
-                            <TextBlock Text="{Binding WelcomeVersione}"
-                                       Style="{DynamicResource WelcomeMetaTextStyle}" />
-                        </WrapPanel>
+                        </StackPanel>
                     </Grid>
                 </ScrollViewer>
             </Grid>

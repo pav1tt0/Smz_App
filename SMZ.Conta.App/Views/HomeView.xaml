@@ -210,9 +210,7 @@
 
         <infra:AdaptiveGrid Grid.Row="2" CollapseBelow="1000" MinItemWidth="500" MaxColumns="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.55*" />
-                <ColumnDefinition Width="20" />
-                <ColumnDefinition Width="0.95*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <Border Style="{DynamicResource CardStyle}"
@@ -357,138 +355,6 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Column="2"
-                    Style="{DynamicResource CardStyle}"
-                    Padding="24">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <infra:AdaptiveGrid CollapseBelow="600" MinItemWidth="300" MaxColumns="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock TextWrapping="Wrap" Text="&#xE783;"
-                                       FontFamily="Segoe MDL2 Assets"
-                                       Foreground="#D40F1F"
-                                       FontSize="23"
-                                       VerticalAlignment="Center" />
-                            <TextBlock TextWrapping="Wrap" Margin="10,0,0,0"
-                                       Text="Criticità operative"
-                                       FontSize="20"
-                                       FontWeight="SemiBold"
-                                       Foreground="#D40F1F"
-                                       VerticalAlignment="Center" />
-                        </StackPanel>
-                        <Border Grid.Column="1"
-                                MinWidth="34"
-                                Height="30"
-                                Padding="8,0"
-                                Background="#D40F1F"
-                                CornerRadius="6">
-                            <TextBlock TextWrapping="Wrap" Text="{Binding DashboardCriticitaItems.Count}"
-                                       Foreground="#FFFFFF"
-                                       FontSize="16"
-                                       FontWeight="Bold"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" />
-                        </Border>
-                    </infra:AdaptiveGrid>
-
-                    <ItemsControl Grid.Row="1"
-                                  Margin="0,24,0,0"
-                                  ItemsSource="{Binding DashboardCriticitaItems}">
-                        <ItemsControl.Style>
-                            <Style TargetType="ItemsControl">
-                                <Setter Property="Visibility" Value="Visible" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding HasDashboardCriticitaOperative}" Value="False">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ItemsControl.Style>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Padding="0"
-                                        Margin="0,0,0,8"
-                                        BorderThickness="0"
-                                        Background="Transparent"
-                                        Command="{Binding DataContext.OpenScadenzaCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                        CommandParameter="{Binding}">
-                                    <Button.Template>
-                                        <ControlTemplate TargetType="Button">
-                                            <ContentPresenter />
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                    <infra:AdaptiveGrid MinHeight="58" CollapseBelow="680" MinItemWidth="240" MaxColumns="1">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="1.1*" />
-                                            <ColumnDefinition Width="1*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding Nominativo}"
-                                                   Foreground="{DynamicResource AppTextBrush}"
-                                                   FontSize="15"
-                                                   VerticalAlignment="Center"
-                                                   TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding Titolo}"
-                                                   Foreground="{DynamicResource AppTextBrush}"
-                                                   FontSize="14"
-                                                   VerticalAlignment="Center"
-                                                   TextTrimming="CharacterEllipsis" />
-                                        <TextBlock TextWrapping="Wrap" Grid.Column="2"
-                                                   Text="{Binding CriticitaBadgeText}"
-                                                   Foreground="{Binding TitoloForeground}"
-                                                   FontSize="13"
-                                                   FontWeight="SemiBold"
-                                                   VerticalAlignment="Center" />
-                                    </infra:AdaptiveGrid>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <Border Grid.Row="1"
-                            Margin="0,24,0,0"
-                            Padding="18"
-                            Background="#F8FAFC"
-                            BorderBrush="{DynamicResource AppBorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="8">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding HasDashboardCriticitaOperative}" Value="False">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                        <TextBlock Text="{Binding DashboardCriticitaOperativeEmptyText}"
-                                   Foreground="{DynamicResource AppMutedTextBrush}"
-                                   FontSize="14"
-                                   TextWrapping="Wrap" />
-                    </Border>
-
-                    <Button Grid.Row="2"
-                            Margin="0,16,0,0"
-                            HorizontalAlignment="Left"
-                            MinWidth="0"
-                            Content="Vai all'elenco"
-                            Command="{Binding NavigateSectionCommand}"
-                            CommandParameter="2"
-                            IsEnabled="{Binding HasDashboardCriticitaOperative}"
-                            Style="{DynamicResource SecondaryButtonStyle}" />
-                </Grid>
-            </Border>
         </infra:AdaptiveGrid>
     </Grid>
 </UserControl>

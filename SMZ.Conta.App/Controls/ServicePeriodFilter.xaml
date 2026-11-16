@@ -1,0 +1,69 @@
+<UserControl x:Class="SMZ.Conta.App.Controls.ServicePeriodFilter"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:SMZ.Conta.App.Controls">
+    <StackPanel>
+        <TextBlock Text="Periodo" FontSize="12" Foreground="{DynamicResource AppMutedTextBrush}" />
+        <WrapPanel>
+            <ComboBox x:Name="ModeSelector" Width="120" Margin="0,6,10,0" MinHeight="36"
+                      Background="#EEF4FA" BorderBrush="#B9CDDF" FontWeight="SemiBold"
+                      SelectedIndex="{Binding ServiziPeriodoModalita, Mode=TwoWay}"
+                      AutomationProperties.Name="Tipo di periodo dei servizi">
+                <ComboBoxItem Content="Mese" />
+                <ComboBoxItem Content="Giorno" />
+                <ComboBoxItem Content="Intervallo" />
+            </ComboBox>
+            <StackPanel x:Name="MonthFields" Orientation="Horizontal">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ServiziPeriodoModalita}" Value="0">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <ComboBox Width="135" MinHeight="36" Margin="0,6,8,0"
+                          ItemsSource="{Binding ContabilitaMesiDisponibili}" DisplayMemberPath="Descrizione"
+                          SelectedValuePath="NumeroMese" SelectedValue="{Binding ServiziMeseFiltro, Mode=TwoWay}"
+                          AutomationProperties.Name="Mese dei servizi" />
+                <ComboBox Width="84" MinHeight="36" Margin="0,6,0,0"
+                          ItemsSource="{Binding ContabilitaAnniDisponibili}" SelectedItem="{Binding ServiziAnnoFiltro, Mode=TwoWay}"
+                          AutomationProperties.Name="Anno dei servizi" />
+            </StackPanel>
+            <controls:DateInputPicker x:Name="DayField" Width="150"
+                                      Text="{Binding ServiziGiornoFiltro, UpdateSourceTrigger=PropertyChanged}"
+                                      ToolTip="Scegli il giorno dal calendario o digita gg/mm/aaaa">
+                <controls:DateInputPicker.Style>
+                    <Style TargetType="controls:DateInputPicker">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ServiziPeriodoModalita}" Value="1">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </controls:DateInputPicker.Style>
+            </controls:DateInputPicker>
+            <StackPanel x:Name="RangeFields" Orientation="Horizontal">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ServiziPeriodoModalita}" Value="2">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Text="Dal" Margin="0,6,6,0" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}" />
+                <controls:DateInputPicker Width="145" Text="{Binding ServiziDataDal, UpdateSourceTrigger=PropertyChanged}"
+                                          ToolTip="Data iniziale inclusa" />
+                <TextBlock Text="al" Margin="8,6,6,0" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}" />
+                <controls:DateInputPicker Width="145" Text="{Binding ServiziDataAl, UpdateSourceTrigger=PropertyChanged}"
+                                          ToolTip="Data finale inclusa" />
+            </StackPanel>
+        </WrapPanel>
+    </StackPanel>
+</UserControl>

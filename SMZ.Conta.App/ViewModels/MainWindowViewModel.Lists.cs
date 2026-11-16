@@ -299,32 +299,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void CaricaServiziSalvati(long? selectedServizioId = null)
     {
-        var meseFiltro = TryParseMonthFilter(ServiziDataSearchText);
-        var dataFiltro = meseFiltro is null ? TryParseDate(ServiziDataSearchText) : null;
-        var dataFiltroDb = dataFiltro is not null
-            ? dataFiltro.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
-            : string.Empty;
-        var dataInizioDb = string.Empty;
-        var dataFineDb = string.Empty;
-        if (meseFiltro is not null)
+        if (!TryGetPeriodoServizi(out var dataInizio, out var dataFine, out _))
         {
-            var dataInizio = new DateOnly(meseFiltro.Value.Year, meseFiltro.Value.Month, 1);
-            var dataFine = dataInizio.AddMonths(1).AddDays(-1);
-            dataInizioDb = dataInizio.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            dataFineDb = dataFine.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            ServiziSalvati.Clear();
+            SelectedServizioSalvato = null;
+            OnPropertyChanged(nameof(ServiziSalvatiStato));
+            return;
         }
-
-        var hasSearch = !string.IsNullOrWhiteSpace(ServiziSearchText)
-            || !string.IsNullOrWhiteSpace(ServiziNumeroSearchText)
-            || !string.IsNullOrWhiteSpace(dataFiltroDb)
-            || !string.IsNullOrWhiteSpace(dataInizioDb);
         var items = _repository.GetServiziGiornalieriRecenti(
-            maxItems: hasSearch ? 100 : 10,
+            maxItems: -1,
             searchText: ServiziSearchText,
             numeroServizio: ServiziNumeroSearchText,
-            dataServizio: dataFiltroDb,
-            dataInizio: dataInizioDb,
-            dataFine: dataFineDb);
+            dataInizio: dataInizio.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            dataFine: dataFine.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
         var selectedId = selectedServizioId ?? SelectedServizioSalvato?.ServizioGiornalieroId;
 
         ServiziSalvati.Clear();
@@ -344,10 +331,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         _serviziSearchText = string.Empty;
         _serviziNumeroSearchText = string.Empty;
-        _serviziDataSearchText = string.Empty;
+        RipristinaPeriodoServizi();
         OnPropertyChanged(nameof(ServiziSearchText));
         OnPropertyChanged(nameof(ServiziNumeroSearchText));
-        OnPropertyChanged(nameof(ServiziDataSearchText));
         CaricaServiziSalvati();
     }
 }

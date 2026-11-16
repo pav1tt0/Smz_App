@@ -21,9 +21,15 @@ public sealed partial class PersonaleRepository
 
     public List<RegistroImmersioneRiga> GetRegistroImmersioniMensile(int anno, int mese)
     {
-        using var connection = OpenConnection();
         var dataInizio = new DateOnly(anno, mese, 1);
         var dataFine = dataInizio.AddMonths(1).AddDays(-1);
+        return GetRegistroImmersioni(dataInizio, dataFine);
+    }
+
+    public List<RegistroImmersioneRiga> GetRegistroImmersioni(DateOnly dataInizio, DateOnly dataFine)
+    {
+        if (dataInizio > dataFine) throw new ArgumentException("Intervallo date non valido.");
+        using var connection = OpenConnection();
         return GetRegistroImmersioniMensile(connection, dataInizio, dataFine);
     }
 

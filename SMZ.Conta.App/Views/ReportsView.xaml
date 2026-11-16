@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:infra="clr-namespace:SMZ.Conta.App.Infrastructure"
+             xmlns:views="clr-namespace:SMZ.Conta.App.Views"
              xmlns:controls="clr-namespace:SMZ.Conta.App.Controls">
     <!-- The workspace constrains width; content can grow vertically so filters
          and actions stay reachable on short displays. Tables scroll internally. -->
@@ -56,36 +57,28 @@
                             <WrapPanel Grid.Row="1"
                                        Margin="0,6,0,0"
                                        VerticalAlignment="Center">
-                                <StackPanel Width="210">
+                                <StackPanel Width="200" Margin="0,0,12,8">
                                     <TextBlock TextWrapping="Wrap" Text="Localita"
                                                Foreground="{DynamicResource AppMutedTextBrush}" />
                                     <TextBox Text="{Binding ServiziSearchText, UpdateSourceTrigger=PropertyChanged}"
                                              ToolTip="Cerca per localita" />
                                 </StackPanel>
 
-                                <StackPanel Width="120"
-                                            Margin="12,0,0,0">
+                                <StackPanel Width="105"
+                                            Margin="0,0,12,8">
                                     <TextBlock TextWrapping="Wrap" Text="N. servizio"
                                                Foreground="{DynamicResource AppMutedTextBrush}" />
                                     <TextBox Text="{Binding ServiziNumeroSearchText, UpdateSourceTrigger=PropertyChanged}"
                                              ToolTip="Numero servizio" />
                                 </StackPanel>
 
-                                <StackPanel Width="130"
-                                            Margin="12,0,0,0">
-                                    <TextBlock TextWrapping="Wrap" Text="Data o mese"
-                                               Foreground="{DynamicResource AppMutedTextBrush}" />
-                                    <controls:DateInputPicker Text="{Binding ServiziDataSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                              AutoFormatText="False"
-                                                              ShowMonthShortcut="True"
-                                                              Width="120"
-                                                              ToolTip="{Binding ServiziDataSearchToolTip}" />
-                                </StackPanel>
-
-                                <Button Margin="12,20,0,0"
+                                <controls:ServicePeriodFilter Margin="0,0,12,8" />
+                                <Button Margin="0,20,0,8"
                                         MinWidth="0"
+                                        Height="36"
                                         Padding="12,6"
-                                        Content="Pulisci"
+                                        Content="Reimposta"
+                                        ToolTip="Cancella la ricerca e torna al mese corrente"
                                         Command="{Binding ClearServiziSearchCommand}"
                                         Style="{DynamicResource SecondaryButtonStyle}" />
                             </WrapPanel>
@@ -244,13 +237,15 @@
                                            Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap" />
                                 <TextBlock Margin="0,6,0,0"
-                                           Text="Il riepilogo resta visibile; il dettaglio righe e' consultabile come report nella sezione sotto."
+                                           Text="Ogni immersione viene stampata su una pagina A4. Dal e Al hanno precedenza su mese e anno; Usa mese ripristina il periodo mensile."
                                            Foreground="{DynamicResource AppMutedTextBrush}"
                                            FontSize="12"
                                            TextWrapping="Wrap" />
                             </StackPanel>
 
                             <WrapPanel Grid.Column="2"
+                                        MaxWidth="620"
+                                        HorizontalAlignment="Left"
                                         Orientation="Horizontal"
                                         VerticalAlignment="Center">
                                 <StackPanel Width="170">
@@ -269,6 +264,15 @@
                                               SelectedItem="{Binding ContabilitaAnnoSelezionato, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
 
+                                <StackPanel Width="145" Margin="12,0,0,0">
+                                    <TextBlock Text="Dal (intervallo)" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                    <controls:DateInputPicker Text="{Binding RegistroDataDal, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <StackPanel Width="145" Margin="12,0,0,0">
+                                    <TextBlock Text="Al (intervallo)" Foreground="{DynamicResource AppMutedTextBrush}" />
+                                    <controls:DateInputPicker Text="{Binding RegistroDataAl, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <Button Content="Usa mese" Margin="8,20,0,0" Command="{Binding ResetPeriodoRegistroCommand}" Style="{DynamicResource SecondaryButtonStyle}" />
                                 <Button Margin="12,20,0,0"
                                         Content="Aggiorna"
                                         Command="{Binding ReloadRegistroImmersioniCommand}" />
@@ -451,6 +455,12 @@
                                         <DataGridTextColumn Header="Nominativo"
                                                             Width="180" MinWidth="180"
                                                             Binding="{Binding Nominativo}" />
+                                        <DataGridTextColumn Header="Qualifica"
+                                                            Width="120" MinWidth="120"
+                                                            Binding="{Binding QualificaDisplay}" />
+                                        <DataGridTextColumn Header="Decorrenza qualifica"
+                                                            Width="115" MinWidth="115"
+                                                            Binding="{Binding DecorrenzaQualificaDisplay}" />
                                         <DataGridTextColumn Header="App."
                                                             Width="75" MinWidth="75"
                                                             Binding="{Binding Apparato}" />
@@ -951,6 +961,9 @@
                         </Grid>
                     </Border>
                 </Grid>
+            </TabItem>
+            <TabItem Header="Libretto del sommozzatore">
+                <views:LibrettoSommozzatoreView />
             </TabItem>
         </TabControl>
     </Grid>

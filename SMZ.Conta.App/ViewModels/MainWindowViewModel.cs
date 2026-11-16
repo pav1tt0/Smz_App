@@ -90,7 +90,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly RelayCommand _clearAttagliamentoEditorCommand;
     private readonly RelayCommand _removeAttagliamentoCommand;
     private readonly RelayCommand _enterAppCommand;
-    private readonly RelayCommand _toggleWelcomeAudioCommand;
     private readonly RelayCommand _flaggaTuttiImmersioneCommand;
     private readonly RelayCommand _createLocalBackupCommand;
     private readonly RelayCommand _createExternalBackupCommand;
@@ -159,7 +158,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string _attagliamentoNote = string.Empty;
     private string _serviziSearchText = string.Empty;
     private string _serviziNumeroSearchText = string.Empty;
-    private string _serviziDataSearchText = string.Empty;
     private long _servizioGiornalieroId;
     private string _servizioData = DateTime.Today.ToString("dd/MM/yyyy");
     private string _servizioNumeroOrdine = string.Empty;
@@ -195,7 +193,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string _contabilitaSmzFiltroApparato = string.Empty;
     private string _reportPersonaleFiltroNominativo = string.Empty;
     private bool _isWelcomeVisible = true;
-    private bool _isWelcomeAudioEnabled = true;
     private bool _isSyncingValoriCondivisiImmersione;
     private bool _isSyncingPartecipazioniUniche;
     private ElaborazioneMensileInfo? _elaborazioneMensileInfo;
@@ -226,7 +223,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         OpenScadenzaCommand = new RelayCommand(ApriScadenzaDaParametro);
         ClearFiltersCommand = new RelayCommand(PulisciFiltri);
         _enterAppCommand = new RelayCommand(EntraNellApp);
-        _toggleWelcomeAudioCommand = new RelayCommand(ToggleWelcomeAudio);
         _flaggaTuttiImmersioneCommand = new RelayCommand(FlaggaTuttiImmersione);
         _createLocalBackupCommand = new RelayCommand(CreaBackupLocaleManuale);
         _createExternalBackupCommand = new RelayCommand(CreaBackupEsternoManuale);
@@ -391,6 +387,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         CaricaElenco();
         CaricaArchivio();
+        InizializzaLibretto();
         CaricaServiziSalvati();
         CaricaContabilitaMensile();
         CaricaRegistroImmersioniMensile();
@@ -418,7 +415,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public string WelcomeSottotitolo =>
         "Accesso al gestionale operativo per personale, servizi giornalieri, immersioni, scadenze e contabilita.";
 
-    public string WelcomeCredits => "© Nucleo SMZ La Spezia 2026 - Sviluppato da Paolo Vittori e Codex";
+    public string WelcomeCredits => "© Nucleo SMZ La Spezia 2026 - Sviluppato da Paolo Vittori, Cesare Scapazzoni e Codex";
 
     public string WelcomeVersione => $"Versione {GetApplicationVersion()}";
 
@@ -502,7 +499,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public RelayCommand EnterAppCommand => _enterAppCommand;
 
-    public RelayCommand ToggleWelcomeAudioCommand => _toggleWelcomeAudioCommand;
 
     public RelayCommand FlaggaTuttiImmersioneCommand => _flaggaTuttiImmersioneCommand;
 
@@ -527,21 +523,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         get => _isWelcomeVisible;
         set => SetProperty(ref _isWelcomeVisible, value);
     }
-
-    public bool IsWelcomeAudioEnabled
-    {
-        get => _isWelcomeAudioEnabled;
-        set
-        {
-            if (SetProperty(ref _isWelcomeAudioEnabled, value))
-            {
-                OnPropertyChanged(nameof(WelcomeAudioTooltip));
-            }
-        }
-    }
-
-    public string WelcomeAudioTooltip =>
-        IsWelcomeAudioEnabled ? "Disattiva audio welcome" : "Attiva audio welcome";
 
     public int SezioneAttivaIndex
     {
@@ -695,21 +676,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
             }
         }
     }
-
-    public string ServiziDataSearchText
-    {
-        get => _serviziDataSearchText;
-        set
-        {
-            if (SetProperty(ref _serviziDataSearchText, value))
-            {
-                CaricaServiziSalvati();
-            }
-        }
-    }
-
-    public string ServiziDataSearchToolTip =>
-        "Cerca per data esatta oppure per mese. Esempi: 15/03/2026 o 03/2026.";
 
     public ObservableCollection<ContabilitaSmzSummary> ContabilitaSmzItems { get; }
 
@@ -1300,18 +1266,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
             : "Compila la bozza, salva il servizio e riaprilo dall'elenco per le verifiche operative.";
 
     public string ServiziSalvatiStato =>
-        ServiziSalvati.Count == 0
-            ? !HasFiltroServiziAttivo
-                ? "Nessun servizio ancora registrato."
-                : "Nessun servizio trovato con la ricerca impostata."
-            : !HasFiltroServiziAttivo
-                ? $"{ServiziSalvati.Count} servizi recenti visualizzati."
-                : $"{ServiziSalvati.Count} servizi trovati per la ricerca impostata.";
-
-    private bool HasFiltroServiziAttivo =>
-        !string.IsNullOrWhiteSpace(ServiziSearchText)
-        || !string.IsNullOrWhiteSpace(ServiziNumeroSearchText)
-        || !string.IsNullOrWhiteSpace(ServiziDataSearchText);
+        !TryGetPeriodoServizi(out var inizio, out var fine, out var errore)
+            ? errore
+            : $"{ServiziSalvati.Count} servizi dal {inizio:dd/MM/yyyy} al {fine:dd/MM/yyyy}.";
 
     public string ContabilitaPeriodoTitolo =>
         ContabilitaMeseSelezionato is null
@@ -1389,9 +1346,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
             : $"{IndennitaFuoriSedeTotaleOperatori} operatori con {IndennitaFuoriSedeTotaleGiornate} giornate fuori sede complessive.";
 
     public string RegistroImmersioniPeriodoTitolo =>
-        ContabilitaMeseSelezionato is null
-            ? $"Registro immersioni {ContabilitaAnnoEffettivo}"
-            : $"Registro immersioni {ContabilitaMeseSelezionato.Descrizione} {ContabilitaAnnoEffettivo}";
+        TryGetPeriodoRegistro(out var inizio, out var fine, out var errore)
+            ? $"Registro immersioni dal {inizio:dd/MM/yyyy} al {fine:dd/MM/yyyy}"
+            : errore;
 
     public string ReportPersonalePeriodoTitolo =>
         ReportPersonaleMeseSelezionato is null || ReportPersonaleMeseSelezionato.NumeroMese == 0
@@ -1446,7 +1403,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public string RegistroImmersioniCategorieStato =>
         RegistroImmersioniCategorieItems.Count == 0
             ? "Nessuna categoria alimentata nel periodo selezionato."
-            : $"{RegistroImmersioniCategorieItems.Count} categorie di registro alimentate dai servizi del mese.";
+            : $"{RegistroImmersioniCategorieItems.Count} categorie di registro alimentate dai servizi del periodo.";
 
     public string BackupLocaleStato => FormatBackupInfo(
         _backupService.GetLatestLocalBackup(),

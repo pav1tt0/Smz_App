@@ -50,6 +50,10 @@ internal static partial class Program
             Run("conservazione visite gia registrate", TestConservazioneVisite);
             Run("salvataggio e lettura servizio con immersione", TestSalvataggioELetturaServizio);
             Run("ore effettive nell'elenco servizi", TestOreImmersioneEffettive);
+            Run("servizi del mese e intervalli inclusivi senza limiti", TestPeriodiServizi);
+            Run("registro A4 con una scheda per immersione", TestRegistroA4PerImmersione);
+            Run("registro ordinato per qualifica e decorrenza anche in stampa", TestOrdineRegistroDecorrenza);
+            Run("libretto storico personale separato dagli esterni", TestLibrettoSommozzatore);
             Run("personale ordinato per qualifica in elenchi e servizi", TestOrdinePersonalePerQualifica);
             Run("personale su due colonne in ordine verticale", TestPersonaleColonneVerticali);
             Run("tre natanti salvati riaperti stampati e scambiati", TestTreNatantiServizio);

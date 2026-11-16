@@ -183,6 +183,8 @@ public sealed class ServizioOperatoreSubEsternoImmersione
 
 public sealed class ServizioGiornalieroSummary
 {
+    public string ResponsabileServizioDescrizione { get; set; } = string.Empty;
+
     public long ServizioGiornalieroId { get; set; }
 
     public DateOnly DataServizio { get; set; }

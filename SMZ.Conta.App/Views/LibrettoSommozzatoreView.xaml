@@ -1,0 +1,44 @@
+<UserControl x:Class="SMZ.Conta.App.Views.LibrettoSommozzatoreView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="12" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Border Style="{DynamicResource CardStyle}">
+            <StackPanel>
+                <TextBlock Text="Libretto del sommozzatore" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource AppTextBrush}" />
+                <TextBlock Text="Prima predisposizione: dati dell'operatore e storico completo delle immersioni registrate. Il formato del libretto sarà definito sulle scansioni del modello cartaceo."
+                           TextWrapping="Wrap" Margin="0,6,0,10" Foreground="{DynamicResource AppMutedTextBrush}" />
+                <WrapPanel>
+                    <StackPanel Width="320" Margin="0,0,12,8">
+                        <TextBlock Text="Operatore" Foreground="{DynamicResource AppMutedTextBrush}" />
+                        <ComboBox ItemsSource="{Binding LibrettoOperatori}" SelectedItem="{Binding LibrettoOperatore}"
+                                  DisplayMemberPath="NominativoConQualifica" />
+                    </StackPanel>
+                    <Button Content="Aggiorna" Command="{Binding AggiornaLibrettoCommand}" Margin="0,20,8,8" />
+                    <Button Content="Stampa bozza A4" Command="{Binding StampaLibrettoCommand}" Margin="0,20,0,8"
+                            Style="{DynamicResource SecondaryButtonStyle}" />
+                </WrapPanel>
+                <TextBlock Text="{Binding LibrettoAnagrafica}" TextWrapping="Wrap" Foreground="{DynamicResource AppTextBrush}" Margin="0,8,0,8" />
+                <TextBlock Text="{Binding LibrettoRiepilogo}" TextWrapping="Wrap" FontWeight="SemiBold" Foreground="{DynamicResource AppTextBrush}" />
+            </StackPanel>
+        </Border>
+        <DataGrid Grid.Row="2" ItemsSource="{Binding LibrettoImmersioni}" IsReadOnly="True" AutoGenerateColumns="False"
+                  CanUserAddRows="False" RowHeaderWidth="0" MinRowHeight="36" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Data" Binding="{Binding DataServizioDescrizione}" Width="100" />
+                <DataGridTextColumn Header="N. servizio" Binding="{Binding NumeroOrdineServizio}" Width="100" />
+                <DataGridTextColumn Header="Immersione" Binding="{Binding NumeroImmersione}" Width="90" />
+                <DataGridTextColumn Header="Località" Binding="{Binding Localita}" Width="160" />
+                <DataGridTextColumn Header="Scopo" Binding="{Binding ScopoImmersione}" Width="230" />
+                <DataGridTextColumn Header="Orario" Binding="{Binding OrarioDisplay}" Width="110" />
+                <DataGridTextColumn Header="Apparato" Binding="{Binding Apparato}" Width="140" />
+                <DataGridTextColumn Header="Profondità" Binding="{Binding ProfonditaDisplay}" Width="90" />
+                <DataGridTextColumn Header="Ore" Binding="{Binding OreImmersioneDisplay}" Width="70" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

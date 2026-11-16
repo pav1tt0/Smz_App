@@ -50,6 +50,18 @@ le riduzioni per immersioni addestrative e camera iperbarica.
 Le chiusure mensili gia salvate restano conservate: per ricalcolare un mese
 gia chiuso con la correzione, usare Rigenera chiusura nella contabilita.
 
+AGGIORNAMENTO DEL 16 NOVEMBRE 2026
+Autori nella landing: Paolo Vittori, Cesare Scapazzoni e Codex.
+Rimosso il suono delle bolle e il riquadro Criticita operative dalla dashboard.
+Servizi e stampe servizio: filtro Periodo con Mese, Giorno o Intervallo;
+sono visibili solo i campi necessari. Reimposta torna al mese corrente.
+Registro immersioni: formato A4, una scheda per immersione, tabelle centrate;
+operatori ordinati per qualifica e, a parita, per decorrenza piu anziana.
+Il fumetto dei servizi include il responsabile del servizio.
+Predisposto il Libretto del sommozzatore con anagrafica, storico immersioni
+e stampa in bozza, da adattare successivamente al modello cartaceo.
+La dashboard mantiene la disposizione attuale; le proposte grafiche non sono incluse.
+
 USO
 A-, percentuale e A+ regolano la dimensione dell'interfaccia dal 70% al 150%.
 Ogni tipo di abilitazione puo comparire una sola volta per persona; per aggiornarlo

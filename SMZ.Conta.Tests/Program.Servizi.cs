@@ -66,7 +66,7 @@ internal static partial class Program
         }
         repository.SaveServizioGiornaliero(LeggiBozzaServizio(vm));
         AssertEqual("302,303,304,301", string.Join(",", repository.GetContabilitaGiornateImpiego(2026, 7).SmzImmersioni.Select(item => item.PerId)), "Ordine contabilita per qualifica e nome");
-        AssertEqual("302,303,304,301", string.Join(",", repository.GetRegistroImmersioniMensile(2026, 7).Select(item => item.PerId)), "Ordine registro per qualifica e nome");
+        AssertEqual("303,302,304,301", string.Join(",", repository.GetRegistroImmersioniMensile(2026, 7).Select(item => item.PerId)), "Ordine registro per qualifica e decorrenza");
         AssertEqual("302,303,304,301", string.Join(",", repository.GetIndennitaFuoriSedeMensile(2026, 7).Select(item => item.PerId)), "Ordine indennita per qualifica e nome");
         AssertEqual("302,303,304,301", string.Join(",", repository.GetReportPersonaleMensile(2026, 7).Select(item => item.PerId).Distinct()), "Ordine report per qualifica e nome");
     });

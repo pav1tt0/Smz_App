@@ -106,6 +106,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         CaricaContabilitaMensile();
         CaricaRegistroImmersioniMensile();
+        CaricaLibretto();
         CaricaReportPersonaleMensile();
     }
 
@@ -291,7 +292,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
             return;
         }
 
-        var items = _repository.GetRegistroImmersioniMensile(ContabilitaAnnoSelezionato, ContabilitaMeseSelezionato.NumeroMese);
+        var valido = TryGetPeriodoRegistro(out var inizio, out var fine, out _);
+        var items = valido ? _repository.GetRegistroImmersioni(inizio, fine) : [];
 
         RegistroImmersioniItems.Clear();
         foreach (var item in items)
@@ -449,14 +451,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         IsWelcomeVisible = false;
         SezioneAttivaIndex = HomeSectionIndex;
         Stato = "Home iniziale caricata.";
-    }
-
-    private void ToggleWelcomeAudio()
-    {
-        IsWelcomeAudioEnabled = !IsWelcomeAudioEnabled;
-        Stato = IsWelcomeAudioEnabled
-            ? "Audio welcome attivato."
-            : "Audio welcome disattivato.";
     }
 
     private void SalvaElaborazioneMensile()

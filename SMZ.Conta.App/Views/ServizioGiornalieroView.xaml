@@ -119,19 +119,16 @@
                                         <TextBlock TextWrapping="Wrap" Text="Ricerca servizi"
                                                    Foreground="{DynamicResource AppMutedTextBrush}" />
                                          <WrapPanel Margin="0,6,0,0">
-    <StackPanel Width="240" Margin="0,0,12,8">
+    <StackPanel Width="200" Margin="0,0,12,8">
         <TextBlock Text="Localita" Foreground="{DynamicResource AppMutedTextBrush}" FontSize="12" />
         <TextBox Text="{Binding ServiziSearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Cerca per localita" />
     </StackPanel>
-    <StackPanel Width="130" Margin="0,0,12,8">
+    <StackPanel Width="105" Margin="0,0,12,8">
         <TextBlock Text="N. servizio" Foreground="{DynamicResource AppMutedTextBrush}" FontSize="12" />
         <TextBox Text="{Binding ServiziNumeroSearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Numero servizio" />
     </StackPanel>
-    <StackPanel Width="150" Margin="0,0,12,8">
-        <TextBlock Text="Data o mese" Foreground="{DynamicResource AppMutedTextBrush}" FontSize="12" />
-        <controls:DateInputPicker Text="{Binding ServiziDataSearchText, UpdateSourceTrigger=PropertyChanged}" AutoFormatText="False" ShowMonthShortcut="True" Width="145" ToolTip="{Binding ServiziDataSearchToolTip}" />
-    </StackPanel>
-    <Button Content="Pulisci" Command="{Binding ClearServiziSearchCommand}" Style="{DynamicResource SecondaryButtonStyle}" MinWidth="112" Width="112" Height="42" Margin="0,18,0,8" />
+    <controls:ServicePeriodFilter Margin="0,0,12,8" />
+    <Button Content="Reimposta" ToolTip="Cancella la ricerca e torna al mese corrente" Command="{Binding ClearServiziSearchCommand}" Style="{DynamicResource SecondaryButtonStyle}" MinWidth="100" Width="100" Height="36" Margin="0,20,0,8" />
 </WrapPanel>
                                     </StackPanel>
 
@@ -170,7 +167,7 @@
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource AppTextBrush}" />
                                             <TextBlock TextWrapping="Wrap" Margin="0,3,0,0"
-                                                       Text="Sono visibili i servizi recenti; usa la ricerca per trovare quelli piu vecchi."
+                                               Text="Sono visibili i servizi del mese corrente o del periodo selezionato."
                                                        Foreground="{DynamicResource AppMutedTextBrush}" />
                                         </StackPanel>
                                     </DockPanel>
@@ -225,6 +222,10 @@
                                                                         <Run Text="Tipo: " />
                                                                         <Run Text="{Binding TipoServizio}" />
                                                                     </TextBlock>
+                                                                    <TextBlock Margin="0,6,0,0"
+                                                                               Text="{Binding ResponsabileServizioDescrizione, StringFormat=Responsabile del servizio: {0}}"
+                                                                               Foreground="{DynamicResource AppTextBrush}"
+                                                                               TextWrapping="Wrap" />
                                                                     <TextBlock Margin="0,6,0,0"
                                                                                Text="{Binding LocalitaDescrizione, StringFormat=Localita: {0}}"
                                                                                Foreground="{DynamicResource AppTextBrush}"

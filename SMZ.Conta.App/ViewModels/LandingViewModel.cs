@@ -5,34 +5,15 @@ namespace SMZ.Conta.App.ViewModels;
 
 public sealed class LandingViewModel : ObservableObject
 {
-    private bool _isWelcomeAudioEnabled = true;
-
     public LandingViewModel(Action enterApplication)
     {
         EnterAppCommand = new RelayCommand(enterApplication);
-        ToggleWelcomeAudioCommand = new RelayCommand(() => IsWelcomeAudioEnabled = !IsWelcomeAudioEnabled);
     }
 
     public RelayCommand EnterAppCommand { get; }
-    public RelayCommand ToggleWelcomeAudioCommand { get; }
     public bool IsWelcomeVisible => true;
 
-    public bool IsWelcomeAudioEnabled
-    {
-        get => _isWelcomeAudioEnabled;
-        set
-        {
-            if (SetProperty(ref _isWelcomeAudioEnabled, value))
-            {
-                OnPropertyChanged(nameof(WelcomeAudioTooltip));
-            }
-        }
-    }
-
-    public string WelcomeAudioTooltip =>
-        IsWelcomeAudioEnabled ? "Disattiva audio welcome" : "Attiva audio welcome";
-
-    public string WelcomeCredits => "© Nucleo SMZ La Spezia 2026 - Sviluppato da Paolo Vittori e Codex";
+    public string WelcomeCredits => "© Nucleo SMZ La Spezia 2026 - Sviluppato da Paolo Vittori, Cesare Scapazzoni e Codex";
 
     public string WelcomeVersione
     {

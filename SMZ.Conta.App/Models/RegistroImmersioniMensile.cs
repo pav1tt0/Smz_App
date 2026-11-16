@@ -2,6 +2,8 @@ namespace SMZ.Conta.App.Models;
 
 public sealed class RegistroImmersioneRiga
 {
+    public bool OperatoreEsterno { get; set; }
+
     public long ServizioGiornalieroId { get; set; }
 
     public long ServizioImmersioneId { get; set; }
@@ -25,6 +27,10 @@ public sealed class RegistroImmersioneRiga
     public string Nome { get; set; } = string.Empty;
 
     public string Qualifica { get; set; } = string.Empty;
+
+    public DateOnly? DataDecorrenzaQualifica { get; set; }
+
+    public string DecorrenzaQualificaDisplay => DataDecorrenzaQualifica?.ToString("dd/MM/yyyy") ?? string.Empty;
 
     public string QualificaDisplay => QualificaFormatter.AbbreviaPerVisualizzazione(Qualifica);
 

@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -11,7 +10,6 @@ namespace SMZ.Conta.App.Views;
 
 public partial class LandingWindow : Window
 {
-    private readonly DiveAmbiencePlayer _diveAmbiencePlayer = new();
     private readonly LandingViewModel _viewModel;
     private readonly AccessService _accessService;
 
@@ -21,9 +19,6 @@ public partial class LandingWindow : Window
         _accessService = accessService;
         _viewModel = new LandingViewModel(OpenLogin);
         DataContext = _viewModel;
-        Loaded += (_, _) => UpdateWelcomeAudio();
-        Closed += (_, _) => _diveAmbiencePlayer.Dispose();
-        _viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
     public AccessSession? Session { get; private set; }
@@ -55,7 +50,6 @@ public partial class LandingWindow : Window
         Session = session;
         LoadingOverlay.Visibility = Visibility.Visible;
         Cursor = Cursors.Wait;
-        _diveAmbiencePlayer.Stop();
         Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { }));
 
         try
@@ -74,28 +68,8 @@ public partial class LandingWindow : Window
             Session = null;
             LoadingOverlay.Visibility = Visibility.Collapsed;
             Cursor = null;
-            UpdateWelcomeAudio();
             throw;
         }
     }
 
-    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(LandingViewModel.IsWelcomeAudioEnabled))
-        {
-            UpdateWelcomeAudio();
-        }
-    }
-
-    private void UpdateWelcomeAudio()
-    {
-        if (_viewModel.IsWelcomeAudioEnabled)
-        {
-            _diveAmbiencePlayer.Start();
-        }
-        else
-        {
-            _diveAmbiencePlayer.Stop();
-        }
-    }
 }

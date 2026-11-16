@@ -83,18 +83,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void StampaRegistroImmersioniMensile(RegistroImmersioniMensilePrintLayout layout)
     {
-        if (ContabilitaMeseSelezionato is null || ContabilitaAnnoSelezionato <= 0)
+        if (!TryGetPeriodoRegistro(out var inizio, out var fine, out var errore))
         {
-            Stato = "Stampa registro non eseguita: seleziona mese e anno.";
+            Stato = errore;
             return;
         }
 
         try
         {
             _registroImmersioniMensilePrintService.Print(
-                ContabilitaAnnoSelezionato,
-                ContabilitaMeseSelezionato.NumeroMese,
-                ContabilitaMeseSelezionato.Descrizione,
+                inizio,
+                fine,
                 layout);
             Stato = layout == RegistroImmersioniMensilePrintLayout.Compatto
                 ? "Stampa registro immersioni compatta inviata."

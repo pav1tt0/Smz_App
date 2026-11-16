@@ -161,11 +161,13 @@ public sealed partial class PersonaleRepository
                            WHERE si.ServizioGiornalieroId = s.ServizioGiornalieroId
                              AND sei.OreImmersione > 0
                        )
-                   ), '') AS OreImmersioneEffettive
+                   ), '') AS OreImmersioneEffettive,
+                   TRIM(COALESCE(resp.Qualifica, '') || ' ' || COALESCE(resp.Cognome, '') || ' ' || COALESCE(resp.Nome, '')) AS ResponsabileServizioDescrizione
             FROM ServiziGiornalieri s
             LEFT JOIN LocalitaOperative lo ON lo.LocalitaOperativaId = s.LocalitaOperativaId
             LEFT JOIN ScopiImmersione sc ON sc.ScopoImmersioneId = s.ScopoImmersioneId
             LEFT JOIN UnitaNavali unv ON unv.UnitaNavaleId = s.UnitaNavaleId
+            LEFT JOIN Personale resp ON resp.PerId = s.ResponsabileServizioPerId
             WHERE ($search = '' OR COALESCE(lo.Descrizione, '') LIKE $searchLike)
               AND ($numeroServizio = '' OR COALESCE(s.NumeroOrdineServizio, '') LIKE $numeroServizioLike)
               AND ($dataServizio = '' OR s.DataServizio = $dataServizio)
@@ -213,6 +215,7 @@ public sealed partial class PersonaleRepository
                 OreImmersioneTotali = reader.GetDecimal(15),
                 CategorieOreDescrizione = reader.GetString(16),
                 AggiornatoIl = DateTime.Parse(reader.GetString(17)),
+                ResponsabileServizioDescrizione = reader.GetString(19),
                 OreImmersioneEffettive = reader.GetString(18)
                     .Split(';', StringSplitOptions.RemoveEmptyEntries)
                     .Select(value => decimal.Parse(value, CultureInfo.InvariantCulture))

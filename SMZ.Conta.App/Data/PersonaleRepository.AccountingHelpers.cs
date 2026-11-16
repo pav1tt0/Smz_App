@@ -180,7 +180,8 @@ public sealed partial class PersonaleRepository
     private static List<RegistroImmersioneRiga> GetRegistroImmersioniMensile(
         SqliteConnection connection,
         DateOnly dataInizio,
-        DateOnly dataFine)
+        DateOnly dataFine,
+        int? perId = null)
     {
         using var command = connection.CreateCommand();
         command.CommandText =
@@ -206,7 +207,9 @@ public sealed partial class PersonaleRepository
                        si.OrarioInizio,
                        si.OrarioFine,
                        tio.Ordine AS ApparatoOrdine,
-                       fp.Ordine AS FasciaOrdine
+                       fp.Ordine AS FasciaOrdine,
+                       0 AS OperatoreEsterno,
+                       p.DataDecorrenzaQualifica AS DataDecorrenzaQualifica
                 FROM ServizioPartecipantiImmersioni spi
                 INNER JOIN ServizioImmersioni si ON si.ServizioImmersioneId = spi.ServizioImmersioneId
                 INNER JOIN ServizioPartecipanti sp ON sp.ServizioPartecipanteId = spi.ServizioPartecipanteId
@@ -245,7 +248,9 @@ public sealed partial class PersonaleRepository
                        si.OrarioInizio,
                        si.OrarioFine,
                        tio.Ordine AS ApparatoOrdine,
-                       fp.Ordine AS FasciaOrdine
+                       fp.Ordine AS FasciaOrdine,
+                       1 AS OperatoreEsterno,
+                       NULL AS DataDecorrenzaQualifica
                 FROM ServizioOperatoriSubEsterniImmersioni sei
                 INNER JOIN ServizioImmersioni si ON si.ServizioImmersioneId = sei.ServizioImmersioneId
                 INNER JOIN ServizioOperatoriSubEsterni soe ON soe.ServizioOperatoreSubEsternoId = sei.ServizioOperatoreSubEsternoId
@@ -260,6 +265,7 @@ public sealed partial class PersonaleRepository
                 WHERE s.DataServizio >= $dataInizio
                   AND s.DataServizio <= $dataFine
             )
+            WHERE ($perId IS NULL OR (PerId = $perId AND OperatoreEsterno = 0))
             ORDER BY DataServizio,
                      NumeroOrdineServizio,
                      NumeroImmersione,
@@ -270,6 +276,7 @@ public sealed partial class PersonaleRepository
             """;
         command.Parameters.AddWithValue("$dataInizio", dataInizio.ToString("yyyy-MM-dd"));
         command.Parameters.AddWithValue("$dataFine", dataFine.ToString("yyyy-MM-dd"));
+        command.Parameters.AddWithValue("$perId", (object?)perId ?? DBNull.Value);
 
         using var reader = command.ExecuteReader();
         var items = new List<RegistroImmersioneRiga>();
@@ -296,10 +303,12 @@ public sealed partial class PersonaleRepository
                 OreImmersione = Convert.ToDecimal(reader.GetValue(15)),
                 OrarioInizio = ParseDbTime(reader, 16),
                 OrarioFine = ParseDbTime(reader, 17),
+                OperatoreEsterno = reader.GetInt32(20) == 1,
+                DataDecorrenzaQualifica = ParseDbDate(reader, 21),
             });
         }
 
-        return items.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))
+        return items.OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica, item.DataDecorrenzaQualifica))
             .ThenBy(item => item.Cognome).ThenBy(item => item.Nome)
             .ThenBy(item => item.DataServizio).ThenBy(item => item.NumeroImmersione).ToList();
     }

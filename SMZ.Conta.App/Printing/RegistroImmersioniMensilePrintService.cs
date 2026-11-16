@@ -30,89 +30,91 @@ public sealed class RegistroImmersioniMensilePrintService
         string meseDescrizione,
         RegistroImmersioniMensilePrintLayout layout = RegistroImmersioniMensilePrintLayout.Normale)
     {
-        var righe = _repository.GetRegistroImmersioniMensile(anno, mese);
-        var servizi = righe
-            .Select(item => item.ServizioGiornalieroId)
-            .Distinct()
-            .Select(_repository.GetServizioGiornalieroById)
-            .Where(item => item is not null)
-            .Select(item => item!)
-            .OrderBy(item => item.DataServizio)
-            .ThenBy(item => item.NumeroOrdineServizio)
-            .ToList();
+        var inizio = new DateOnly(anno, mese, 1);
+        Print(inizio, inizio.AddMonths(1).AddDays(-1), layout);
+    }
+
+    public void Print(DateOnly inizio, DateOnly fine,
+        RegistroImmersioniMensilePrintLayout layout = RegistroImmersioniMensilePrintLayout.Normale)
+    {
 
         var dialog = new PrintDialog
         {
-            PrintTicket = { PageOrientation = PageOrientation.Landscape },
+            PrintTicket = { PageOrientation = PageOrientation.Portrait,
+                PageMediaSize = new PageMediaSize(PageMediaSizeName.ISOA4) },
         };
         if (dialog.ShowDialog() != true)
         {
             return;
         }
 
-        var document = BuildDocument(anno, meseDescrizione, servizi, righe, layout);
-        var pagePadding = GetPagePadding(layout);
-        document.PageWidth = dialog.PrintableAreaWidth;
-        document.PageHeight = dialog.PrintableAreaHeight;
-        document.PagePadding = pagePadding;
-        document.ColumnWidth = document.PageWidth - document.PagePadding.Left - document.PagePadding.Right;
-
-        dialog.PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator, $"Registro immersioni {meseDescrizione} {anno}");
+        dialog.PrintDocument(BuildPaginator(inizio, fine, layout), $"Registro immersioni {inizio:dd-MM-yyyy} - {fine:dd-MM-yyyy}");
     }
 
-    private FlowDocument BuildDocument(
-        int anno,
-        string meseDescrizione,
-        IReadOnlyList<ServizioGiornaliero> servizi,
-        IReadOnlyList<RegistroImmersioneRiga> righe,
-        RegistroImmersioniMensilePrintLayout layout)
+    public DocumentPaginator BuildPaginator(DateOnly inizio, DateOnly fine,
+        RegistroImmersioniMensilePrintLayout layout = RegistroImmersioniMensilePrintLayout.Normale)
     {
+        var righe = _repository.GetRegistroImmersioni(inizio, fine);
+        var servizi = _repository.GetServiziGiornalieriRecenti(maxItems: -1,
+                dataInizio: inizio.ToString("yyyy-MM-dd"), dataFine: fine.ToString("yyyy-MM-dd"))
+            .Where(item => item.ImmersioniTotali > 0)
+            .Select(item => _repository.GetServizioGiornalieroById(item.ServizioGiornalieroId)!)
+            .OrderBy(item => item.DataServizio).ThenBy(item => item.NumeroOrdineServizio).ToList();
         var cataloghi = _repository.GetCataloghiServizio();
         var persone = GetPersone(servizi);
-        var document = new FlowDocument
+        FlowDocument NewSheet() => new()
         {
             FontFamily = PrintTheme.DocumentFont,
             FontSize = GetFontSize(layout),
             PagePadding = GetPagePadding(layout),
             Foreground = PrintTheme.TextBrush,
         };
-
-        AddCoverPage(document, anno, meseDescrizione);
-
-        foreach (var serviceGroup in servizi
-                     .GroupBy(item => new { item.DataServizio, item.NumeroOrdineServizio })
-                     .OrderBy(group => group.Key.DataServizio)
-                     .ThenBy(group => group.Key.NumeroOrdineServizio))
+        var sheets = new List<FlowDocument>();
+        var cover = NewSheet();
+        var periodo = $"Dal {inizio:dd/MM/yyyy} al {fine:dd/MM/yyyy}";
+        AddCoverPage(cover, periodo);
+        sheets.Add(cover);
+        foreach (var servizio in servizi)
         {
-            AddDayPage(
-                document,
-                serviceGroup.Key.DataServizio,
-                serviceGroup.Key.NumeroOrdineServizio,
-                serviceGroup.OrderBy(item => item.NumeroOrdineServizio),
-                persone,
-                cataloghi);
+            foreach (var immersione in servizio.Immersioni.OrderBy(item => item.NumeroImmersione))
+            {
+                var sheet = NewSheet();
+                var scheda = new ServizioGiornaliero
+                {
+                    DataServizio = servizio.DataServizio,
+                    NumeroOrdineServizio = servizio.NumeroOrdineServizio,
+                    OrarioServizio = servizio.OrarioServizio,
+                    ResponsabileServizioPerId = servizio.ResponsabileServizioPerId,
+                    LocalitaOperativaId = immersione.LocalitaOperativaId ?? servizio.LocalitaOperativaId,
+                    ScopoImmersioneId = immersione.ScopoImmersioneId ?? servizio.ScopoImmersioneId,
+                    UnitaNavaleId = servizio.UnitaNavaleId,
+                    UnitaNavaliAggiuntiveIds = servizio.UnitaNavaliAggiuntiveIds,
+                    FuoriSede = servizio.FuoriSede,
+                    AttivitaSvolta = servizio.AttivitaSvolta,
+                    Immersioni = [immersione],
+                    Partecipanti = servizio.Partecipanti.Where(p => immersione.Partecipazioni.Any(i => i.ServizioPartecipanteId == p.ServizioPartecipanteId)).ToList(),
+                    OperatoriSubEsterni = servizio.OperatoriSubEsterni.Where(p => immersione.PartecipazioniEsterne.Any(i => i.ServizioOperatoreSubEsternoId == p.ServizioOperatoreSubEsternoId)).ToList(),
+                };
+                AddDayPage(sheet, servizio.DataServizio, servizio.NumeroOrdineServizio, [scheda], persone, cataloghi);
+                sheet.Blocks.Add(new Paragraph(new Run($"Responsabile del servizio: {FormatPersona(servizio.ResponsabileServizioPerId, persone)}")));
+                if (!string.IsNullOrWhiteSpace(immersione.Note)) sheet.Blocks.Add(new Paragraph(new Run($"Note immersione: {immersione.Note}")));
+                sheets.Add(sheet);
+            }
         }
-
-        var riepilogoSection = new Section
-        {
-            BreakPageBefore = true,
-        };
-        riepilogoSection.Blocks.Add(BuildRiepilogoTable(anno, meseDescrizione, righe));
-        riepilogoSection.Blocks.Add(BuildResponsabileSignature());
-        document.Blocks.Add(riepilogoSection);
-
-        return document;
+        var summary = NewSheet();
+        summary.Blocks.Add(BuildRiepilogoTable(periodo, righe));
+        summary.Blocks.Add(BuildResponsabileSignature());
+        sheets.Add(summary);
+        return new SingleSheetDocumentPaginator(sheets, SingleSheetDocumentPaginator.A4);
     }
 
     private static double GetFontSize(RegistroImmersioniMensilePrintLayout layout) =>
-        layout == RegistroImmersioniMensilePrintLayout.Compatto ? 7.4 : 8.5;
+        layout == RegistroImmersioniMensilePrintLayout.Compatto ? 8.5 : 10;
 
     private static Thickness GetPagePadding(RegistroImmersioniMensilePrintLayout layout) =>
-        layout == RegistroImmersioniMensilePrintLayout.Compatto
-            ? new Thickness(22, 20, 22, 20)
-            : new Thickness(36);
+        new Thickness(36);
 
-    private static void AddCoverPage(FlowDocument document, int anno, string meseDescrizione)
+    private static void AddCoverPage(FlowDocument document, string periodo)
     {
         document.Blocks.Add(PrintTheme.RepublicEmblem(68, new Thickness(0, 0, 0, 8)));
         AddCentered(document, "POLIZIA DI STATO", 20, FontWeights.Bold);
@@ -121,7 +123,7 @@ public sealed class RegistroImmersioniMensilePrintService
         AddCentered(document, "La Spezia", 13, FontWeights.Normal);
         document.Blocks.Add(CreateDivider(new Thickness(120, 28, 120, 0)));
         AddCentered(document, "REGISTRO IMMERSIONI", 18, FontWeights.Bold, new Thickness(0, 72, 0, 0));
-        AddCentered(document, $"Mese di {meseDescrizione.ToUpper(CultureInfo.CurrentCulture)} Anno {anno}", 13, FontWeights.Bold, new Thickness(0, 12, 0, 0));
+        AddCentered(document, periodo, 13, FontWeights.Bold, new Thickness(0, 12, 0, 0));
     }
 
     private void AddDayPage(
@@ -134,7 +136,7 @@ public sealed class RegistroImmersioniMensilePrintService
     {
         var section = new Section
         {
-            BreakPageBefore = true,
+            BreakPageBefore = false,
         };
 
         var titleText = string.IsNullOrWhiteSpace(numeroOrdineServizio)
@@ -152,6 +154,7 @@ public sealed class RegistroImmersioniMensilePrintService
 
         foreach (var servizio in servizi)
         {
+            section.Blocks.Add(new Paragraph(new Run($"SCHEDA IMMERSIONE N. {servizio.Immersioni.Single().NumeroImmersione}")) { FontSize = 15, FontWeight = FontWeights.Bold, TextAlignment = TextAlignment.Center });
             section.Blocks.Add(BuildServizioHeaderTable(servizio, persone, cataloghi));
             section.Blocks.Add(BuildIndennitaTable(servizio, cataloghi));
             section.Blocks.Add(BuildPersonaleTable(servizio, persone, cataloghi));
@@ -231,7 +234,7 @@ public sealed class RegistroImmersioniMensilePrintService
             .Where(item => item.Presente)
             .SelectMany(partecipante => BuildPartecipanteRows(servizio, partecipante, persone, cataloghi))
             .Concat(servizio.OperatoriSubEsterni.SelectMany(operatore => BuildOperatoreEsternoRows(servizio, operatore, cataloghi)))
-            .OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica))
+            .OrderBy(item => QualificaFormatter.GetChiaveOrdinamento(item.Qualifica, item.DataDecorrenzaQualifica))
             .ThenBy(item => item.Nominativo).ToList();
 
         if (righe.Count == 0)
@@ -272,7 +275,8 @@ public sealed class RegistroImmersioniMensilePrintService
                 persona.NominativoCompleto,
                 string.Empty,
                 string.Empty,
-                string.Empty);
+                string.Empty,
+                persona.DataDecorrenzaQualifica);
             yield break;
         }
 
@@ -286,7 +290,8 @@ public sealed class RegistroImmersioniMensilePrintService
                 persona.NominativoCompleto,
                 tipologia,
                 item.partecipazione.ProfonditaMetri?.ToString(CultureInfo.CurrentCulture) ?? string.Empty,
-                item.partecipazione.OreImmersione is { } ore ? ore.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty);
+                item.partecipazione.OreImmersione is { } ore ? ore.ToString("0.##", CultureInfo.CurrentCulture) : string.Empty,
+                persona.DataDecorrenzaQualifica);
         }
     }
 
@@ -326,11 +331,11 @@ public sealed class RegistroImmersioniMensilePrintService
         }
     }
 
-    private static Table BuildRiepilogoTable(int anno, string meseDescrizione, IReadOnlyList<RegistroImmersioneRiga> righe)
+    private static Table BuildRiepilogoTable(string periodo, IReadOnlyList<RegistroImmersioneRiga> righe)
     {
         var table = CreateTable(180, 180, 180, 180);
         var title = new TableRow();
-        title.Cells.Add(new TableCell(new Paragraph(new Run($"RIEPILOGO NUMERO IMMERSIONI EFFETTUATE NEL MESE DI {meseDescrizione.ToUpper(CultureInfo.CurrentCulture)} ANNO {anno}"))
+        title.Cells.Add(new TableCell(new Paragraph(new Run($"RIEPILOGO NUMERO IMMERSIONI EFFETTUATE - {periodo}"))
         {
             TextAlignment = TextAlignment.Center,
             FontWeight = FontWeights.Bold,
@@ -386,7 +391,7 @@ public sealed class RegistroImmersioniMensilePrintService
                     item.OperatoreSoccorsoPerId,
                     item.AssistenteBlsdPerId,
                     item.AssistenteSanitarioPerId,
-                }).Where(item => item is not null).Select(item => item!.Value)))
+                }).Append(servizio.ResponsabileServizioPerId).Where(item => item is not null).Select(item => item!.Value)))
             .Distinct();
 
         var result = new Dictionary<int, Personale>();
@@ -475,10 +480,14 @@ public sealed class RegistroImmersioniMensilePrintService
 
     private static Table CreateTable(params double[] widths)
     {
+        // FlowDocument tables require pixel widths: star widths are not laid out
+        // proportionally by the WPF document formatter.
+        var availableWidth = SingleSheetDocumentPaginator.A4.Width - 72;
+        var totalWidth = widths.Sum();
         var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 0, 0, 4) };
         foreach (var width in widths)
         {
-            table.Columns.Add(new TableColumn { Width = new GridLength(width) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(width / totalWidth * availableWidth) });
         }
 
         table.RowGroups.Add(new TableRowGroup());
@@ -533,5 +542,6 @@ public sealed class RegistroImmersioniMensilePrintService
         string Nominativo,
         string Tipologia,
         string Profondita,
-        string Ore);
+        string Ore,
+        DateOnly? DataDecorrenzaQualifica = null);
 }
